@@ -1,0 +1,13 @@
+# Laravel
+laravel/vendor/
+laravel/.env
+laravel/storage/logs/*
+laravel/storage/framework/cache/*
+
+# Angular
+angular/node_modules/
+angular/dist/
+angular/.angular/
+
+# Docker
+postgres/data/
