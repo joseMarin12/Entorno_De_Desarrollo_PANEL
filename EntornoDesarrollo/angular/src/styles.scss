@@ -59,9 +59,10 @@ app-root {
    sidebar + main queden como columnas y llenen la pantalla. */
 router-outlet + * {
   display: flex;
+  flex-direction: column;
   flex: 1;
   width: 100%;
-  min-height: 100vh;
+  min-height: 0;
 }
 
 /* ══ SIDEBAR ══ */

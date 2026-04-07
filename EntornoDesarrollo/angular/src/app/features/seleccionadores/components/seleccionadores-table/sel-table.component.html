@@ -1,0 +1,102 @@
+<div class="table-card" style="margin-bottom:0">
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Primer Apellido</th>
+        <th>Segundo Apellido</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (seleccionadores.length === 0) {
+        <tr>
+          <td colspan="5" style="text-align:center;padding:40px 20px;color:var(--text3)">
+            <div style="font-size:28px;margin-bottom:8px;opacity:.35">🔍</div>
+            <div style="font-size:13px;font-weight:600">Sin resultados</div>
+            <div style="font-size:12px;margin-top:4px">Prueba con otro nombre o filtro</div>
+          </td>
+        </tr>
+      } @else {
+        @for (s of seleccionadores; track s.id) {
+          <tr>
+            <td>
+              <div class="avatar-cell">
+                <div class="row-avatar"
+                  [style.background]="s.activo ? svc.colorFor(s.id) : '#d1d5e8'"
+                  [style.color]="s.activo ? '#fff' : 'var(--text-muted)'">
+                  {{ svc.initials(s) }}
+                </div>
+                <div class="td-name" [style.color]="s.activo ? '' : 'var(--text-muted)'">
+                  {{ s.nombre }}
+                </div>
+              </div>
+            </td>
+            <td [style.color]="s.activo ? '' : 'var(--text-muted)'">{{ s.ap1 }}</td>
+            <td [style.color]="s.activo ? '' : 'var(--text-muted)'">{{ s.ap2 }}</td>
+            <td>
+              @if (s.activo) {
+                <span class="badge badge-active"><span class="badge-dot"></span> Activo</span>
+              } @else {
+                <span class="badge badge-inactive"><span class="badge-dot"></span> De baja</span>
+              }
+            </td>
+            <td>
+              <div class="actions">
+                <!-- Editar (clipboard con check azul) -->
+                <button class="action-btn edit" title="Editar" (click)="editClick.emit(s.id)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#476fab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                    <path d="M9 14l2 2 4-4"/>
+                  </svg>
+                </button>
+
+                <!-- Dar de baja / Activar -->
+                @if (s.activo) {
+                  <button class="action-btn baja" title="Dar de Baja" (click)="bajaClick.emit(s.id)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="8" x2="12" y2="12"/>
+                      <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  </button>
+                } @else {
+                  <button class="action-btn reactivar" title="Activar" (click)="activarClick.emit(s.id)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  <!-- Paginación -->
+  <div class="pagination">
+    <span>{{ paginationInfo }}</span>
+    <div class="page-btns">
+      <button
+        class="page-btn"
+        [disabled]="currentPage === 1"
+        [style.opacity]="currentPage === 1 ? '0.4' : '1'"
+        (click)="pageChange.emit(currentPage - 1)">‹</button>
+
+      @for (p of pages; track p) {
+        <button class="page-btn" [class.active]="p === currentPage" (click)="pageChange.emit(p)">{{ p }}</button>
+      }
+
+      <button
+        class="page-btn"
+        [disabled]="currentPage === totalPages"
+        [style.opacity]="currentPage === totalPages ? '0.4' : '1'"
+        (click)="pageChange.emit(currentPage + 1)">›</button>
+    </div>
+  </div>
+</div>

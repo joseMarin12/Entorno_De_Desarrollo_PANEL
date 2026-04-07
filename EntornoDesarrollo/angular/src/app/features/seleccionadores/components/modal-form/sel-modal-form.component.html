@@ -1,0 +1,91 @@
+<div class="modal-overlay open" (click)="close.emit()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">{{ title }}</div>
+        <div class="modal-subtitle">{{ subtitle }}</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 16px;">Los campos marcados con <em style="color:var(--danger)">*</em> son obligatorios.</p>
+
+      <!-- Nombre -->
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label class="form-label">Nombre <em style="color:var(--danger)">*</em></label>
+        <input
+          class="form-input"
+          [class.error]="errors['nombre']"
+          type="text"
+          placeholder="Ej: Javier"
+          [(ngModel)]="form.nombre"
+        />
+        @if (errors['nombre']) {
+          <span class="form-hint error-msg">{{ errors['nombre'] }}</span>
+        }
+      </div>
+
+      <!-- Apellidos -->
+      <div class="form-grid" style="margin-bottom: 16px;">
+        <div class="form-group">
+          <label class="form-label">Primer Apellido <em style="color:var(--danger)">*</em></label>
+          <input
+            class="form-input"
+            [class.error]="errors['ap1']"
+            type="text"
+            placeholder="Ej: Morales"
+            [(ngModel)]="form.ap1"
+          />
+          @if (errors['ap1']) {
+            <span class="form-hint error-msg">{{ errors['ap1'] }}</span>
+          }
+        </div>
+        <div class="form-group">
+          <label class="form-label">Segundo Apellido</label>
+          <input
+            class="form-input"
+            type="text"
+            placeholder="Ej: Fernández"
+            [(ngModel)]="form.ap2"
+          />
+        </div>
+      </div>
+
+      <div style="height: 1px; background: var(--border); margin: 24px 0;"></div>
+
+      <!-- Toggle estado -->
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Estado</label>
+        <div
+          class="toggle-wrap"
+          (click)="toggleActivo()"
+        >
+          <div class="toggle" [class.on]="form.activo"></div>
+          <div>
+            <div class="toggle-label">{{ form.activo ? 'Activo' : 'De baja' }}</div>
+            <div class="toggle-sub">
+              {{ form.activo
+                  ? 'El seleccionador está operativo en el sistema'
+                  : 'El seleccionador no está operativo en el sistema' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="close.emit()">Cancelar</button>
+      <button class="btn btn-primary" (click)="submit()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        {{ isEdit ? 'Guardar Cambios' : 'Añadir Seleccionador' }}
+      </button>
+    </div>
+
+  </div>
+</div>
