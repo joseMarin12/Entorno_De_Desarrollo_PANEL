@@ -60,6 +60,9 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "poll": 1000
+          },
           "configurations": {
             "production": {
               "buildTarget": "mi-panel:build:production"

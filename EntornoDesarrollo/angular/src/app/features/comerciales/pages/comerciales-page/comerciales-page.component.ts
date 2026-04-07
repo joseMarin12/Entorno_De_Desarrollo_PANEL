@@ -5,9 +5,7 @@ import { ComercialesService } from '../../../../services/comerciales.service';
 import { ToastService } from '../../../../services/toast.service';
 import { Comercial } from '../../../../models/comercial.model';
 
-import { SidebarComponent } from '../../../../shared/sidebar/sidebar.component';
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
-import { ToastComponent } from '../../../../shared/toast/toast.component';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
 import { ToolbarComponent, FilterType } from '../../components/toolbar/toolbar.component';
 import { ComercialesTableComponent } from '../../components/comerciales-table/comerciales-table.component';
@@ -20,9 +18,7 @@ import { ModalBajaComponent } from '../../components/modal-baja/modal-baja.compo
   standalone: true,
   imports: [
     CommonModule,
-    SidebarComponent,
     TopbarComponent,
-    ToastComponent,
     StatsRowComponent,
     ToolbarComponent,
     ComercialesTableComponent,

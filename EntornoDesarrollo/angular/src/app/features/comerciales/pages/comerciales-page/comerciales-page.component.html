@@ -1,9 +1,6 @@
-<app-sidebar />
+<app-topbar pageTitle="Comerciales" />
 
-<main class="main">
-  <app-topbar pageTitle="Comerciales" />
-
-  <div class="page-content">
+<div class="page-content">
 
     <!-- Cabecera -->
     <div class="page-header">
@@ -40,9 +37,7 @@
       (pageChange)="currentPage = $event"
     />
 
-  </div>
-</main>
-
+</div>
 <!-- Modales -->
 @if (showAdd) {
   <app-modal-add
@@ -66,6 +61,3 @@
     (close)="showBaja = false; selectedId = null"
   />
 }
-
-<!-- Toasts globales -->
-<app-toast />
