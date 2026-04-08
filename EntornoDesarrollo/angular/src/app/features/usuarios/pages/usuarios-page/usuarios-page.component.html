@@ -1,0 +1,64 @@
+<app-topbar pageTitle="Usuarios" />
+
+<div class="page-content">
+
+    <!-- Cabecera -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Usuarios</div>
+        <div class="page-subtitle">Gestiona los usuarios de la aplicación</div>
+      </div>
+      <button class="btn btn-primary" (click)="openAdd()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Usuario
+      </button>
+    </div>
+
+    <!-- Estadísticas -->
+    <app-usuarios-stats-row />
+
+    <!-- Toolbar: búsqueda + filtros + exportar -->
+    <app-usuarios-toolbar
+      (searchChange)="onSearchChange($event)"
+      (filterChange)="onFilterChange($event)"
+      (exportCsv)="exportCSV()"
+    />
+
+    <!-- Tabla -->
+    <app-usuarios-table
+      [usuarios]="paginatedUsuarios"
+      [currentPage]="currentPage"
+      [pageSize]="PAGE_SIZE"
+      [totalFiltered]="filtered.length"
+      (editClick)="onEditClick($event)"
+      (bajaClick)="onBajaClick($event)"
+      (pageChange)="currentPage = $event"
+    />
+
+</div>
+
+<!-- Modales -->
+@if (showAdd) {
+  <app-usuarios-modal-add
+    (save)="onSaveAdd($event)"
+    (close)="showAdd = false"
+  />
+}
+
+@if (showEdit && selectedUsuario) {
+  <app-usuarios-modal-edit
+    [usuario]="selectedUsuario"
+    (save)="onSaveEdit($event)"
+    (close)="showEdit = false; selectedId = null"
+  />
+}
+
+@if (showBaja && selectedUsuario) {
+  <app-usuarios-modal-baja
+    [usuario]="selectedUsuario"
+    (confirm)="onConfirmBaja()"
+    (close)="showBaja = false; selectedId = null"
+  />
+}
