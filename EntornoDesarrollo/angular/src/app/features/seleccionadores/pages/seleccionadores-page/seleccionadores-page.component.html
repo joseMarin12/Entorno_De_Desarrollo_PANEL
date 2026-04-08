@@ -6,7 +6,7 @@
     <div class="page-header">
       <div>
         <div class="page-title">Seleccionadores</div>
-        <div class="page-subtitle">Gestiona tu equipo de seleccionadores</div>
+        <div class="page-subtitle">Gestiona tu equipo de seleccionadores internos y colaboradores externos</div>
       </div>
       <button class="btn btn-primary" (click)="openAdd()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -14,14 +14,17 @@
         </svg>
         Nuevo Seleccionador
       </button>
-    </div>  <!-- Estadísticas -->
+    </div>
+
+  <!-- Estadísticas -->
   <app-sel-stats-row />
 
-  <!-- Toolbar: búsqueda + filtro + botón nuevo -->
+  <!-- Toolbar: búsqueda + filtros -->
   <div style="margin-bottom:16px">
     <app-sel-toolbar
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
+      (tipoFilterChange)="onTypeFilterChange($event)"
     />
   </div>
 
@@ -31,6 +34,7 @@
     [currentPage]="currentPage"
     [pageSize]="PAGE_SIZE"
     [totalFiltered]="filtered.length"
+    (detailClick)="onDetailClick($event)"
     (editClick)="onEditClick($event)"
     (bajaClick)="onBajaClick($event)"
     (activarClick)="onActivarClick($event)"
@@ -45,6 +49,15 @@
     [seleccionador]="selectedSeleccionador"
     (save)="onSaveForm($event)"
     (close)="showForm = false; selectedId = null"
+  />
+}
+
+<!-- Modal detalle (solo lectura) -->
+@if (showDetail && selectedSeleccionador) {
+  <app-sel-modal-detail
+    [seleccionador]="selectedSeleccionador"
+    (edit)="onEditClick($event); showDetail = false"
+    (close)="showDetail = false; selectedId = null"
   />
 }
 
