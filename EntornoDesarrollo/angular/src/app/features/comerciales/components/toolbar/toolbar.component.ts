@@ -41,19 +41,12 @@ export type FilterType = 'todos' | 'activos' | 'baja';
         >Dados de baja</button>
       </div>
 
-      <button class="btn btn-outline" style="margin-left:auto;" (click)="exportCsv.emit()">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-        </svg>
-        Exportar
-      </button>
     </div>
   `,
 })
 export class ToolbarComponent {
   @Output() searchChange = new EventEmitter<string>();
   @Output() filterChange = new EventEmitter<FilterType>();
-  @Output() exportCsv    = new EventEmitter<void>();
 
   searchValue = '';
   activeFilter = signal<FilterType>('todos');

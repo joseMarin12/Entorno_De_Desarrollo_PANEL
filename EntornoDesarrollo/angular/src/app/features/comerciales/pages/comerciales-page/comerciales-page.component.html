@@ -19,11 +19,10 @@
     <!-- Estadísticas -->
     <app-stats-row />
 
-    <!-- Toolbar: búsqueda + filtros + exportar -->
+    <!-- Toolbar: búsqueda + filtros -->
     <app-toolbar
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
-      (exportCsv)="exportCSV()"
     />
 
     <!-- Tabla -->
