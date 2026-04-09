@@ -41,15 +41,18 @@ CREATE TABLE role_localization_permission (
 );
 
 
--- Comercial y empresas
+-- Comerciales y empresas
 
-CREATE TABLE comercial (
+CREATE TABLE comerciales (  --comercial a comerciales
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(45) NOT NULL,
     primer_apellido VARCHAR(45),
     segundo_apellido VARCHAR(45),
     telefono VARCHAR(20),
-    email VARCHAR(128) UNIQUE
+    email VARCHAR(128) UNIQUE,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,  --campo de estado para activo o inactivo del comercial
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  --fecha de creacion del comercial
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP  --fecha de actualizacion del comercial
 );
 
 CREATE TABLE tipo_empresa (
@@ -63,10 +66,10 @@ CREATE TABLE empresa (
     razon_social VARCHAR(128),
     cif VARCHAR(9) UNIQUE,
     id_tipo_empresa INT,
-    id_comercial INT,
+    id_comerciales INT,  --cambie el nombre de la columna para que coincida con la tabla comerciales
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_tipo_empresa) REFERENCES tipo_empresa(id) ON DELETE SET NULL,
-    FOREIGN KEY (id_comercial) REFERENCES comercial(id) ON DELETE SET NULL
+    FOREIGN KEY (id_comerciales) REFERENCES comerciales(id) ON DELETE SET NULL  --cambie el nombre de la columna para que coincida con la tabla comerciales
 );
 
 CREATE TABLE provincia (
@@ -161,13 +164,13 @@ CREATE TABLE asignacion (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_empresa INT,
     id_trabajador INT,
-    id_comercial INT,
+    id_comerciales INT, --cambie el nombre de la columna para que coincida con la tabla comerciales
     fecha_ini DATE,
     fecha_fin DATE,
     tarifa DOUBLE PRECISION,
     FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE CASCADE,
     FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE,
-    FOREIGN KEY (id_comercial) REFERENCES comercial(id) ON DELETE SET NULL
+    FOREIGN KEY (id_comerciales) REFERENCES comerciales(id) ON DELETE SET NULL --cambie el nombre de la columna para que coincida con la tabla comerciales
 );
 
 CREATE TABLE headhunting (
