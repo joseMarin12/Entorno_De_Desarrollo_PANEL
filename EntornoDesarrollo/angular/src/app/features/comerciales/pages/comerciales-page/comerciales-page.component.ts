@@ -119,17 +119,4 @@ export class ComercialesPageComponent {
     }
   }
 
-  exportCSV(): void {
-    const rows = [['ID', 'Nombre', 'Apellido 1', 'Apellido 2', 'Teléfono', 'Email', 'Estado']];
-    this.filtered.forEach(c =>
-      rows.push([String(c.id), c.nombre, c.apellido1, c.apellido2, c.telefono, c.email, c.activo ? 'Activo' : 'Inactivo'])
-    );
-    const csv  = rows.map(r => r.join(';')).join('\n');
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url; a.download = 'comerciales.csv'; a.click();
-    URL.revokeObjectURL(url);
-    this.toast.show('info', '⬇ Exportación descargada');
-  }
 }
