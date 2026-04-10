@@ -135,4 +135,5 @@ export class ComercialesPageComponent implements OnInit {
       this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`);
     }
   }
+
 }
