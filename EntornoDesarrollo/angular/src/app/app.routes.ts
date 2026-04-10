@@ -3,10 +3,8 @@ import { ComercialesPageComponent } from './features/comerciales/pages/comercial
 import { SeleccionadoresPageComponent } from './features/seleccionadores/pages/seleccionadores-page/seleccionadores-page.component';
 
 export const routes: Routes = [
-  { path: '',           redirectTo: 'comerciales', pathMatch: 'full' },
+  { path: '', redirectTo: 'comerciales', pathMatch: 'full' },
   { path: 'comerciales', component: ComercialesPageComponent },
   { path: 'seleccionadores', component: SeleccionadoresPageComponent },
-  // Añade aquí el resto de rutas cuando crees las otras páginas:
-  // { path: 'usuarios',        component: UsuariosPageComponent },
-  // { path: 'empresas',        component: EmpresasPageComponent },
+
 ];

@@ -22,13 +22,13 @@
 
         <div class="form-group">
           <label class="form-label">Primer apellido <span class="req">*</span></label>
-          <input class="form-input" [class.error]="errors['apellido1']" type="text" placeholder="Ej: García" [(ngModel)]="form.apellido1">
-          @if (errors['apellido1']) { <span class="form-hint error-msg">{{ errors['apellido1'] }}</span> }
+          <input class="form-input" [class.error]="errors['primer_apellido']" type="text" placeholder="Ej: García" [(ngModel)]="form.primer_apellido">
+          @if (errors['primer_apellido']) { <span class="form-hint error-msg">{{ errors['primer_apellido'] }}</span> }
         </div>
 
         <div class="form-group">
           <label class="form-label">Segundo apellido</label>
-          <input class="form-input" type="text" placeholder="Ej: López" [(ngModel)]="form.apellido2">
+          <input class="form-input" type="text" placeholder="Ej: López" [(ngModel)]="form.segundo_apellido">
         </div>
 
         <div class="form-group">
