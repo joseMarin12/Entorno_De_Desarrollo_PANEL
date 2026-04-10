@@ -1,0 +1,54 @@
+<div class="modal-overlay open" (click)="close.emit()">
+  <div class="sel-confirm-modal" [class.mode-baja]="isBaja" [class.mode-activar]="!isBaja" (click)="$event.stopPropagation()">
+
+    <!-- Barra de color superior -->
+    <div class="sel-confirm-bar" [style.background]="isBaja ? '#dc2626' : '#059669'"></div>
+
+    <div class="sel-confirm-body">
+      <!-- Icono circular -->
+      <div class="sel-confirm-icon-wrap">
+        <div class="sel-confirm-icon" [style.background]="isBaja ? '#fef2f2' : '#ecfdf5'" [style.color]="isBaja ? '#dc2626' : '#059669'">
+          @if (isBaja) {
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          } @else {
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          }
+        </div>
+      </div>
+
+      <!-- Título -->
+      <div class="sel-confirm-title">¿Seguro que quieres realizar esta acción?</div>
+
+      <!-- Descripción -->
+      <div class="sel-confirm-desc">
+        @if (isBaja) {
+          Dar de baja a <strong>{{ name }}</strong>.<br>
+          Pasará a estar <strong>inactivo</strong> en el sistema.<br>
+          No se eliminarán sus datos y podrás reactivarlo cuando quieras.
+        } @else {
+          Activar a <strong>{{ name }}</strong>.<br>
+          Volverá a estar <strong>activo</strong> en el sistema.<br>
+          Su historial y datos se mantendrán completamente intactos.
+        }
+      </div>
+    </div>
+
+    <!-- Footer con botones -->
+    <div class="sel-confirm-footer">
+      <button class="sel-confirm-btn sel-confirm-btn-cancel" (click)="close.emit()">Cancelar</button>
+      @if (isBaja) {
+        <button class="sel-confirm-btn sel-confirm-btn-danger" (click)="confirm.emit()">Dar de baja</button>
+      } @else {
+        <button class="sel-confirm-btn sel-confirm-btn-success" (click)="confirm.emit()">Activar</button>
+      }
+    </div>
+
+  </div>
+</div>

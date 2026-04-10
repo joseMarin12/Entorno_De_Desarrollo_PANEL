@@ -1,0 +1,72 @@
+<app-topbar pageTitle="Seleccionadores" />
+
+<div class="page-content">
+    
+    <!-- Cabecera -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Seleccionadores</div>
+        <div class="page-subtitle">Gestiona tu equipo de seleccionadores internos y colaboradores externos</div>
+      </div>
+      <button class="btn btn-primary" (click)="openAdd()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Seleccionador
+      </button>
+    </div>
+
+  <!-- Estadísticas -->
+  <app-sel-stats-row />
+
+  <!-- Toolbar: búsqueda + filtros -->
+  <div style="margin-bottom:16px">
+    <app-sel-toolbar
+      (searchChange)="onSearchChange($event)"
+      (filterChange)="onFilterChange($event)"
+      (tipoFilterChange)="onTypeFilterChange($event)"
+    />
+  </div>
+
+  <!-- Tabla -->
+  <app-sel-table
+    [seleccionadores]="paginated"
+    [currentPage]="currentPage"
+    [pageSize]="PAGE_SIZE"
+    [totalFiltered]="filtered.length"
+    (detailClick)="onDetailClick($event)"
+    (editClick)="onEditClick($event)"
+    (bajaClick)="onBajaClick($event)"
+    (activarClick)="onActivarClick($event)"
+    (pageChange)="currentPage = $event"
+  />
+
+</div>
+
+<!-- Modal añadir / editar -->
+@if (showForm) {
+  <app-sel-modal-form
+    [seleccionador]="selectedSeleccionador"
+    (save)="onSaveForm($event)"
+    (close)="showForm = false; selectedId = null"
+  />
+}
+
+<!-- Modal detalle (solo lectura) -->
+@if (showDetail && selectedSeleccionador) {
+  <app-sel-modal-detail
+    [seleccionador]="selectedSeleccionador"
+    (edit)="onEditClick($event); showDetail = false"
+    (close)="showDetail = false; selectedId = null"
+  />
+}
+
+<!-- Modal confirmar baja / activar -->
+@if (showConfirm && selectedSeleccionador) {
+  <app-sel-modal-confirm
+    [seleccionador]="selectedSeleccionador"
+    [mode]="confirmMode"
+    (confirm)="onConfirm()"
+    (close)="showConfirm = false; selectedId = null"
+  />
+}
