@@ -7,7 +7,7 @@ import { EmpresasTableComponent } from '../../components/empresas-table/empresas
 import { FilterType } from '../../../comerciales/components/toolbar/toolbar.component';
 import { Empresa } from '../../../../models/empresa.model';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
-import { EmpToolbarComponent, EmpFilterType } from '../../components/toolbar/emp-toolbar.component';
+import { EmpToolbarComponent, EmpFilterType, EmpFilterTipoType } from '../../components/toolbar/emp-toolbar.component';
 import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
 import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { ModalBajaComponent } from '../../components/modal-baja/modal-baja.component';
@@ -25,6 +25,7 @@ export class EmpresasPageComponent {
   // ── Filtros ──────────────────────────────────────
   searchQuery  = '';
   activeFilter: EmpFilterType = '';
+  typeFilter: EmpFilterTipoType = '';
   currentPage  = 1;
   readonly PAGE_SIZE = 10;
 
@@ -40,10 +41,14 @@ export class EmpresasPageComponent {
       const matchFilter =
         this.activeFilter === ''   ? true :
         this.activeFilter === 'activa' ? e.activo : !e.activo;
+
+      const matchType = 
+        this.typeFilter === '' ? true : e.tipo === this.typeFilter;
+
       const q = this.searchQuery.toLowerCase().trim();
       const matchSearch = !q
         || this.svc.fullName(e).toLowerCase().includes(q)
-      return matchFilter && matchSearch;
+      return matchFilter && matchSearch && matchType;
     });
   }
 
@@ -65,6 +70,11 @@ export class EmpresasPageComponent {
     onFilterChange(f: EmpFilterType): void {
       this.activeFilter = f;
       this.currentPage = 1;
+    }
+
+    onTypeFilterChange(t: EmpFilterTipoType): void {
+        this.typeFilter = t;
+        this.currentPage = 1;
     }
   
   openAdd(): void {
