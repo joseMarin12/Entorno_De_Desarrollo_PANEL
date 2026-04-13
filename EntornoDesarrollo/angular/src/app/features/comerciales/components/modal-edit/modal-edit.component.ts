@@ -14,7 +14,7 @@ export class ModalEditComponent implements OnChanges {
   @Output() save  = new EventEmitter<Comercial>();
   @Output() close = new EventEmitter<void>();
 
-  form = { nombre: '', apellido1: '', apellido2: '', telefono: '', email: '', activo: true };
+  form = { nombre: '', primer_apellido: '', segundo_apellido: '', telefono: '', email: '', activo: true };
   errors: Record<string, string> = {};
 
   ngOnChanges(): void {
@@ -26,7 +26,7 @@ export class ModalEditComponent implements OnChanges {
 
   get subtitle(): string {
     if (!this.comercial) return '';
-    return `Modificando datos de ${[this.comercial.nombre, this.comercial.apellido1].join(' ')}`;
+    return `Modificando datos de ${[this.comercial.nombre, this.comercial.primer_apellido].join(' ')}`;
   }
 
   toggleActivo(): void {
@@ -36,7 +36,7 @@ export class ModalEditComponent implements OnChanges {
   submit(): void {
     this.errors = {};
     if (!this.form.nombre)    this.errors['nombre']    = 'Campo obligatorio';
-    if (!this.form.apellido1) this.errors['apellido1'] = 'Campo obligatorio';
+    if (!this.form.primer_apellido) this.errors['primer_apellido'] = 'Campo obligatorio';
     if (!this.form.telefono)  this.errors['telefono']  = 'Campo obligatorio';
     if (!this.form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email))
       this.errors['email'] = 'Introduce un email válido';

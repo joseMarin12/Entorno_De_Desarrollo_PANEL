@@ -5,5 +5,5 @@ export class UiService {
   sidebarOpen = signal(false);
 
   toggleSidebar() { this.sidebarOpen.update(v => !v); }
-  closeSidebar()  { this.sidebarOpen.set(false); }
+  closeSidebar() { this.sidebarOpen.set(false); }
 }
