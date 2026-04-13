@@ -7,11 +7,7 @@ export const routes: Routes = [
   { path: '', redirectTo: 'comerciales', pathMatch: 'full' },
   { path: 'comerciales', component: ComercialesPageComponent },
   { path: 'seleccionadores', component: SeleccionadoresPageComponent },
-<<<<<<< HEAD
   { path: 'usuarios', component: UsuariosPageComponent },
   // Añade aquí el resto de rutas cuando crees las otras páginas:
   // { path: 'empresas',        component: EmpresasPageComponent },
-=======
-
->>>>>>> d7a4ca270f62821d68c0179c322fb6ef937d64e8
 ];
