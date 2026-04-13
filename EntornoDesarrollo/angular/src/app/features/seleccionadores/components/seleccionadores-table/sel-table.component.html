@@ -3,8 +3,8 @@
     <thead>
       <tr>
         <th>Nombre</th>
-        <th>Primer Apellido</th>
-        <th>Segundo Apellido</th>
+        <th>Tipo</th>
+        <th>Empresas vinculadas</th>
         <th>Estado</th>
         <th>Acciones</th>
       </tr>
@@ -12,8 +12,8 @@
     <tbody>
       @if (seleccionadores.length === 0) {
         <tr>
-          <td colspan="5" style="text-align:center;padding:40px 20px;color:var(--text3)">
-            <div style="font-size:28px;margin-bottom:8px;opacity:.35">🔍</div>
+          <td colspan="5" style="text-align:center;padding:48px 20px;color:var(--text-muted)">
+            <div style="font-size:30px;margin-bottom:10px;opacity:.3">🔍</div>
             <div style="font-size:13px;font-weight:600">Sin resultados</div>
             <div style="font-size:12px;margin-top:4px">Prueba con otro nombre o filtro</div>
           </td>
@@ -21,6 +21,8 @@
       } @else {
         @for (s of seleccionadores; track s.id) {
           <tr>
+
+            <!-- Nombre + avatar -->
             <td>
               <div class="avatar-cell">
                 <div class="row-avatar"
@@ -28,13 +30,39 @@
                   [style.color]="s.activo ? '#fff' : 'var(--text-muted)'">
                   {{ svc.initials(s) }}
                 </div>
-                <div class="td-name" [style.color]="s.activo ? '' : 'var(--text-muted)'">
-                  {{ s.nombre }}
+                <div>
+                  <div class="td-name" [style.color]="s.activo ? '' : 'var(--text-muted)'">
+                    {{ s.nombre }} {{ s.ap1 }} {{ s.ap2 }}
+                  </div>
                 </div>
               </div>
             </td>
-            <td [style.color]="s.activo ? '' : 'var(--text-muted)'">{{ s.ap1 }}</td>
-            <td [style.color]="s.activo ? '' : 'var(--text-muted)'">{{ s.ap2 }}</td>
+
+            <!-- Tipo -->
+            <td>
+              @if (s.tipo === 'interno') {
+                <span class="badge badge-tipo-interno">
+                  <span class="badge-dot"></span> Interno
+                </span>
+              } @else {
+                <span class="badge badge-tipo-externo">
+                  <span class="badge-dot"></span> Externo
+                </span>
+              }
+            </td>
+
+            <!-- Empresas vinculadas -->
+            <td>
+              @if (s.tipo === 'interno') {
+                <span class="td-dash">—</span>
+              } @else if (s.empresaVinculada) {
+                <span class="empresa-chip">{{ s.empresaVinculada.nombre }}</span>
+              } @else {
+                <span class="td-dash">Sin empresa</span>
+              }
+            </td>
+
+            <!-- Estado -->
             <td>
               @if (s.activo) {
                 <span class="badge badge-active"><span class="badge-dot"></span> Activo</span>
@@ -42,21 +70,31 @@
                 <span class="badge badge-inactive"><span class="badge-dot"></span> De baja</span>
               }
             </td>
+
+            <!-- Acciones -->
             <td>
               <div class="actions">
-                <!-- Editar (clipboard con check azul) -->
+
+                <!-- Ver detalle (ojo) -->
+                <button class="action-btn detail" title="Ver detalle" (click)="detailClick.emit(s.id)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c6bba" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+
+                <!-- Editar -->
                 <button class="action-btn edit" title="Editar" (click)="editClick.emit(s.id)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#476fab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-                    <path d="M9 14l2 2 4-4"/>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#476fab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
                 </button>
 
                 <!-- Dar de baja / Activar -->
                 @if (s.activo) {
                   <button class="action-btn baja" title="Dar de Baja" (click)="bajaClick.emit(s.id)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="10"/>
                       <line x1="12" y1="8" x2="12" y2="12"/>
                       <line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -64,14 +102,16 @@
                   </button>
                 } @else {
                   <button class="action-btn reactivar" title="Activar" (click)="activarClick.emit(s.id)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                       <polyline points="22 4 12 14.01 9 11.01"/>
                     </svg>
                   </button>
                 }
+
               </div>
             </td>
+
           </tr>
         }
       }

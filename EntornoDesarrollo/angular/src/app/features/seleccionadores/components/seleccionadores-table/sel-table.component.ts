@@ -8,17 +8,49 @@ import { SeleccionadoresService } from '../../../../services/seleccionadores.ser
   standalone: true,
   imports: [CommonModule],
   templateUrl: './sel-table.component.html',
+  styles: [`
+    .badge-tipo-interno {
+      background: #e8eaf6;
+      color: #3949ab;
+    }
+    .badge-tipo-externo {
+      background: #fff3e0;
+      color: #e65100;
+    }
+    .td-dash {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .empresa-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .empresa-chip {
+      display: inline-block;
+      background: #f0f4ff;
+      border: 1px solid #c5cae9;
+      color: #3949ab;
+      border-radius: 20px;
+      padding: 2px 9px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .action-btn:hover.detail { border-color: #7c6bba; background: #eeebff; }
+  `]
 })
 export class SelTableComponent {
   @Input() seleccionadores: Seleccionador[] = [];
-  @Input() currentPage  = 1;
-  @Input() pageSize     = 6;
+  @Input() currentPage   = 1;
+  @Input() pageSize      = 6;
   @Input() totalFiltered = 0;
 
-  @Output() editClick   = new EventEmitter<number>();
-  @Output() bajaClick   = new EventEmitter<number>();
+  @Output() detailClick  = new EventEmitter<number>();
+  @Output() editClick    = new EventEmitter<number>();
+  @Output() bajaClick    = new EventEmitter<number>();
   @Output() activarClick = new EventEmitter<number>();
-  @Output() pageChange  = new EventEmitter<number>();
+  @Output() pageChange   = new EventEmitter<number>();
 
   svc = inject(SeleccionadoresService);
 

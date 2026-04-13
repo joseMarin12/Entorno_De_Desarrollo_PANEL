@@ -107,11 +107,34 @@ CREATE TABLE contacto_empresa (
 
 -- Selecciones y trabajadores
 
-CREATE TABLE seleccion (
+-- Seleccionadores (Fusión de Internos y Externos)
+CREATE TABLE seleccionadores (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    nombre_seleccion VARCHAR(45) NOT NULL,
-    primer_apellido_seleccion VARCHAR(45),
-    segundo_apellido_seleccion VARCHAR(45)
+    
+    -- Datos de Identidad
+    nombre VARCHAR(64) NOT NULL,
+    primer_apellido VARCHAR(64) NOT NULL,
+    segundo_apellido VARCHAR(64),
+    
+    -- Tipo: 'interno' (Sg Tech) o 'externo' (Headhunter)
+    tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('interno', 'externo')),
+    
+    -- Datos de contacto (Null para internos)
+    email VARCHAR(128) UNIQUE,
+    telefono VARCHAR(20),
+    
+    -- Datos Headhunting (Solo para externos)
+    id_empresa INT,
+    fecha_ini DATE,
+    salario INT,
+    fee INT,
+    
+    -- Estado y Auditoría
+    activo BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE SET NULL
 );
 
 CREATE TABLE trabajador (
@@ -128,7 +151,7 @@ CREATE TABLE trabajador (
     direccion VARCHAR(128),
     nacionalidad VARCHAR(45),
     fecha_nacimiento DATE,
-    id_seleccion INT,
+    id_seleccionador INT, -- Referencia a la nueva tabla unificada
     activo BOOLEAN DEFAULT TRUE,
     fecha_ini DATE,
     fecha_fin DATE,
@@ -136,7 +159,7 @@ CREATE TABLE trabajador (
     id_localidad INT,
     freelance BOOLEAN DEFAULT FALSE,
     id_provincia INT,
-    FOREIGN KEY (id_seleccion) REFERENCES seleccion(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_seleccionador) REFERENCES seleccionadores(id) ON DELETE SET NULL,
     FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE SET NULL,
     FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE SET NULL
 );
@@ -171,22 +194,6 @@ CREATE TABLE asignacion (
     FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE CASCADE,
     FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE,
     FOREIGN KEY (id_comerciales) REFERENCES comerciales(id) ON DELETE SET NULL --cambie el nombre de la columna para que coincida con la tabla comerciales
-);
-
-CREATE TABLE headhunting (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_empresa INT,
-    id_seleccion INT,
-    nombre VARCHAR(64),
-    primer_apellido VARCHAR(64),
-    segundo_apellido VARCHAR(64),
-    telefono VARCHAR(12),
-    email VARCHAR(64),
-    fecha_ini DATE,
-    salario INT,
-    fee INT,
-    FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE CASCADE,
-    FOREIGN KEY (id_seleccion) REFERENCES seleccion(id) ON DELETE SET NULL
 );
 
 -- Formación
@@ -281,7 +288,7 @@ CREATE TABLE documento_firma_historial (
 
 -- Indices
 
-CREATE INDEX idx_trabajador_seleccion ON trabajador(id_seleccion);
+CREATE INDEX idx_trabajador_seleccionador ON trabajador(id_seleccionador);
 CREATE INDEX idx_trabajador_localidad ON trabajador(id_localidad);
 CREATE INDEX idx_asignacion_empresa ON asignacion(id_empresa);
 CREATE INDEX idx_asignacion_trabajador ON asignacion(id_trabajador);
