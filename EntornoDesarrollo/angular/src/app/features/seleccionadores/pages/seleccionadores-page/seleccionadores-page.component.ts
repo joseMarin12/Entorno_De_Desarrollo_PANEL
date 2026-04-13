@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { SeleccionadoresService } from '../../../../services/seleccionadores.service';
@@ -12,6 +12,7 @@ import { SelModalFormComponent } from '../../components/modal-form/sel-modal-for
 import { SelModalConfirmComponent, ConfirmMode } from '../../components/modal-confirm/sel-modal-confirm.component';
 
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
+import { ConfirmationModalComponent } from "../../../../shared/confirmation-modal/confirmation-modal.component";
 
 @Component({
   selector: 'app-seleccionadores-page',
@@ -24,12 +25,15 @@ import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
     SelModalFormComponent,
     SelModalConfirmComponent,
     TopbarComponent,
-  ],
+    ConfirmationModalComponent
+],
   templateUrl: './seleccionadores-page.component.html',
 })
 export class SeleccionadoresPageComponent {
   svc   = inject(SeleccionadoresService);
   toast = inject(ToastService);
+  selectedSeleccionador: Seleccionador | null = null;
+  selectedSeleccionadorNombre = signal<string | null>(null);
 
   // ── Filtros ───────────────────────────────────────────
   searchQuery:   string        = '';
@@ -61,10 +65,6 @@ export class SeleccionadoresPageComponent {
     return this.filtered.slice(start, start + this.PAGE_SIZE);
   }
 
-  get selectedSeleccionador(): Seleccionador | null {
-    return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
-  }
-
   // ── Handlers ─────────────────────────────────────────
   onSearchChange(q: string): void {
     this.searchQuery = q;
@@ -83,6 +83,7 @@ export class SeleccionadoresPageComponent {
 
   onEditClick(id: number): void {
     this.selectedId = id;
+    this.selectedSeleccionador = this.svc.getById(id) ?? null;
     this.showForm = true;
   }
 
@@ -98,17 +99,22 @@ export class SeleccionadoresPageComponent {
     }
     this.showForm = false;
     this.selectedId = null;
+    this.selectedSeleccionador = null;
   }
 
   onBajaClick(id: number): void {
     this.selectedId = id;
     this.confirmMode = 'baja';
+    const seleccionador = this.svc.getById(this.selectedId);
+    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.ap1}` : null);
     this.showConfirm = true;
   }
 
   onActivarClick(id: number): void {
     this.selectedId = id;
     this.confirmMode = 'activar';
+    const seleccionador = this.svc.getById(this.selectedId);
+    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.ap1}` : null);
     this.showConfirm = true;
   }
 
