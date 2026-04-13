@@ -1,9 +1,11 @@
 export interface Comercial {
   id: number;
   nombre: string;
-  apellido1: string;
-  apellido2: string;
+  primer_apellido: string;
+  segundo_apellido: string;
   telefono: string;
   email: string;
   activo: boolean;
+  created_at?: string;
+  updated_at?: string;
 }

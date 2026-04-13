@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 
 import { SeleccionadoresService } from '../../../../services/seleccionadores.service';
 import { ToastService } from '../../../../services/toast.service';
-import { Seleccionador } from '../../../../models/seleccionador.model';
+import { Seleccionador, TipoSeleccionador } from '../../../../models/seleccionador.model';
 
 import { SelStatsRowComponent } from '../../components/stats-row/sel-stats-row.component';
-import { SelToolbarComponent, SelFilterType } from '../../components/toolbar/sel-toolbar.component';
+import { SelToolbarComponent, SelFilterType, SelFilterTipoType } from '../../components/toolbar/sel-toolbar.component';
 import { SelTableComponent } from '../../components/seleccionadores-table/sel-table.component';
 import { SelModalFormComponent } from '../../components/modal-form/sel-modal-form.component';
 import { SelModalConfirmComponent, ConfirmMode } from '../../components/modal-confirm/sel-modal-confirm.component';
+import { SelModalDetailComponent } from '../../components/modal-detail/sel-modal-detail.component';
 
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 
@@ -23,6 +24,7 @@ import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
     SelTableComponent,
     SelModalFormComponent,
     SelModalConfirmComponent,
+    SelModalDetailComponent,
     TopbarComponent,
   ],
   templateUrl: './seleccionadores-page.component.html',
@@ -34,12 +36,14 @@ export class SeleccionadoresPageComponent {
   // ── Filtros ───────────────────────────────────────────
   searchQuery:   string        = '';
   activeFilter:  SelFilterType = '';
+  typeFilter:    SelFilterTipoType = '';
   currentPage = 1;
-  readonly PAGE_SIZE = 5;
+  readonly PAGE_SIZE = 6;
 
   // ── Estado modales ────────────────────────────────────
   showForm    = false;
   showConfirm = false;
+  showDetail  = false;
   confirmMode: ConfirmMode = 'baja';
   selectedId: number | null = null;
 
@@ -47,12 +51,20 @@ export class SeleccionadoresPageComponent {
   get filtered(): Seleccionador[] {
     const q = this.searchQuery.toLowerCase().trim();
     return this.svc.seleccionadores().filter(s => {
+      // Filtro de estado (Activo/Inactivo)
       const matchFilter =
         this.activeFilter === ''       ? true :
         this.activeFilter === 'activo' ? s.activo : !s.activo;
-      const text = `${s.nombre} ${s.ap1} ${s.ap2}`.toLowerCase();
+      
+      // Filtro de tipo (Interno/Externo)
+      const matchType = 
+        this.typeFilter === '' ? true : s.tipo === this.typeFilter;
+        
+      // Filtro de búsqueda por texto
+      const text = `${s.nombre} ${s.ap1} ${s.ap2} ${s.email}`.toLowerCase();
       const matchSearch = !q || text.includes(q);
-      return matchFilter && matchSearch;
+      
+      return matchFilter && matchType && matchSearch;
     });
   }
 
@@ -76,9 +88,19 @@ export class SeleccionadoresPageComponent {
     this.currentPage = 1;
   }
 
+  onTypeFilterChange(t: SelFilterTipoType): void {
+    this.typeFilter = t;
+    this.currentPage = 1;
+  }
+
   openAdd(): void {
     this.selectedId = null;
     this.showForm = true;
+  }
+
+  onDetailClick(id: number): void {
+    this.selectedId = id;
+    this.showDetail = true;
   }
 
   onEditClick(id: number): void {

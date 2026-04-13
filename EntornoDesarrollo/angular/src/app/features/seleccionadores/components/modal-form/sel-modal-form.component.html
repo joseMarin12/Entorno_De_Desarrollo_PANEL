@@ -1,5 +1,5 @@
 <div class="modal-overlay open" (click)="close.emit()">
-  <div class="modal" (click)="$event.stopPropagation()">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 580px;">
 
     <div class="modal-header">
       <div>
@@ -9,8 +9,12 @@
       <button class="modal-close" (click)="close.emit()">✕</button>
     </div>
 
-    <div class="modal-body">
-      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 16px;">Los campos marcados con <em style="color:var(--danger)">*</em> son obligatorios.</p>
+    <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">
+        Los campos marcados con <em style="color:var(--danger)">*</em> son obligatorios.
+      </p>
+
+      <span class="section-title">Datos personales</span>
 
       <!-- Nombre -->
       <div class="form-group" style="margin-bottom: 16px;">
@@ -19,12 +23,10 @@
           class="form-input"
           [class.error]="errors['nombre']"
           type="text"
-          placeholder="Ej: Javier"
+          placeholder="Ej: Laura"
           [(ngModel)]="form.nombre"
         />
-        @if (errors['nombre']) {
-          <span class="form-hint error-msg">{{ errors['nombre'] }}</span>
-        }
+        @if (errors['nombre']) { <span class="form-hint error-msg">{{ errors['nombre'] }}</span> }
       </div>
 
       <!-- Apellidos -->
@@ -35,19 +37,17 @@
             class="form-input"
             [class.error]="errors['ap1']"
             type="text"
-            placeholder="Ej: Morales"
+            placeholder="Ej: Sánchez"
             [(ngModel)]="form.ap1"
           />
-          @if (errors['ap1']) {
-            <span class="form-hint error-msg">{{ errors['ap1'] }}</span>
-          }
+          @if (errors['ap1']) { <span class="form-hint error-msg">{{ errors['ap1'] }}</span> }
         </div>
         <div class="form-group">
           <label class="form-label">Segundo Apellido</label>
           <input
             class="form-input"
             type="text"
-            placeholder="Ej: Fernández"
+            placeholder="Opcional"
             [(ngModel)]="form.ap2"
           />
         </div>
@@ -55,20 +55,112 @@
 
       <div style="height: 1px; background: var(--border); margin: 24px 0;"></div>
 
+      <label class="form-label" style="margin-bottom: 8px; display: block;">Tipo de seleccionador <em style="color:var(--danger)">*</em></label>
+      <div class="type-selector">
+        <div class="type-card" [class.active]="form.tipo === 'interno'" (click)="setTipo('interno')">
+          <div class="type-radio"><div class="type-radio-inner"></div></div>
+          <div class="type-info">
+            <div class="type-title">Interno</div>
+            <div class="type-desc">Pertenece al equipo de Sg Tech</div>
+          </div>
+        </div>
+        <div class="type-card" [class.active]="form.tipo === 'externo'" (click)="setTipo('externo')">
+          <div class="type-radio"><div class="type-radio-inner"></div></div>
+          <div class="type-info">
+            <div class="type-title">Externo</div>
+            <div class="type-desc">Head hunter o colaborador externo</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN EXTERNOS -->
+      @if (form.tipo === 'externo') {
+        <div class="external-section">
+          <span class="section-title">Datos de contacto y vinculación</span>
+
+          <!-- Contacto (Ahora solo para externos) -->
+          <div class="form-grid" style="margin-bottom: 16px;">
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input
+                class="form-input"
+                type="text"
+                placeholder="Ej: 612 345 678"
+                [(ngModel)]="form.telefono"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email <em style="color:var(--danger)">*</em></label>
+              <input
+                class="form-input"
+                [class.error]="errors['email']"
+                type="email"
+                placeholder="seleccionador@externo.com"
+                [(ngModel)]="form.email"
+              />
+              @if (errors['email']) { <span class="form-hint error-msg">{{ errors['email'] }}</span> }
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-bottom: 16px;">
+            <div class="form-group">
+              <label class="form-label">Empresa vinculada <em style="color:var(--danger)">*</em></label>
+              <select 
+                class="form-select" 
+                [ngModel]="form.empresaVinculada?.id" 
+                (ngModelChange)="onEmpresaChange($event)"
+              >
+                <option [ngValue]="undefined">Selecciona empresa...</option>
+                @for (e of svc.empresasDisponibles; track e.id) {
+                  <option [value]="e.id">{{ e.nombre }}</option>
+                }
+              </select>
+              @if (errors['empresa']) { <span class="form-hint error-msg">{{ errors['empresa'] }}</span> }
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fecha inicio</label>
+              <input
+                class="form-input"
+                type="date"
+                [(ngModel)]="form.fechaInicio"
+              />
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Salario (€)</label>
+              <input
+                class="form-input"
+                type="number"
+                placeholder="Ej: 32000"
+                [(ngModel)]="form.salario"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fee (%)</label>
+              <input
+                class="form-input"
+                type="number"
+                placeholder="Ej: 15"
+                [(ngModel)]="form.fee"
+              />
+            </div>
+          </div>
+        </div>
+      }
+
+      <div style="height: 1px; background: var(--border); margin: 24px 0;"></div>
+
       <!-- Toggle estado -->
       <div class="form-group" style="margin-bottom:0">
         <label class="form-label">Estado</label>
-        <div
-          class="toggle-wrap"
-          (click)="toggleActivo()"
-        >
+        <div class="toggle-wrap" (click)="toggleActivo()">
           <div class="toggle" [class.on]="form.activo"></div>
           <div>
             <div class="toggle-label">{{ form.activo ? 'Activo' : 'De baja' }}</div>
             <div class="toggle-sub">
-              {{ form.activo
-                  ? 'El seleccionador está operativo en el sistema'
-                  : 'El seleccionador no está operativo en el sistema' }}
+              {{ form.activo ? 'El seleccionador está operativo en el sistema' : 'El seleccionador no está operativo en el sistema' }}
             </div>
           </div>
         </div>
@@ -83,7 +175,7 @@
           <polyline points="17 21 17 13 7 13 7 21"/>
           <polyline points="7 3 7 8 15 8"/>
         </svg>
-        {{ isEdit ? 'Guardar Cambios' : 'Añadir Seleccionador' }}
+        {{ isEdit ? 'Guardar Cambios' : 'Guardar seleccionador' }}
       </button>
     </div>
 

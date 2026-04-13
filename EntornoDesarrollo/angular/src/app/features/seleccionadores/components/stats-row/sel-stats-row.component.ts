@@ -7,7 +7,9 @@ import { SeleccionadoresService } from '../../../../services/seleccionadores.ser
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="stats-row">
+    <div class="stats-row sel-stats-row">
+
+      <!-- Total registrados -->
       <div class="stat-card">
         <div class="stat-icon purple">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -16,10 +18,11 @@ import { SeleccionadoresService } from '../../../../services/seleccionadores.ser
         </div>
         <div>
           <div class="stat-num">{{ svc.total() }}</div>
-          <div class="stat-label">Total seleccionadores</div>
+          <div class="stat-label">Total registrados</div>
         </div>
       </div>
 
+      <!-- Activos -->
       <div class="stat-card">
         <div class="stat-icon teal">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -32,6 +35,7 @@ import { SeleccionadoresService } from '../../../../services/seleccionadores.ser
         </div>
       </div>
 
+      <!-- De baja -->
       <div class="stat-card">
         <div class="stat-icon" style="background:#fdecea; color:#b71c1c;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -40,11 +44,38 @@ import { SeleccionadoresService } from '../../../../services/seleccionadores.ser
         </div>
         <div>
           <div class="stat-num">{{ svc.inactivos() }}</div>
-          <div class="stat-label">Dados de baja</div>
+          <div class="stat-label">De baja</div>
         </div>
       </div>
+
+      <!-- Externos -->
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#fff3e0; color:#e65100;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="stat-num">{{ svc.externos() }}</div>
+          <div class="stat-label">Externos</div>
+        </div>
+      </div>
+
     </div>
   `,
+  styles: [`
+    .sel-stats-row {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    @media (max-width: 1024px) {
+      .sel-stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .sel-stats-row { grid-template-columns: 1fr; }
+    }
+  `]
 })
 export class SelStatsRowComponent {
   svc = inject(SeleccionadoresService);

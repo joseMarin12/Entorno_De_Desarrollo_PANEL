@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ComercialesService } from '../../../../services/comerciales.service';
@@ -28,28 +28,33 @@ import { ModalBajaComponent } from '../../components/modal-baja/modal-baja.compo
   ],
   templateUrl: './comerciales-page.component.html',
 })
-export class ComercialesPageComponent {
-  svc   = inject(ComercialesService);
+export class ComercialesPageComponent implements OnInit {
+  svc = inject(ComercialesService);
   toast = inject(ToastService);
 
   // ── Filtros ──────────────────────────────────────
-  searchQuery  = '';
+  searchQuery = '';
   activeFilter: FilterType = 'todos';
-  currentPage  = 1;
+  currentPage = 1;
   readonly PAGE_SIZE = 10;
 
   // ── Estado modales ────────────────────────────────
-  showAdd  = false;
+  showAdd = false;
   showEdit = false;
   showBaja = false;
   selectedId: number | null = null;
+
+  // ── Ciclo de vida ─────────────────────────────────
+  ngOnInit(): void {
+    this.svc.loadAll();
+  }
 
   // ── Computed ──────────────────────────────────────
   get filtered(): Comercial[] {
     return this.svc.comerciales().filter(c => {
       const matchFilter =
-        this.activeFilter === 'todos'   ? true :
-        this.activeFilter === 'activos' ? c.activo : !c.activo;
+        this.activeFilter === 'todos' ? true :
+          this.activeFilter === 'activos' ? c.activo : !c.activo;
       const q = this.searchQuery.toLowerCase().trim();
       const matchSearch = !q
         || this.svc.fullName(c).toLowerCase().includes(q)
@@ -82,10 +87,14 @@ export class ComercialesPageComponent {
     this.showAdd = true;
   }
 
-  onSaveAdd(data: Omit<Comercial, 'id'>): void {
-    this.svc.add(data);
-    this.showAdd = false;
-    this.toast.show('success', `✓ Comercial <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
+  async onSaveAdd(data: Omit<Comercial, 'id'>): Promise<void> {
+    try {
+      await this.svc.add(data);
+      this.showAdd = false;
+      this.toast.show('success', `✓ Comercial <strong>${data.nombre} ${data.primer_apellido}</strong> añadido correctamente`);
+    } catch {
+      this.toast.show('error', `✗ No se pudo añadir el comercial. Inténtalo de nuevo.`);
+    }
   }
 
   onEditClick(id: number): void {
@@ -93,11 +102,15 @@ export class ComercialesPageComponent {
     this.showEdit = true;
   }
 
-  onSaveEdit(data: Comercial): void {
-    this.svc.update(data.id, data);
-    this.showEdit = false;
-    this.selectedId = null;
-    this.toast.show('info', `✎ Comercial <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
+  async onSaveEdit(data: Comercial): Promise<void> {
+    try {
+      await this.svc.update(data.id, data);
+      this.showEdit = false;
+      this.selectedId = null;
+      this.toast.show('info', `✎ Comercial <strong>${data.nombre} ${data.primer_apellido}</strong> actualizado`);
+    } catch {
+      this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
+    }
   }
 
   onBajaClick(id: number): void {
@@ -105,31 +118,22 @@ export class ComercialesPageComponent {
     this.showBaja = true;
   }
 
-  onConfirmBaja(): void {
+  async onConfirmBaja(): Promise<void> {
     if (this.selectedId == null) return;
     const c = this.svc.getById(this.selectedId)!;
     const wasActive = c.activo;
-    this.svc.toggleActivo(this.selectedId);
-    this.showBaja = false;
-    this.selectedId = null;
-    if (wasActive) {
-      this.toast.show('warning', `⊘ Comercial <strong>${this.svc.fullName(c)}</strong> dado de baja`);
-    } else {
-      this.toast.show('success', `↺ Comercial <strong>${this.svc.fullName(c)}</strong> reactivado`);
+    try {
+      await this.svc.toggleActivo(this.selectedId);
+      this.showBaja = false;
+      this.selectedId = null;
+      if (wasActive) {
+        this.toast.show('warning', `⊘ Comercial <strong>${this.svc.fullName(c)}</strong> dado de baja`);
+      } else {
+        this.toast.show('success', `↺ Comercial <strong>${this.svc.fullName(c)}</strong> reactivado`);
+      }
+    } catch {
+      this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`);
     }
   }
 
-  exportCSV(): void {
-    const rows = [['ID', 'Nombre', 'Apellido 1', 'Apellido 2', 'Teléfono', 'Email', 'Estado']];
-    this.filtered.forEach(c =>
-      rows.push([String(c.id), c.nombre, c.apellido1, c.apellido2, c.telefono, c.email, c.activo ? 'Activo' : 'Inactivo'])
-    );
-    const csv  = rows.map(r => r.join(';')).join('\n');
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url; a.download = 'comerciales.csv'; a.click();
-    URL.revokeObjectURL(url);
-    this.toast.show('info', '⬇ Exportación descargada');
-  }
 }

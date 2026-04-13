@@ -4,14 +4,16 @@ import { SeleccionadoresPageComponent } from './features/seleccionadores/pages/s
 import { EmpresasPageComponent } from './features/empresas/pages/empresas-page/empresas-page.component';
 import { EmpresasDireccionesPageComponent } from './features/empresas/pages/empresas-direcciones-page/empresas-direcciones-page.component';
 import { EmpresasContactosPageComponent } from './features/empresas/pages/empresas-contactos-page/empresas-contactos-page.component';
+import { UsuariosPageComponent } from './features/usuarios/pages/usuarios-page/usuarios-page.component';
 
 export const routes: Routes = [
-  { path: '',           redirectTo: 'comerciales', pathMatch: 'full' },
+  { path: '', redirectTo: 'comerciales', pathMatch: 'full' },
   { path: 'comerciales', component: ComercialesPageComponent },
   { path: 'seleccionadores', component: SeleccionadoresPageComponent },
   { path: 'empresas/:id/direcciones', component: EmpresasDireccionesPageComponent },
   { path: 'empresas/:id/contactos', component: EmpresasContactosPageComponent },
   { path: 'empresas', component: EmpresasPageComponent },
+  { path: 'usuarios', component: UsuariosPageComponent },
   // Añade aquí el resto de rutas cuando crees las otras páginas:
   // { path: 'usuarios',        component: UsuariosPageComponent },
 ];

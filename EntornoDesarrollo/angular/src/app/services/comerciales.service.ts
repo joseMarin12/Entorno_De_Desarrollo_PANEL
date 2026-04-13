@@ -1,50 +1,142 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { Comercial } from '../models/comercial.model';
+
+// ── URL base del proxy Laravel ───────────────────────────────────────────────
+const API_URL = 'http://localhost:8000/api/comerciales';
 
 @Injectable({ providedIn: 'root' })
 export class ComercialesService {
-  private nextId = 6;
 
-  private _comerciales = signal<Comercial[]>([
-    { id: 1, nombre: 'Laura',  apellido1: 'García',  apellido2: 'Fernández', telefono: '+34 612 345 678', email: 'l.garcia@sgtech.tech',  activo: true  },
-    { id: 2, nombre: 'Marcos', apellido1: 'Ruiz',    apellido2: 'Soto',      telefono: '+34 698 011 234', email: 'm.ruiz@sgtech.tech',    activo: true  },
-    { id: 3, nombre: 'Ana',    apellido1: 'Pérez',   apellido2: '',          telefono: '+34 655 789 012', email: 'a.perez@sgtech.tech',   activo: false },
-    { id: 4, nombre: 'Javier', apellido1: 'Molina',  apellido2: 'López',     telefono: '+34 634 567 890', email: 'j.molina@sgtech.tech',  activo: true  },
-    { id: 5, nombre: 'Sara',   apellido1: 'Torres',  apellido2: 'Gil',       telefono: '+34 677 222 333', email: 's.torres@sgtech.tech',  activo: true  },
-  ]);
+  private http = inject(HttpClient);
 
-  readonly comerciales = this._comerciales.asReadonly();
+  // ── Estado reactivo ──────────────────────────────────────────────────────
+  private _comerciales = signal<Comercial[]>([]);
+  readonly loading     = signal(false);
+  readonly error       = signal<string | null>(null);
 
+  // ── Vistas derivadas (computed) ──────────────────────────────────────────
+  readonly comerciales    = this._comerciales.asReadonly();
   readonly totalActivos   = computed(() => this._comerciales().filter(c => c.activo).length);
   readonly totalInactivos = computed(() => this._comerciales().filter(c => !c.activo).length);
   readonly total          = computed(() => this._comerciales().length);
 
-  add(data: Omit<Comercial, 'id'>): void {
-    this._comerciales.update(list => [{ id: this.nextId++, ...data }, ...list]);
+  // ── Carga inicial ────────────────────────────────────────────────────────
+
+  /**
+   * Llama a n8n (vía Laravel) para obtener todos los comerciales.
+   * Body: { action: 'getComerciales', filters: { searchText: '', status: '' } }
+   */
+  async loadAll(searchText = '', status = ''): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ data: Comercial[] }>(API_URL, {
+          action: 'getComerciales',
+          filters: { searchText, status },
+        })
+      );
+      this._comerciales.set(res.data ?? []);
+    } catch (e: any) {
+      this.error.set(e?.message ?? 'Error al cargar los comerciales');
+    } finally {
+      this.loading.set(false);
+    }
   }
 
-  update(id: number, data: Omit<Comercial, 'id'>): void {
-    this._comerciales.update(list =>
-      list.map(c => (c.id === id ? { id, ...data } : c))
-    );
+  // ── CRUD ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Crea un nuevo comercial.
+   * Body: { action: 'createComercial', comercialData: { nombre, primer_apellido, ... } }
+   */
+  async add(data: Omit<Comercial, 'id'>): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ data: Comercial }>(API_URL, {
+          action: 'createComercial',
+          comercialData: data,
+        })
+      );
+      // Añadir el nuevo registro (con id real de la BD) al principio de la lista
+      this._comerciales.update(list => [res.data, ...list]);
+    } catch (e: any) {
+      this.error.set(e?.message ?? 'Error al crear el comercial');
+      throw e; // re-lanzar para que el componente pueda mostrar el toast de error
+    } finally {
+      this.loading.set(false);
+    }
   }
 
-  toggleActivo(id: number): void {
-    this._comerciales.update(list =>
-      list.map(c => (c.id === id ? { ...c, activo: !c.activo } : c))
-    );
+  /**
+   * Actualiza un comercial existente.
+   * Body: { action: 'updateComercial', comercialId: id, comercialData: { ... } }
+   */
+  async update(id: number, data: Omit<Comercial, 'id'>): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ data: Comercial }>(API_URL, {
+          action: 'updateComercial',
+          comercialId: id,
+          comercialData: data,
+        })
+      );
+      // Reemplazar el registro en el signal con la respuesta real de la BD
+      this._comerciales.update(list =>
+        list.map(c => (c.id === id ? res.data : c))
+      );
+    } catch (e: any) {
+      this.error.set(e?.message ?? 'Error al actualizar el comercial');
+      throw e;
+    } finally {
+      this.loading.set(false);
+    }
   }
+
+  /**
+   * Activa o desactiva un comercial (toggle).
+   * Body: { action: 'toggleComercialStatus', comercialId: id }
+   */
+  async toggleActivo(id: number): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ data: Comercial }>(API_URL, {
+          action: 'toggleComercialStatus',
+          comercialId: id,
+        })
+      );
+      // Actualizar el signal con el estado real devuelto por la BD
+      this._comerciales.update(list =>
+        list.map(c => (c.id === id ? res.data : c))
+      );
+    } catch (e: any) {
+      this.error.set(e?.message ?? 'Error al cambiar el estado del comercial');
+      throw e;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
 
   getById(id: number): Comercial | undefined {
     return this._comerciales().find(c => c.id === id);
   }
 
   fullName(c: Comercial): string {
-    return [c.nombre, c.apellido1, c.apellido2].filter(Boolean).join(' ');
+    return [c.nombre, c.primer_apellido, c.segundo_apellido].filter(Boolean).join(' ');
   }
 
   initials(c: Comercial): string {
-    return (c.nombre[0] + c.apellido1[0]).toUpperCase();
+    return (c.nombre[0] + c.primer_apellido[0]).toUpperCase();
   }
 
   colorFor(id: number): string {
