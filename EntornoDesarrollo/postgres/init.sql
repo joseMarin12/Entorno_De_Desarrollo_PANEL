@@ -187,7 +187,7 @@ CREATE TABLE asignacion (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_empresa INT,
     id_trabajador INT,
-    id_comerciales INT, --cambie el nombre de la columna para que coincida con la tabla comerciales 
+    id_comerciales INT, --cambie el nombre de la columna para que coincida con la tabla comerciales
     fecha_ini DATE,
     fecha_fin DATE,
     tarifa DOUBLE PRECISION,
