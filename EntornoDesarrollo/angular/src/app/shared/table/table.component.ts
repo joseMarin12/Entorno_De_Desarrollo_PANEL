@@ -1,11 +1,14 @@
 import { Component, computed, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+/** Field value type for formatting */
+export type FieldType = 'text' | 'number' | 'date';
+
 /** Visual style of an action button on hover */
 export type ActionVariant = 'view' | 'edit' | 'danger' | 'success' | 'warning';
 
 /** Built-in icon set */
-export type ActionIcon = 'eye' | 'edit' | 'alert-circle' | 'ban' | 'check-circle' | 'refresh' | 'trash';
+export type ActionIcon = 'eye' | 'edit' | 'alert-circle' | 'ban' | 'check-circle' | 'refresh' | 'trash' | 'location' | 'phone' | 'mail' | 'calendar';
 
 export interface ActionDef {
   /** Arbitrary string emitted in actionClick */
@@ -31,6 +34,19 @@ export interface EnumBadgeOption {
   color: string;
 }
 
+export interface IconWithInfoOptions {
+  icon: ActionIcon;
+  iconColor?: string;
+  iconStrokeWidth?: number;
+  mainField: string;
+  mainFieldType?: FieldType;
+  subField?: string;
+  subFieldType?: FieldType;
+  badgeField?: string;
+  badgeType?: string;
+  badgeLabel?: string;
+}
+
 export interface ColumnDef {
   header: string;
   /**
@@ -43,7 +59,7 @@ export interface ColumnDef {
    * - status-badge  : boolean active/inactive pill badge
    * - actions       : row action buttons
    */
-  type: 'avatar-name' | 'text' | 'number' | 'date' | 'enum-badge' | 'relation-chip' | 'status-badge' | 'actions';
+  type: 'avatar-name' | 'text' | 'number' | 'date' | 'enum-badge' | 'relation-chip' | 'status-badge' | 'icon-with-info' | 'actions';
 
   /** Row field to read (used by text, number, date, enum-badge) */
   field?: string;
@@ -92,6 +108,9 @@ export interface ColumnDef {
   activeLabel?: string;
   /** Override the inactive label (default: 'Inactivo') */
   inactiveLabel?: string;
+
+  // icon-with-info options
+  iconWithInfoConfig?: IconWithInfoOptions;
 
   // actions options
   actions?: ActionDef[];
@@ -164,6 +183,15 @@ export class TableComponent {
       col.locale ?? 'es-ES',
       col.dateOptions ?? { day: '2-digit', month: '2-digit', year: 'numeric' }
     ).format(parsed);
+  }
+
+  getFieldValue(fieldName: string, row: any, fieldType: FieldType = 'text', col?: ColumnDef): string {
+    const value = row[fieldName];
+    if (value === null || value === undefined || value === '') return '';
+
+    if (fieldType === 'number' && col) return this.formatNumber(value, col);
+    if (fieldType === 'date' && col) return this.formatDate(value, col);
+    return String(value);
   }
 
   shouldShowAction(action: ActionDef, row: any): boolean {
