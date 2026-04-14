@@ -1,16 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Seleccionador } from '../../../../models/seleccionador.model';
-
-export type ConfirmMode = 'baja' | 'activar';
-
-@Component({
-  selector: 'app-sel-modal-confirm',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './sel-modal-confirm.component.html',
-  styles: [`
-    .sel-confirm-modal {
+ .sel-confirm-modal {
       background: #fff;
       border-radius: 16px;
       width: 100%;
@@ -102,18 +90,3 @@ export type ConfirmMode = 'baja' | 'activar';
     .sel-confirm-btn-success:hover {
       background: #ecfdf5;
     }
-  `],
-})
-export class SelModalConfirmComponent {
-  @Input() seleccionador: Seleccionador | null = null;
-  @Input() mode: ConfirmMode = 'baja';
-  @Output() confirm = new EventEmitter<void>();
-  @Output() close   = new EventEmitter<void>();
-
-  get isBaja(): boolean { return this.mode === 'baja'; }
-
-  get name(): string {
-    if (!this.seleccionador) return '';
-    return `${this.seleccionador.nombre} ${this.seleccionador.ap1}`;
-  }
-}
