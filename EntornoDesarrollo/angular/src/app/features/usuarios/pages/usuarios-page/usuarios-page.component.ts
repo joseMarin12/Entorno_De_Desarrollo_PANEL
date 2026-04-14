@@ -119,28 +119,4 @@ export class UsuariosPageComponent {
             this.toast.show('success', `↺ Usuario <strong>${this.svc.fullName(u)}</strong> reactivado`);
         }
     }
-
-    exportCSV(): void {
-        const rows = [['ID', 'Nombre', 'Apellido 1', 'Apellido 2', 'Email', 'Estado']];
-        this.filtered.forEach((u) =>
-            rows.push([
-                String(u.id),
-                u.nombre,
-                u.apellido1,
-                u.apellido2,
-                u.email,
-                u.enabled ? 'Activo' : 'Inactivo',
-            ])
-        );
-
-        const csv = rows.map((row) => row.join(';')).join('\n');
-        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'usuarios.csv';
-        a.click();
-        URL.revokeObjectURL(url);
-        this.toast.show('info', '⬇ Exportación descargada');
-    }
 }
