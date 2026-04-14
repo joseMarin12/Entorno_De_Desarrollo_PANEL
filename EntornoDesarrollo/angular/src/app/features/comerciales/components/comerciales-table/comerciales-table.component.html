@@ -54,29 +54,23 @@
             </td>
             <td>
               <div class="actions">
-                <!-- Editar (clipboard con check azul) -->
                 <button class="action-btn edit" title="Editar" (click)="editClick.emit(c.id)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#476fab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-                    <path d="M9 14l2 2 4-4"/>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
                 </button>
-
-                <!-- Dar de baja / Activar -->
                 @if (c.activo) {
-                  <button class="action-btn baja" title="Dar de Baja" (click)="bajaClick.emit(c.id)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="12" y1="8" x2="12" y2="12"/>
-                      <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  <button class="action-btn baja" title="Dar de baja" (click)="bajaClick.emit(c.id)">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
                     </svg>
                   </button>
                 } @else {
-                  <button class="action-btn reactivar" title="Activar" (click)="bajaClick.emit(c.id)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                      <polyline points="22 4 12 14.01 9 11.01"/>
+                  <button class="action-btn reactivar" title="Reactivar" (click)="bajaClick.emit(c.id)">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                      <polyline points="23 4 23 10 17 10"/>
+                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                     </svg>
                   </button>
                 }

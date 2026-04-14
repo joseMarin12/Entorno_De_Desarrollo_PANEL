@@ -8,6 +8,8 @@ services:
 
   postgres:
     image: postgres:16
+    command: >
+      bash -c "chmod +x /docker-entrypoint-initdb.d/02-init-n8n-db.sh && docker-entrypoint.sh postgres"
     container_name: postgres_db
     restart: always
     networks:
@@ -35,7 +37,7 @@ services:
     networks:
       - app_network
     environment:
-      PGADMIN_DEFAULT_EMAIL: adriano.casado@sgtech.tech
+      PGADMIN_DEFAULT_EMAIL: nicolas.vazquez@sgtech.tech
       PGADMIN_DEFAULT_PASSWORD: SGPasswordPostgres
     ports:
       - "5050:80"
@@ -106,8 +108,8 @@ services:
     ports:
       - "4200:4200"
     volumes:
-      - ./angular:/app
       - angular_node_modules:/app/node_modules
+      - ./angular:/app
 
 volumes:
   postgres_data:

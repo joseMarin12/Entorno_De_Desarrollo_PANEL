@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { SeleccionadoresService } from '../../../../services/seleccionadores.service';
@@ -9,10 +9,10 @@ import { SelStatsRowComponent } from '../../components/stats-row/sel-stats-row.c
 import { SelToolbarComponent, SelFilterType, SelFilterTipoType } from '../../components/toolbar/sel-toolbar.component';
 import { SelTableComponent } from '../../components/seleccionadores-table/sel-table.component';
 import { SelModalFormComponent } from '../../components/modal-form/sel-modal-form.component';
-import { SelModalConfirmComponent, ConfirmMode } from '../../components/modal-confirm/sel-modal-confirm.component';
 import { SelModalDetailComponent } from '../../components/modal-detail/sel-modal-detail.component';
 
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
+import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
 
 @Component({
   selector: 'app-seleccionadores-page',
@@ -23,15 +23,17 @@ import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
     SelToolbarComponent,
     SelTableComponent,
     SelModalFormComponent,
-    SelModalConfirmComponent,
     SelModalDetailComponent,
     TopbarComponent,
-  ],
+    ConfirmationModalComponent
+],
   templateUrl: './seleccionadores-page.component.html',
 })
 export class SeleccionadoresPageComponent {
   svc   = inject(SeleccionadoresService);
   toast = inject(ToastService);
+  selectedSeleccionador: Seleccionador | null = null;
+  selectedSeleccionadorNombre = signal<string | null>(null);
 
   // ── Filtros ───────────────────────────────────────────
   searchQuery:   string        = '';
@@ -44,8 +46,10 @@ export class SeleccionadoresPageComponent {
   showForm    = false;
   showConfirm = false;
   showDetail  = false;
-  confirmMode: ConfirmMode = 'baja';
+  confirmMode = ConfirmMode.DESACTIVAR;
   selectedId: number | null = null;
+  ConfirmMode = ConfirmMode; // Exponer enum a la plantilla
+
 
   // ── Computed ──────────────────────────────────────────
   get filtered(): Seleccionador[] {
@@ -55,15 +59,15 @@ export class SeleccionadoresPageComponent {
       const matchFilter =
         this.activeFilter === ''       ? true :
         this.activeFilter === 'activo' ? s.activo : !s.activo;
-      
+
       // Filtro de tipo (Interno/Externo)
-      const matchType = 
+      const matchType =
         this.typeFilter === '' ? true : s.tipo === this.typeFilter;
-        
+
       // Filtro de búsqueda por texto
       const text = `${s.nombre} ${s.ap1} ${s.ap2} ${s.email}`.toLowerCase();
       const matchSearch = !q || text.includes(q);
-      
+
       return matchFilter && matchType && matchSearch;
     });
   }
@@ -71,10 +75,6 @@ export class SeleccionadoresPageComponent {
   get paginated(): Seleccionador[] {
     const start = (this.currentPage - 1) * this.PAGE_SIZE;
     return this.filtered.slice(start, start + this.PAGE_SIZE);
-  }
-
-  get selectedSeleccionador(): Seleccionador | null {
-    return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
   }
 
   // ── Handlers ─────────────────────────────────────────
@@ -100,16 +100,18 @@ export class SeleccionadoresPageComponent {
 
   onDetailClick(id: number): void {
     this.selectedId = id;
+    this.selectedSeleccionador = this.svc.getById(id) ?? null;
     this.showDetail = true;
   }
 
   onEditClick(id: number): void {
     this.selectedId = id;
+    this.selectedSeleccionador = this.svc.getById(id) ?? null;
     this.showForm = true;
   }
 
   onSaveForm(data: Omit<Seleccionador, 'id'>): void {
-    if (this.selectedId != null) {
+    if (this.selectedId) {
       this.svc.update(this.selectedId, data);
       const name = `${data.nombre} ${data.ap1}`;
       this.toast.show('info', `✎ Seleccionador <strong>${name}</strong> actualizado`);
@@ -120,17 +122,22 @@ export class SeleccionadoresPageComponent {
     }
     this.showForm = false;
     this.selectedId = null;
+    this.selectedSeleccionador = null;
   }
 
   onBajaClick(id: number): void {
     this.selectedId = id;
-    this.confirmMode = 'baja';
+    this.confirmMode = ConfirmMode.DESACTIVAR;
+    const seleccionador = this.svc.getById(this.selectedId);
+    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.ap1}` : null);
     this.showConfirm = true;
   }
 
   onActivarClick(id: number): void {
     this.selectedId = id;
-    this.confirmMode = 'activar';
+    this.confirmMode = ConfirmMode.ACTIVAR;
+    const seleccionador = this.svc.getById(this.selectedId);
+    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.ap1}` : null);
     this.showConfirm = true;
   }
 
@@ -141,7 +148,7 @@ export class SeleccionadoresPageComponent {
     this.svc.toggleActivo(this.selectedId);
     this.showConfirm = false;
 
-    if (this.confirmMode === 'baja') {
+    if (this.confirmMode === ConfirmMode.DESACTIVAR) {
       this.toast.show('warning', `⊘ Seleccionador <strong>${name}</strong> dado de baja`);
     } else {
       this.toast.show('success', `↺ Seleccionador <strong>${name}</strong> reactivado`);
