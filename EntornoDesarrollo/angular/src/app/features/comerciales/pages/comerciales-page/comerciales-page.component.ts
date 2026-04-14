@@ -11,7 +11,7 @@ import { ToolbarComponent, FilterType } from '../../components/toolbar/toolbar.c
 import { ComercialesTableComponent } from '../../components/comerciales-table/comerciales-table.component';
 import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
 import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
-import { ModalBajaComponent } from '../../components/modal-baja/modal-baja.component';
+import { ConfirmMode, ConfirmationModalComponent } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-comerciales-page',
@@ -24,13 +24,14 @@ import { ModalBajaComponent } from '../../components/modal-baja/modal-baja.compo
     ComercialesTableComponent,
     ModalAddComponent,
     ModalEditComponent,
-    ModalBajaComponent,
-  ],
+    ConfirmationModalComponent
+],
   templateUrl: './comerciales-page.component.html',
 })
 export class ComercialesPageComponent implements OnInit {
   svc = inject(ComercialesService);
   toast = inject(ToastService);
+  ConfirmMode = ConfirmMode;
 
   // ── Filtros ──────────────────────────────────────
   searchQuery = '';
