@@ -37,6 +37,7 @@ export class ModalEditComponent implements OnChanges {
     this.errors = {};
     if (!this.form.nombre)    this.errors['nombre']    = 'Campo obligatorio';
     if (!this.form.razonSocial) this.errors['razonSocial'] = 'Campo obligatorio';
+    if (!this.form.tipo) this.errors['tipo'] = 'Campo obligatorio';
     if (!this.form.cif) this.errors['cif'] = 'Campo obligatorio';
     if (Object.keys(this.errors).length > 0) return;
 

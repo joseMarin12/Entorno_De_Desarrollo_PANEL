@@ -1,39 +1,131 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Empresa } from '../models/empresa.model';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
+
+// ── URL base del proxy Laravel ───────────────────────────────────────────────
+const API_URL = 'http://localhost:8000/api/empresas';
 
 @Injectable({ providedIn: 'root' })
 export class EmpresasService {
-  private nextId = 6;
 
-  private _empresas = signal<Empresa[]>([
-    { id: 1, nombre: 'Nova Soluciones', razonSocial: 'S.L.', tipo: 'Consultoría' ,cif: 'B12345678', direcciones: 2, contactos: 1, activo: true  },
-    { id: 2, nombre: 'Astra Digital', razonSocial: 'S.L.', tipo: 'Software' ,cif: 'B87654321', direcciones: 1, contactos: 2, activo: true  },
-    { id: 3, nombre: 'Luna Tech', razonSocial: 'Consulting', tipo: 'Consultoría' ,cif: 'B23456789', direcciones: 3, contactos: 5, activo: false },
-    { id: 4, nombre: 'Punto Verde', razonSocial: 'S.L.', tipo: 'Eco-Sostenible' ,cif: 'B34567890', direcciones: 1, contactos: 1, activo: true  },
-    { id: 5, nombre: 'Kensa Group', razonSocial: 'S.A.', tipo: 'Servicios' ,cif: 'B45678901', direcciones: 2, contactos: 3, activo: true  },
-  ]);
+  private http = inject(HttpClient);
 
-  readonly empresas = this._empresas.asReadonly();
+  // ── Estado reactivo ──────────────────────────────────────────────────────
+  private _empresas = signal<Empresa[]>([]);
+  readonly loading     = signal(false);
+  readonly error       = signal<string | null>(null);
 
-  readonly total     = computed(() => this._empresas().length);
+  // ── Vistas derivadas (computed) ──────────────────────────────────────────
+  readonly empresas    = this._empresas.asReadonly();
   readonly totalActivos   = computed(() => this._empresas().filter(e => e.activo).length);
   readonly totalInactivos = computed(() => this._empresas().filter(e => !e.activo).length);
+  readonly total          = computed(() => this._empresas().length);
 
-  add(data: Omit<Empresa, 'id'>): void {
-    this._empresas.update(list => [{ id: this.nextId++, ...data }, ...list]);
+  // ── Carga inicial ────────────────────────────────────────────────────────
+
+  /**
+   * Llama a n8n (vía Laravel) para obtener todas las empresas.
+   * Body: { action: 'getEmpresas', filters: { searchText: '', status: '' } }
+   */
+  async loadAll(searchText = '', status = ''): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ data: Empresa[] }>(API_URL, {
+          action: 'getEmpresas',
+          filters: { searchText, status },
+        })
+      );
+      this._empresas.set(res.data ?? []);
+    } catch (e: any) {
+      this.error.set(e?.message ?? 'Error al cargar las empresas');
+    } finally {
+      this.loading.set(false);
+    }
   }
 
-  update(id: number, data: Omit<Empresa, 'id'>): void {
-    this._empresas.update(list =>
-      list.map(e => (e.id === id ? { id, ...data } : e))
-    );
+  // ── CRUD ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Crea una nueva empresa.
+   * Body: { action: 'createEmpresa', empresaData: { nombre, razonSocial, ... } }
+   */
+  async add(data: Omit<Empresa, 'id'>): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ data: Empresa }>(API_URL, {
+          action: 'createEmpresa',
+          empresaData: data,
+        })
+      );
+      // Añadir el nuevo registro (con id real de la BD) al principio de la lista
+      this._empresas.update(list => [res.data, ...list]);
+    } catch (e: any) {
+      this.error.set(e?.message ?? 'Error al crear la empresa');
+      throw e; // re-lanzar para que el componente pueda mostrar el toast de error
+    } finally {
+      this.loading.set(false);
+    }
   }
 
-  toggleActivo(id: number): void {
-    this._empresas.update(list =>
-      list.map(e => (e.id === id ? { ...e, activo: !e.activo } : e))
-    );
-  }
+   /**
+    * Actualiza una empresa existente.
+    * Body: { action: 'updateEmpresa', empresaId: id, empresaData: { ... } }
+    */
+   async update(id: number, data: Omit<Empresa, 'id'>): Promise<void> {
+     this.loading.set(true);
+     this.error.set(null);
+     try {
+       const res = await firstValueFrom(
+         this.http.post<{ data: Empresa }>(API_URL, {
+           action: 'updateEmpresa',
+           empresaId: id,
+           empresaData: data,
+         })
+       );
+       // Reemplazar el registro en el signal con la respuesta real de la BD
+       this._empresas.update(list =>
+         list.map(e => (e.id === id ? res.data : e))
+       );
+     } catch (e: any) {
+       this.error.set(e?.message ?? 'Error al actualizar la empresa');
+       throw e;
+     } finally {
+       this.loading.set(false);
+     }
+   }
+   
+  /**
+   * Activa o desactiva una empresa (toggle).
+   * Body: { action: 'toggleEmpresaStatus', empresaId: id }
+   */
+  async toggleActivo(id: number): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ data: Empresa }>(API_URL, {
+          action: 'toggleEmpresaStatus',
+          empresaId: id,
+        })
+      );
+      // Actualizar el signal con el estado real devuelto por la BD
+      this._empresas.update(list =>
+        list.map(e => (e.id === id ? res.data : e))
+      );
+    } catch (e: any) {
+      this.error.set(e?.message ?? 'Error al cambiar el estado de la empresa');
+      throw e;
+    } finally {
+      this.loading.set(false);
+    }
+  }   
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
 
   getById(id: number): Empresa | undefined {
     return this._empresas().find(e => e.id === id);
@@ -44,7 +136,7 @@ export class EmpresasService {
   }
 
   initials(e: Empresa): string {
-    return ((e.nombre[0] ?? '') + (e.razonSocial[0] ?? '')).toUpperCase();
+    return (e.nombre[0] + e.razonSocial[0]).toUpperCase();
   }
 
   colorFor(id: number): string {

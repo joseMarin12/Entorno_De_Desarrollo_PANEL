@@ -55,9 +55,10 @@
 }
 
 @if (showBaja && selectedEmpresa) {
-  <app-modal-baja
-    [empresa]="selectedEmpresa"
+  <app-confirmation-modal
+    [name]="selectedEmpresa ? selectedEmpresa.nombre + ' ' + selectedEmpresa.razonSocial : ''"
+    [mode]="selectedEmpresa.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirmBaja()"
-    (close)="showBaja = false; selectedId = null"
+    (closed)="showBaja = false; selectedId = null"
   />
 }
