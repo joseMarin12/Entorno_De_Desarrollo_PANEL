@@ -5,6 +5,7 @@ import { EmpresasPageComponent } from './features/empresas/pages/empresas-page/e
 import { EmpresasDireccionesPageComponent } from './features/empresas/pages/empresas-direcciones-page/empresas-direcciones-page.component';
 import { EmpresasContactosPageComponent } from './features/empresas/pages/empresas-contactos-page/empresas-contactos-page.component';
 import { UsuariosPageComponent } from './features/usuarios/pages/usuarios-page/usuarios-page.component';
+import { FormacionesPageComponent } from './features/formaciones/pages/formaciones-page/formaciones-page.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'comerciales', pathMatch: 'full' },
@@ -14,6 +15,11 @@ export const routes: Routes = [
   { path: 'empresas/:id/contactos', component: EmpresasContactosPageComponent },
   { path: 'empresas', component: EmpresasPageComponent },
   { path: 'usuarios', component: UsuariosPageComponent },
+  { path: 'formaciones', component: FormacionesPageComponent },
   // Añade aquí el resto de rutas cuando crees las otras páginas:
   // { path: 'usuarios',        component: UsuariosPageComponent },
+<<<<<<< HEAD
 ];
+=======
+];
+>>>>>>> origin/desarrollo
