@@ -27,7 +27,7 @@ describe('ConfirmationModalComponent', () => {
 
   it('should expose default input values', () => {
     expect(component.name()).toBe('item');
-    expect(component.title()).toBe('¿Seguro que quieres realizar esta acción?');
+    expect(component.title()).toBe('¿Seguro que quiere realizar esta acción?');
     expect(component.description()).toBeNull();
     expect(component.cancelarButtonTitle()).toBe('Cancelar');
     expect(component.desactivarButtonTitle()).toBe('Dar de baja');
