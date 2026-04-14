@@ -1,0 +1,208 @@
+<div class="table-card" style="margin-bottom:0">
+  <table>
+    <thead>
+      <tr>
+        @for (col of columns(); track col.header) {
+          <th>{{ col.header }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @if (rows().length === 0) {
+        <tr>
+          <td [attr.colspan]="columns().length"
+              style="text-align:center;padding:48px 20px;color:var(--text-muted)">
+            <div style="font-size:30px;margin-bottom:10px;opacity:.3">🔍</div>
+            <div style="font-size:13px;font-weight:600">Sin resultados</div>
+            <div style="font-size:12px;margin-top:4px">Prueba con otro nombre o filtro</div>
+          </td>
+        </tr>
+      } @else {
+        @for (row of rows(); track row.id) {
+          <tr>
+            @for (col of columns(); track col.header) {
+              <td>
+                @switch (col.type) {
+
+                  @case ('avatar-name') {
+                    <div class="avatar-cell">
+                      <div class="row-avatar"
+                        [style.background]="isActive(row, col.activeField) ? getColor(row, col) : '#d1d5e8'"
+                        [style.color]="isActive(row, col.activeField) ? '#fff' : 'var(--text-muted)'">
+                        {{ getInitials(row, col) }}
+                      </div>
+                      <div>
+                        <div class="td-name"
+                          [style.color]="isActive(row, col.activeField) ? '' : 'var(--text-muted)'">
+                          {{ getName(row, col) }}
+                        </div>
+                        @if (col.subField) {
+                          <div class="td-sub">{{ col.subPrefix ?? '' }}{{ row[col.subField] }}</div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @case ('text') {
+                    <span [style.color]="isActive(row, col.activeField) ? '' : 'var(--text-muted)'">
+                      {{ col.field ? row[col.field] : '' }}
+                    </span>
+                  }
+
+                  @case ('number') {
+                    <span [style.color]="isActive(row, col.activeField) ? '' : 'var(--text-muted)'">
+                      {{ formatNumber(col.field ? row[col.field] : null, col) }}
+                    </span>
+                  }
+
+                  @case ('date') {
+                    <span [style.color]="isActive(row, col.activeField) ? '' : 'var(--text-muted)'">
+                      {{ formatDate(col.field ? row[col.field] : null, col) }}
+                    </span>
+                  }
+
+                  @case ('enum-badge') {
+                    @if (getEnumOption(row, col); as opt) {
+                      <span class="badge"
+                        [style.background]="opt.background"
+                        [style.color]="opt.color">
+                        <span class="badge-dot"></span> {{ opt.label }}
+                      </span>
+                    }
+                  }
+
+                  @case ('relation-chip') {
+                    @if (col.skipField && row[col.skipField] === col.skipValue) {
+                      <span class="td-dash">—</span>
+                    } @else if (col.relationField && row[col.relationField]) {
+                      <span class="chip">{{ row[col.relationField][col.relationNameField ?? 'nombre'] }}</span>
+                    } @else {
+                      <span class="td-dash">{{ col.emptyLabel ?? '—' }}</span>
+                    }
+                  }
+
+                  @case ('status-badge') {
+                    @if (isActive(row, col.activeField)) {
+                      <span class="badge badge-active">
+                        <span class="badge-dot"></span> {{ col.activeLabel ?? 'Activo' }}
+                      </span>
+                    } @else {
+                      <span class="badge badge-inactive">
+                        <span class="badge-dot"></span> {{ col.inactiveLabel ?? 'Inactivo' }}
+                      </span>
+                    }
+                  }
+
+                  @case ('actions') {
+                    <div class="actions">
+                      @for (action of col.actions; track action.type) {
+                        @if (shouldShowAction(action, row)) {
+                          <button class="action-btn" [ngClass]="'action-btn--' + action.variant"
+                            [title]="action.title"
+                            [disabled]="isActionDisabled(action, row)"
+                            (click)="!isActionDisabled(action, row) && emitAction(action.type, row.id)">
+                            @switch (action.icon) {
+
+                              @case ('eye') {
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                  stroke="currentColor" stroke-width="2"
+                                  stroke-linecap="round" stroke-linejoin="round">
+                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                  <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                              }
+
+                              @case ('edit') {
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                  stroke="currentColor" stroke-width="2"
+                                  stroke-linecap="round" stroke-linejoin="round">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                              }
+
+                              @case ('alert-circle') {
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                  stroke="currentColor" stroke-width="2"
+                                  stroke-linecap="round" stroke-linejoin="round">
+                                  <circle cx="12" cy="12" r="10"/>
+                                  <line x1="12" y1="8" x2="12" y2="12"/>
+                                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                              }
+
+                              @case ('ban') {
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                  stroke="currentColor" stroke-width="2"
+                                  stroke-linecap="round" stroke-linejoin="round">
+                                  <circle cx="12" cy="12" r="10"/>
+                                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                                </svg>
+                              }
+
+                              @case ('check-circle') {
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                  stroke="currentColor" stroke-width="2"
+                                  stroke-linecap="round" stroke-linejoin="round">
+                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                  <polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                              }
+
+                              @case ('refresh') {
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                  stroke="currentColor" stroke-width="2"
+                                  stroke-linecap="round" stroke-linejoin="round">
+                                  <polyline points="23 4 23 10 17 10"/>
+                                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                                </svg>
+                              }
+
+                              @case ('trash') {
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                  stroke="currentColor" stroke-width="2"
+                                  stroke-linecap="round" stroke-linejoin="round">
+                                  <polyline points="3 6 5 6 21 6"/>
+                                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                  <path d="M10 11v6M14 11v6"/>
+                                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                </svg>
+                              }
+
+                            }
+                          </button>
+                        }
+                      }
+                    </div>
+                  }
+
+                }
+              </td>
+            }
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  <!-- Paginación -->
+  <div class="pagination">
+    <span>{{ paginationInfo() }}</span>
+    <div class="page-btns">
+      <button class="page-btn"
+        [disabled]="currentPage() === 1"
+        [style.opacity]="currentPage() === 1 ? '0.4' : '1'"
+        (click)="pageChange.emit(currentPage() - 1)">‹</button>
+
+      @for (p of pages(); track p) {
+        <button class="page-btn" [class.active]="p === currentPage()"
+          (click)="pageChange.emit(p)">{{ p }}</button>
+      }
+
+      <button class="page-btn"
+        [disabled]="currentPage() === totalPages()"
+        [style.opacity]="currentPage() === totalPages() ? '0.4' : '1'"
+        (click)="pageChange.emit(currentPage() + 1)">›</button>
+    </div>
+  </div>
+</div>
