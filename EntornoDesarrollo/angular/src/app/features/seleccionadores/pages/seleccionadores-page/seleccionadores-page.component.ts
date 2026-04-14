@@ -100,6 +100,7 @@ export class SeleccionadoresPageComponent {
 
   onDetailClick(id: number): void {
     this.selectedId = id;
+    this.selectedSeleccionador = this.svc.getById(id) ?? null;
     this.showDetail = true;
   }
 
