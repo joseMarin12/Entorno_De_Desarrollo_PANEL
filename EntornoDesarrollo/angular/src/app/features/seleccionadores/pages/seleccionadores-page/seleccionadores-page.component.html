@@ -29,15 +29,14 @@
   </div>
 
   <!-- Tabla -->
-  <app-sel-table
-    [seleccionadores]="paginated"
+  <app-table
+    [columns]="tableColumns"
+    [rows]="paginated"
     [currentPage]="currentPage"
     [pageSize]="PAGE_SIZE"
     [totalFiltered]="filtered.length"
-    (detailClick)="onDetailClick($event)"
-    (editClick)="onEditClick($event)"
-    (bajaClick)="onBajaClick($event)"
-    (activarClick)="onActivarClick($event)"
+    [entityLabel]="'seleccionadores'"
+    (actionClick)="onTableAction($event)"
     (pageChange)="currentPage = $event"
   />
 
