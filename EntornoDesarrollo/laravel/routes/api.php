@@ -22,3 +22,4 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('/comerciales', [ComercialController::class, 'proxy']);
+Route::apiResource('formaciones', FormacionController::class);

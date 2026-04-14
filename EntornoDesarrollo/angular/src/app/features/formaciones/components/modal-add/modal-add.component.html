@@ -1,0 +1,137 @@
+﻿<div class="modal-overlay open">
+  <div class="modal" style="max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Añadir Formación</div>
+        <div class="modal-subtitle">Rellena todos los campos para la nueva formación</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Estado Inicial</label>
+          <div class="toggle-wrap" (click)="toggleActivo()">
+            <div class="toggle" [class.on]="form.id_estado === 1"></div>
+            <div>
+              <div class="toggle-label">{{ form.id_estado === 1 ? 'Activo' : 'Inactivo' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ID Responsable</label>
+          <input class="form-input" type="number" placeholder="Ej: 1" [(ngModel)]="form.id_responsable">
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Curso <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['curso']" type="text" placeholder="Ej: Angular Avanzado" [(ngModel)]="form.curso">
+          @if (errors['curso']) { <span class="form-hint error-msg">{{ errors['curso'] }}</span> }
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Denominación <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['denominacion']" type="text" placeholder="Ej: Curso para el equipo IT" [(ngModel)]="form.denominacion">
+          @if (errors['denominacion']) { <span class="form-hint error-msg">{{ errors['denominacion'] }}</span> }
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Motivo</label>
+          <textarea class="form-input" placeholder="Motivo de la formación" [(ngModel)]="form.motivo"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ID Área</label>
+          <input class="form-input" type="number" placeholder="Ej: 2" [(ngModel)]="form.id_area">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ID Modalidad</label>
+          <input class="form-input" type="number" placeholder="Ej: 1" [(ngModel)]="form.id_modalidad">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Recursos</label>
+          <input class="form-input" type="text" placeholder="Recursos asignados" [(ngModel)]="form.recursos">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Duración (horas)</label>
+          <input class="form-input" type="number" placeholder="Ej: 40" [(ngModel)]="form.duracion">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Jornada</label>
+          <input class="form-input" type="text" placeholder="Dentro/Fuera" [(ngModel)]="form.dentro_fuera_jornada">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha Prevista</label>
+          <input class="form-input" type="date" [(ngModel)]="form.fecha_prevista">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de Inicio</label>
+          <input class="form-input" type="date" [(ngModel)]="form.fecha_inicio">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de Fin</label>
+          <input class="form-input" type="date" [(ngModel)]="form.fecha_fin">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Horario</label>
+          <input class="form-input" type="text" placeholder="L-V 10:00 - 12:00" [(ngModel)]="form.horario">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ID Ejecución</label>
+          <input class="form-input" type="number" placeholder="Ej: 3" [(ngModel)]="form.id_ejecucion">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Eficacia</label>
+          <input class="form-input" type="text" placeholder="Indicadores" [(ngModel)]="form.eficacia">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Año</label>
+          <input class="form-input" type="number" placeholder="202X" [(ngModel)]="form.anio">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Coste (€)</label>
+          <input class="form-input" type="number" step="0.01" [(ngModel)]="form.coste" (change)="calculateTotal()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Bonificación (€)</label>
+          <input class="form-input" type="number" step="0.01" [(ngModel)]="form.bonificacion" (change)="calculateTotal()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Total (€)</label>
+          <input class="form-input" type="number" step="0.01" [(ngModel)]="form.total" disabled>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-input" placeholder="Comentarios adicionales" [(ngModel)]="form.observaciones"></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="close.emit()">Cancelar</button>
+      <button class="btn btn-primary" (click)="submit()">Añadir Formación</button>
+    </div>
+  </div>
+</div>
