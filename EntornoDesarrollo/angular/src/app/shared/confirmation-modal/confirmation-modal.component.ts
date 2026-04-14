@@ -28,7 +28,6 @@ export class ConfirmationModalComponent {
   isDesactivar = computed<boolean>(() => this.mode() === ConfirmMode.DESACTIVAR);
 
   confirmClicked(): void {
-    console.log('confirmClicked', this.name());
     this.confirm.emit();
   }
 }
