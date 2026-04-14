@@ -10,26 +10,27 @@ import { UsuariosToolbarComponent, UsuariosFilterType } from '../../components/t
 import { UsuariosTableComponent } from '../../components/usuarios-table/usuarios-table.component';
 import { UsuariosModalAddComponent } from '../../components/modal-add/modal-add.component';
 import { UsuariosModalEditComponent } from '../../components/modal-edit/modal-edit.component';
-import { UsuariosModalBajaComponent } from '../../components/modal-baja/modal-baja.component';
+import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
 
 @Component({
     selector: 'app-usuarios-page',
     standalone: true,
     imports: [
-        CommonModule,
-        TopbarComponent,
-        UsuariosStatsRowComponent,
-        UsuariosToolbarComponent,
-        UsuariosTableComponent,
-        UsuariosModalAddComponent,
-        UsuariosModalEditComponent,
-        UsuariosModalBajaComponent,
-    ],
+    CommonModule,
+    TopbarComponent,
+    UsuariosStatsRowComponent,
+    UsuariosToolbarComponent,
+    UsuariosTableComponent,
+    UsuariosModalAddComponent,
+    UsuariosModalEditComponent,
+    ConfirmationModalComponent
+],
     templateUrl: './usuarios-page.component.html',
 })
 export class UsuariosPageComponent {
     svc = inject(UsuariosService);
     toast = inject(ToastService);
+    ConfirmMode = ConfirmMode;
 
     // ── Filtros ──────────────────────────────────────
     searchQuery = '';

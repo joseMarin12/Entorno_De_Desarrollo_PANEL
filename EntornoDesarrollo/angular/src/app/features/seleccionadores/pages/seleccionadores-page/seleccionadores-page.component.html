@@ -1,7 +1,7 @@
 <app-topbar pageTitle="Seleccionadores" />
 
 <div class="page-content">
-    
+
     <!-- Cabecera -->
     <div class="page-header">
       <div>
@@ -49,7 +49,7 @@
     [seleccionador]="selectedSeleccionador"
     (save)="onSaveForm($event)"
     (close)="showForm = false; selectedId = null"
-  />
+  /> -->
 }
 
 <!-- Modal detalle (solo lectura) -->
@@ -62,11 +62,11 @@
 }
 
 <!-- Modal confirmar baja / activar -->
-@if (showConfirm && selectedSeleccionador) {
-  <app-sel-modal-confirm
-    [seleccionador]="selectedSeleccionador"
-    [mode]="confirmMode"
+@if (showConfirm && selectedSeleccionadorNombre()) {
+  <app-confirmation-modal
+    [name]="selectedSeleccionadorNombre() ?? ''"
+    [mode]="confirmMode === ConfirmMode.DESACTIVAR ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirm()"
-    (close)="showConfirm = false; selectedId = null"
+    (closed)="showConfirm = false; selectedId = null"
   />
 }

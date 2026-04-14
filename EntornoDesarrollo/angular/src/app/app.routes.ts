@@ -12,4 +12,8 @@ export const routes: Routes = [
   { path: 'formaciones', component: FormacionesPageComponent },
   // Añade aquí el resto de rutas cuando crees las otras páginas:
   // { path: 'empresas',        component: EmpresasPageComponent },
+<<<<<<< HEAD
 ];
+=======
+];
+>>>>>>> origin/desarrollo
