@@ -65,7 +65,7 @@
 @if (showConfirm && selectedSeleccionadorNombre()) {
   <app-confirmation-modal
     [name]="selectedSeleccionadorNombre() ?? ''"
-    [mode]="confirmMode === 'baja' ? 'DESACTIVAR' : 'ACTIVAR'"
+    [mode]="confirmMode === ConfirmMode.DESACTIVAR ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirm()"
     (closed)="showConfirm = false; selectedId = null"
   />

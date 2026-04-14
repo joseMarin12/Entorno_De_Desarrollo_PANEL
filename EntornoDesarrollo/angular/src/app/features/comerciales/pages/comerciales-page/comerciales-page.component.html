@@ -54,9 +54,10 @@
 }
 
 @if (showBaja && selectedComercial) {
-  <app-modal-baja
-    [comercial]="selectedComercial"
+  <app-confirmation-modal
+    [name]="selectedComercial ? selectedComercial.nombre + ' ' + selectedComercial.primer_apellido : ''"
+    [mode]="selectedComercial.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirmBaja()"
-    (close)="showBaja = false; selectedId = null"
+    (closed)="showBaja = false; selectedId = null"
   />
 }

@@ -9,11 +9,10 @@ import { SelStatsRowComponent } from '../../components/stats-row/sel-stats-row.c
 import { SelToolbarComponent, SelFilterType, SelFilterTipoType } from '../../components/toolbar/sel-toolbar.component';
 import { SelTableComponent } from '../../components/seleccionadores-table/sel-table.component';
 import { SelModalFormComponent } from '../../components/modal-form/sel-modal-form.component';
-import { SelModalConfirmComponent, ConfirmMode } from '../../components/modal-confirm/sel-modal-confirm.component';
 import { SelModalDetailComponent } from '../../components/modal-detail/sel-modal-detail.component';
 
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
-import { ConfirmationModalComponent } from "../../../../shared/confirmation-modal/confirmation-modal.component";
+import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
 
 @Component({
   selector: 'app-seleccionadores-page',
@@ -24,7 +23,6 @@ import { ConfirmationModalComponent } from "../../../../shared/confirmation-moda
     SelToolbarComponent,
     SelTableComponent,
     SelModalFormComponent,
-    SelModalConfirmComponent,
     SelModalDetailComponent,
     TopbarComponent,
     ConfirmationModalComponent
@@ -48,8 +46,10 @@ export class SeleccionadoresPageComponent {
   showForm    = false;
   showConfirm = false;
   showDetail  = false;
-  confirmMode: ConfirmMode = 'baja';
+  confirmMode = ConfirmMode.DESACTIVAR;
   selectedId: number | null = null;
+  ConfirmMode = ConfirmMode; // Exponer enum a la plantilla
+
 
   // ── Computed ──────────────────────────────────────────
   get filtered(): Seleccionador[] {
@@ -59,15 +59,15 @@ export class SeleccionadoresPageComponent {
       const matchFilter =
         this.activeFilter === ''       ? true :
         this.activeFilter === 'activo' ? s.activo : !s.activo;
-      
+
       // Filtro de tipo (Interno/Externo)
-      const matchType = 
+      const matchType =
         this.typeFilter === '' ? true : s.tipo === this.typeFilter;
-        
+
       // Filtro de búsqueda por texto
       const text = `${s.nombre} ${s.ap1} ${s.ap2} ${s.email}`.toLowerCase();
       const matchSearch = !q || text.includes(q);
-      
+
       return matchFilter && matchType && matchSearch;
     });
   }
@@ -110,7 +110,7 @@ export class SeleccionadoresPageComponent {
   }
 
   onSaveForm(data: Omit<Seleccionador, 'id'>): void {
-    if (this.selectedId != null) {
+    if (this.selectedId) {
       this.svc.update(this.selectedId, data);
       const name = `${data.nombre} ${data.ap1}`;
       this.toast.show('info', `✎ Seleccionador <strong>${name}</strong> actualizado`);
@@ -126,7 +126,7 @@ export class SeleccionadoresPageComponent {
 
   onBajaClick(id: number): void {
     this.selectedId = id;
-    this.confirmMode = 'baja';
+    this.confirmMode = ConfirmMode.DESACTIVAR;
     const seleccionador = this.svc.getById(this.selectedId);
     this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.ap1}` : null);
     this.showConfirm = true;
@@ -134,7 +134,7 @@ export class SeleccionadoresPageComponent {
 
   onActivarClick(id: number): void {
     this.selectedId = id;
-    this.confirmMode = 'activar';
+    this.confirmMode = ConfirmMode.ACTIVAR;
     const seleccionador = this.svc.getById(this.selectedId);
     this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.ap1}` : null);
     this.showConfirm = true;
@@ -147,7 +147,7 @@ export class SeleccionadoresPageComponent {
     this.svc.toggleActivo(this.selectedId);
     this.showConfirm = false;
 
-    if (this.confirmMode === 'baja') {
+    if (this.confirmMode === ConfirmMode.DESACTIVAR) {
       this.toast.show('warning', `⊘ Seleccionador <strong>${name}</strong> dado de baja`);
     } else {
       this.toast.show('success', `↺ Seleccionador <strong>${name}</strong> reactivado`);

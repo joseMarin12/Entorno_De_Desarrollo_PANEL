@@ -56,9 +56,10 @@
 }
 
 @if (showBaja && selectedUsuario) {
-  <app-usuarios-modal-baja
-    [usuario]="selectedUsuario"
+  <app-confirmation-modal
+    [name]="selectedUsuario ? selectedUsuario.nombre + ' ' + selectedUsuario.apellido1 : ''"
+    [mode]="selectedUsuario.enabled ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirmBaja()"
-    (close)="showBaja = false; selectedId = null"
+    (closed)="showBaja = false; selectedId = null"
   />
 }

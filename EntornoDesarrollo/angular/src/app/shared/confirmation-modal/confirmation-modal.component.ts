@@ -1,5 +1,10 @@
 import { Component, computed, input, output } from '@angular/core';
 
+export enum ConfirmMode {
+  ACTIVAR = 'ACTIVAR',
+  DESACTIVAR = 'DESACTIVAR'
+}
+
 @Component({
   selector: 'app-confirmation-modal',
   standalone: true,
@@ -16,11 +21,11 @@ export class ConfirmationModalComponent {
   desactivarButtonTitle = input<string>('Dar de baja');
   activarButtonTitle = input<string>('Activar');
 
-  mode = input<'ACTIVAR' | 'DESACTIVAR'>('DESACTIVAR');
+  mode = input<ConfirmMode>(ConfirmMode.DESACTIVAR);
   confirm = output<void>();
   closed = output<void>();
 
-  isDesactivar = computed<boolean>(() => this.mode() === 'DESACTIVAR');
+  isDesactivar = computed<boolean>(() => this.mode() === ConfirmMode.DESACTIVAR);
 
   confirmClicked(): void {
     console.log('confirmClicked', this.name());
