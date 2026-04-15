@@ -14,23 +14,21 @@
 
     <div class="modal-body">
       <div class="form-grid">
-        <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1.5fr 1.5fr; gap: 16px; width: 100%;">
-          <div class="form-group" style="min-width: 0;">
-            <label class="form-label">Nombre <span class="req">*</span></label>
-            <input class="form-input" [class.error]="errors['nombre']" type="text" placeholder="Ej: Carlos" [(ngModel)]="form.nombre" style="min-width: 0; width: 100%;">
-            @if (errors['nombre']) { <span class="form-hint error-msg">{{ errors['nombre'] }}</span> }
-          </div>
+        <div class="form-group full">
+          <label class="form-label">Nombre <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['nombre']" type="text" placeholder="Ej: Carlos" [(ngModel)]="form.nombre">
+          @if (errors['nombre']) { <span class="form-hint error-msg">{{ errors['nombre'] }}</span> }
+        </div>
 
-          <div class="form-group" style="min-width: 0;">
-            <label class="form-label">Primer apellido <span class="req">*</span></label>
-            <input class="form-input" [class.error]="errors['apellido1']" type="text" placeholder="Ej: García" [(ngModel)]="form.apellido1" style="min-width: 0; width: 100%;">
-            @if (errors['apellido1']) { <span class="form-hint error-msg">{{ errors['apellido1'] }}</span> }
-          </div>
+        <div class="form-group">
+          <label class="form-label">Primer apellido <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['apellido1']" type="text" placeholder="Ej: García" [(ngModel)]="form.apellido1">
+          @if (errors['apellido1']) { <span class="form-hint error-msg">{{ errors['apellido1'] }}</span> }
+        </div>
 
-          <div class="form-group" style="min-width: 0;">
-            <label class="form-label">Segundo apellido</label>
-            <input class="form-input" type="text" placeholder="Ej: López" [(ngModel)]="form.apellido2" style="min-width: 0; width: 100%;">
-          </div>
+        <div class="form-group">
+          <label class="form-label">Segundo apellido</label>
+          <input class="form-input" type="text" placeholder="Ej: López" [(ngModel)]="form.apellido2">
         </div>
 
         <div class="form-group full">
