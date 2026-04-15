@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { UsuariosService } from '../../../../services/usuarios.service';
@@ -10,6 +10,7 @@ import { UsuariosToolbarComponent, UsuariosFilterType } from '../../components/t
 import { UsuariosTableComponent } from '../../components/usuarios-table/usuarios-table.component';
 import { UsuariosModalAddComponent } from '../../components/modal-add/modal-add.component';
 import { UsuariosModalEditComponent } from '../../components/modal-edit/modal-edit.component';
+import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
 
 @Component({
@@ -23,11 +24,12 @@ import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/conf
     UsuariosTableComponent,
     UsuariosModalAddComponent,
     UsuariosModalEditComponent,
+    UsuariosModalDetailComponent,
     ConfirmationModalComponent
 ],
     templateUrl: './usuarios-page.component.html',
 })
-export class UsuariosPageComponent {
+export class UsuariosPageComponent implements OnInit {
     svc = inject(UsuariosService);
     toast = inject(ToastService);
     ConfirmMode = ConfirmMode;
@@ -42,7 +44,13 @@ export class UsuariosPageComponent {
     showAdd = false;
     showEdit = false;
     showBaja = false;
+    showDetail = false;
     selectedId: number | null = null;
+
+    // ── Ciclo de vida ─────────────────────────────────
+    ngOnInit(): void {
+        this.svc.loadAll();
+    }
 
     // ── Computed ──────────────────────────────────────
     get filtered(): Usuario[] {
@@ -83,10 +91,19 @@ export class UsuariosPageComponent {
         this.showAdd = true;
     }
 
-    onSaveAdd(data: Omit<Usuario, 'id'>): void {
-        this.svc.add(data);
-        this.showAdd = false;
-        this.toast.show('success', `✓ Usuario <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
+    async onSaveAdd(data: Omit<Usuario, 'id'>): Promise<void> {
+        try {
+            await this.svc.add(data);
+            this.showAdd = false;
+            this.toast.show('success', `✓ Usuario <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
+        } catch {
+            this.toast.show('error', `✗ No se pudo añadir el usuario. Inténtalo de nuevo.`);
+        }
+    }
+
+    onDetailClick(id: number): void {
+        this.selectedId = id;
+        this.showDetail = true;
     }
 
     onEditClick(id: number): void {
@@ -94,11 +111,15 @@ export class UsuariosPageComponent {
         this.showEdit = true;
     }
 
-    onSaveEdit(data: Usuario): void {
-        this.svc.update(data.id, data);
-        this.showEdit = false;
-        this.selectedId = null;
-        this.toast.show('info', `✎ Usuario <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
+    async onSaveEdit(data: Usuario): Promise<void> {
+        try {
+            await this.svc.update(data.id, data);
+            this.showEdit = false;
+            this.selectedId = null;
+            this.toast.show('info', `✎ Usuario <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
+        } catch {
+            this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
+        }
     }
 
     onBajaClick(id: number): void {
@@ -106,17 +127,21 @@ export class UsuariosPageComponent {
         this.showBaja = true;
     }
 
-    onConfirmBaja(): void {
+    async onConfirmBaja(): Promise<void> {
         if (this.selectedId == null) return;
         const u = this.svc.getById(this.selectedId)!;
         const wasActive = u.enabled;
-        this.svc.toggleActivo(this.selectedId);
-        this.showBaja = false;
-        this.selectedId = null;
-        if (wasActive) {
-            this.toast.show('warning', `⊘ Usuario <strong>${this.svc.fullName(u)}</strong> dado de baja`);
-        } else {
-            this.toast.show('success', `↺ Usuario <strong>${this.svc.fullName(u)}</strong> reactivado`);
+        try {
+            await this.svc.toggleActivo(this.selectedId);
+            this.showBaja = false;
+            this.selectedId = null;
+            if (wasActive) {
+                this.toast.show('warning', `⊘ Usuario <strong>${this.svc.fullName(u)}</strong> dado de baja`);
+            } else {
+                this.toast.show('success', `↺ Usuario <strong>${this.svc.fullName(u)}</strong> reactivado`);
+            }
+        } catch {
+            this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`);
         }
     }
 }
