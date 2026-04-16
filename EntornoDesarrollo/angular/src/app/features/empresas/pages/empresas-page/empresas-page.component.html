@@ -1,73 +1,64 @@
-<app-topbar pageTitle="Usuarios" />
+<app-topbar pageTitle="Empresas" />
 
-<div class="page-content">
+<section class="page-content">
 
     <!-- Cabecera -->
     <div class="page-header">
       <div>
-        <div class="page-title">Usuarios</div>
-        <div class="page-subtitle">Gestiona los usuarios de la aplicación</div>
+        <div class="page-title">Empresas</div>
+        <div class="page-subtitle">Gestión de empresas</div>
       </div>
       <button class="btn btn-primary" (click)="openAdd()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        Nuevo Usuario
+        Nueva Empresa
       </button>
     </div>
 
     <!-- Estadísticas -->
-    <app-usuarios-stats-row />
+    <app-stats-row />
 
     <!-- Toolbar: búsqueda + filtros -->
-    <app-usuarios-toolbar
+    <app-toolbar
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
+      (tipoFilterChange)="onTypeFilterChange($event)"
     />
 
     <!-- Tabla -->
-    <app-usuarios-table
-      [usuarios]="paginatedUsuarios"
+    <app-empresas-table
+      [empresas]="paginatedEmpresas"
       [currentPage]="currentPage"
       [pageSize]="PAGE_SIZE"
       [totalFiltered]="filtered.length"
-      (detailClick)="onDetailClick($event)"
       (editClick)="onEditClick($event)"
       (bajaClick)="onBajaClick($event)"
       (pageChange)="currentPage = $event"
     />
-
-</div>
+</section>
 
 <!-- Modales -->
 @if (showAdd) {
-  <app-usuarios-modal-add
+  <app-modal-add
     (save)="onSaveAdd($event)"
     (close)="showAdd = false"
   />
 }
 
-@if (showEdit && selectedUsuario) {
-  <app-usuarios-modal-edit
-    [usuario]="selectedUsuario"
+@if (showEdit && selectedEmpresa) {
+  <app-modal-edit
+    [empresa]="selectedEmpresa"
     (save)="onSaveEdit($event)"
     (close)="showEdit = false; selectedId = null"
   />
 }
 
-@if (showBaja && selectedUsuario) {
+@if (showBaja && selectedEmpresa) {
   <app-confirmation-modal
-    [name]="selectedUsuario ? selectedUsuario.nombre + ' ' + selectedUsuario.apellido1 : ''"
-    [mode]="selectedUsuario.enabled ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
+    [name]="selectedEmpresa ? selectedEmpresa.nombre + ' ' + selectedEmpresa.razonSocial : ''"
+    [mode]="selectedEmpresa.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirmBaja()"
     (closed)="showBaja = false; selectedId = null"
-  />
-}
-
-@if (showDetail && selectedUsuario) {
-  <app-usuarios-modal-detail
-    [usuario]="selectedUsuario"
-    (edit)="onEditClick($event); showDetail = false"
-    (close)="showDetail = false; selectedId = null"
   />
 }

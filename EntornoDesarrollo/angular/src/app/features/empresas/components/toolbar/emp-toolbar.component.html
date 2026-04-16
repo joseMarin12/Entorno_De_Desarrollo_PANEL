@@ -1,0 +1,36 @@
+<div class="toolbar" style="width: 100%; gap: 10px;">
+      <div class="search-wrap" style="flex:1; max-width:360px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          class="search-input"
+          type="text"
+          placeholder="Buscar por nombre…"
+          [(ngModel)]="searchValue"
+          (ngModelChange)="searchChange.emit($event)"
+        />
+      </div>
+
+      <select
+        class="form-select" style="min-width: 180px; padding: 9px 12px; margin: 0 16px;"
+        [(ngModel)]="filterValue"
+        (ngModelChange)="filterChange.emit($event)"
+      >
+        <option value="">Estado: Todas</option>
+        <option value="activa">Activa</option>
+        <option value="baja">Inactiva</option>
+      </select>
+
+      <select
+        class="form-select" style="min-width: 180px; padding: 9px 12px; margin: 0 16px;"
+        [(ngModel)]="tipoFilterValue"
+        (ngModelChange)="tipoFilterChange.emit($event)"
+      >
+        <option value="">Tipo: Todos</option>
+        <option value="Tecnología">Tecnología</option>
+        <option value="Consultoría">Consultoría</option>
+        <option value="Servicios">Servicios</option>
+      </select>
+
+    </div>
