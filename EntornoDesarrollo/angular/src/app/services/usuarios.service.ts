@@ -1,19 +1,18 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Usuario } from '../models/usuarios.model';
-
-const API_URL = 'http://localhost:8000/api/usuarios';
+import { BaseCrud } from './base.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
-export class UsuariosService {
+export class UsuariosService extends BaseCrud<Usuario> {
 
-  private http = inject(HttpClient);
+  protected override readonly API_URL = `${environment.apiUrl}/usuarios`;
 
   // ── Estado reactivo ──────────────────────────────────────────────────────
   private _usuarios = signal<Usuario[]>([]);
-  readonly loading     = signal(false);
-  readonly error       = signal<string | null>(null);
+  readonly loading  = signal(false);
+  readonly error    = signal<string | null>(null);
 
   // ── Vistas derivadas (computed) ──────────────────────────────────────────
   readonly usuarios = this._usuarios.asReadonly();
@@ -28,21 +27,15 @@ export class UsuariosService {
     this.error.set(null);
     try {
       const res = await firstValueFrom(
-        this.http.post<any>(API_URL, {
+        this._findAll({
           action: 'getUser',
           filters: { searchText, status },
         })
       );
-      
-
-
-      const data = this.extractData(res);
-      const mapped = this.mapFromBackend(data);
-      
-
+      // BaseCrud ya devuelve el array de datos (o undefined si falla el formato)
+      const mapped = (res || []).map(item => this.mapSingleFromBackend(item));
       this._usuarios.set(mapped);
     } catch (e: any) {
-
       this.error.set(e?.message ?? 'Error al cargar los usuarios');
     } finally {
       this.loading.set(false);
@@ -52,7 +45,6 @@ export class UsuariosService {
   // ── CRUD ─────────────────────────────────────────────────────────────────
 
   async add(data: Omit<Usuario, 'id'>): Promise<void> {
-
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -63,31 +55,20 @@ export class UsuariosService {
         email: data.email,
         enabled: data.enabled ?? true,
         password: data.password || 'password123',
-        role_id: data.role_id || 1
-      };
-
-      const res = await firstValueFrom(this.http.post<any>(API_URL, payload));
-      const responseData = Array.isArray(res) ? res[0] : (res.data ?? res);
-      const mappedNewUser = this.mapSingleFromBackend(responseData);
-
-      // Creamos el objeto final combinando lo que enviamos con lo que n8n nos devuelva (si devuelve algo)
-      const finalNewUser: Usuario = {
-        id: mappedNewUser.id || (responseData.id ? Number(responseData.id) : Date.now()),
-        nombre: data.nombre,
-        apellido1: data.apellido1,
-        email: data.email,
-        enabled: data.enabled ?? true,
-        password: data.password || payload.password,
         role_id: Number(data.role_id || 1)
       };
 
-      // Si el backend devolvió datos reales del usuario, dejamos que tengan prioridad
-      const isRealUser = responseData && (responseData.id || responseData.name || responseData.email);
-      if (isRealUser) {
-        Object.assign(finalNewUser, mappedNewUser);
-      }
+      const res = await firstValueFrom(this._create(payload));
+      
+      // Construimos el usuario final mezclando lo enviado con la respuesta del backend
+      const newUser = this.applyRobustMerge(res, {
+        ...data,
+        id: res?.id ? Number(res.id) : Date.now(),
+        role_id: payload.role_id,
+        password: payload.password
+      });
 
-      this._usuarios.update(list => [finalNewUser, ...list]);
+      this._usuarios.update(list => [newUser, ...list]);
     } catch (e: any) {
       this.error.set(e?.message ?? 'Error al crear el usuario');
       throw e;
@@ -97,67 +78,40 @@ export class UsuariosService {
   }
 
   async update(id: number, data: Omit<Usuario, 'id'>): Promise<void> {
-
     this.loading.set(true);
     this.error.set(null);
     try {
-      const existingUser = this.getById(id);
-
+      const existing = this.getById(id);
       const payload: any = {
         action: 'updateUser',
-        id: id,
+        id,
         name: data.nombre,
         surname: data.apellido1,
         email: data.email,
         enabled: data.enabled,
-        role_id: data.role_id || 1
+        role_id: Number(data.role_id || 1)
       };
 
-      // Si hay nueva contraseña la usamos. Si no, usamos la que ya tiene el usuario
-      if (data.password && data.password.trim() !== '') {
-
+      // Lógica de preservación de contraseña
+      if (data.password?.trim()) {
         payload.password = data.password;
-      } else if (existingUser && existingUser.password) {
-
-        payload.password = existingUser.password;
-      } else {
-
+      } else if (existing?.password) {
+        payload.password = existing.password;
       }
 
-
-      const res = await firstValueFrom(this.http.post<any>(API_URL, payload));
-      const updated = Array.isArray(res) ? res[0] : (res.data ?? res);
+      const res = await firstValueFrom(this._update(payload));
       
       this._usuarios.update(list => {
-        const index = list.findIndex(u => u.id === id);
-        if (index === -1) return list;
-        
-        const current = list[index];
-        const mappedFromBackend = this.mapSingleFromBackend(updated);
-        
-        // 1. Empezamos con los datos actuales y aplicamos lo que enviamos (data)
-        const merged = { 
-          ...current, 
-          nombre: data.nombre,
-          apellido1: data.apellido1,
-          email: data.email,
-          enabled: data.enabled,
-          role_id: data.role_id || current.role_id,
-          password: data.password || current.password
-        };
-
-        // 2. Si el backend devolvió un objeto de usuario real (y no solo un mensaje de éxito),
-        // dejamos que el mapeo del backend tenga la última palabra (por si hubo triggers en DB)
-        // Identificamos un objeto real si tiene campos significativos más allá del ID
-        const isRealUser = updated && (updated.name || updated.nombre || updated.email || updated.json);
-        
-        if (isRealUser) {
-          Object.assign(merged, mappedFromBackend);
-        }
-
-        const newList = [...list];
-        newList[index] = merged;
-        return newList;
+        return list.map(u => {
+          if (u.id === id) {
+             return this.applyRobustMerge(res, {
+               ...u,
+               ...data,
+               password: payload.password || u.password
+             });
+          }
+          return u;
+        });
       });
     } catch (e: any) {
       this.error.set(e?.message ?? 'Error al actualizar el usuario');
@@ -175,35 +129,21 @@ export class UsuariosService {
       const newState = u ? !u.enabled : true;
 
       const payload = {
-        action: 'Toogle status usuarios', // Revertido a la versión con doble 'o' que espera n8n
-        id: id,
+        action: 'Toogle status usuarios',
+        id,
         enabled: newState,
-        activo: newState,                // Alias por si n8n usa este nombre
-        enabled_int: newState ? 1 : 0    // Formato numérico por si n8n lo prefiere
+        activo: newState,
+        enabled_int: newState ? 1 : 0
       };
-      
 
-
-      const res = await firstValueFrom(this.http.post<any>(API_URL, payload));
-      const responseData = Array.isArray(res) ? res[0] : (res.data ?? res);
-      const mappedFromBackend = this.mapSingleFromBackend(responseData);
+      const res = await firstValueFrom(this._toggleStatus(payload));
       
-      this._usuarios.update(list => {
-        return list.map(u => {
-          if (u.id === id) {
-            // Empezamos con el estado que queríamos ponerle
-            const merged = { ...u, enabled: newState };
-            
-            // Si el backend devolvió un objeto real, dejamos que mande el backend
-            const isRealUser = responseData && (responseData.name || responseData.nombre || responseData.email || responseData.enabled !== undefined);
-            if (isRealUser) {
-              Object.assign(merged, mappedFromBackend);
-            }
-            return merged;
-          }
-          return u;
-        });
-      });
+      this._usuarios.update(list => 
+        list.map(user => user.id === id 
+          ? this.applyRobustMerge(res, { ...user, enabled: newState }) 
+          : user
+        )
+      );
     } catch (e: any) {
       this.error.set(e?.message ?? 'Error al cambiar el estado del usuario');
       throw e;
@@ -212,56 +152,41 @@ export class UsuariosService {
     }
   }
 
-  // ── Mapeadores y Extracción ──────────────────────────────────────────
+  // ── Mapeadores y Mezcla Robustas ──────────────────────────────────────────
 
-  private extractData(res: any): any[] {
-    if (Array.isArray(res)) return res;
-    if (!res || typeof res !== 'object') return [];
-
-    // 1. Buscar arrays en claves comunes
-    if (Array.isArray(res.data)) return res.data;
-    if (Array.isArray(res.items)) return res.items;
-    if (Array.isArray(res.json)) return res.json;
-
-    // 2. Buscar si ALGUNA propiedad es un array (quedarnos con el más largo)
-    const arrays = Object.values(res).filter(v => Array.isArray(v)) as any[][];
-    if (arrays.length > 0) {
-      return arrays.sort((a, b) => b.length - a.length)[0];
+  /**
+   * Mezcla de forma segura la respuesta del backend con los datos locales.
+   * Si el backend devuelve un objeto real (con nombre o email), confiamos en el mapeo.
+   * Si no, mantenemos los datos que enviamos para evitar que la fila se quede vacía o gris.
+   */
+  private applyRobustMerge(backendRes: any, localData: Usuario): Usuario {
+    const mapped = this.mapSingleFromBackend(backendRes);
+    
+    // Identificamos respuesta real si el objeto tiene datos significativos
+    const isReal = backendRes && (backendRes.id || backendRes.nombre || backendRes.name || backendRes.email);
+    
+    if (isReal) {
+      return { ...localData, ...mapped };
     }
-
-    // 3. Caso especial: n8n entrega un objeto con .json que contiene lo que buscamos
-    if (res.json && typeof res.json === 'object') {
-      return this.extractData(res.json);
-    }
-
-    // 4. Si tiene pinta de ser un solo record
-    if (res.id || res.name || (res.json && res.json.id)) {
-      return [res];
-    }
-
-    return [];
-  }
-
-  private mapFromBackend(data: any[]): Usuario[] {
-    return data.map(item => this.mapSingleFromBackend(item));
+    return localData;
   }
 
   private mapSingleFromBackend(item: any): Usuario {
-    // n8n envuelve cada item en una propiedad "json" por defecto.
+    // n8n a veces envuelve en .json
     const d = (item && item.json && typeof item.json === 'object' && !Array.isArray(item.json)) 
               ? item.json 
               : item;
 
-
+    if (!d || typeof d !== 'object') return {} as Usuario;
 
     return {
-      id: Number(d.id || d.ID || d.id_usuario || d.user_id || d.pk || d._id),
-      nombre: d.name || d.nombre || d.username || d.nombre_usuario || '',
-      apellido1: d.surname || d.apellido1 || d.last_name || d.primer_apellido || '',
-      email: d.email || d.user_email || d.correo || '',
+      id: Number(d.id || d.ID || d.id_usuario || 0),
+      nombre: d.name || d.nombre || d.username || '',
+      apellido1: d.surname || d.apellido1 || d.last_name || '',
+      email: d.email || d.user_email || '',
       enabled: d.enabled === true || d.enabled === 1 || d.enabled === '1' || d.status === 'active' || d.activo === true,
-      password: d.password || d.pass || d.contraseña || d.pwd || '',
-      role_id: d.role_id || d.ID_ROL || d.id_rol || ''
+      password: d.password || d.pass || d.contraseña || '',
+      role_id: Number(d.role_id || d.ID_ROL || d.id_rol || 1)
     };
   }
 
