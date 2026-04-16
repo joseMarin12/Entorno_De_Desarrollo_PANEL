@@ -166,7 +166,7 @@ export class UsuariosService {
               : item;
 
     return {
-      // Mapeo robusto de ID (n8n a veces usa nombres diferentes según Postgres o el nodo)
+      // Mapeo robusto de ID ()
       id: d.id || d.ID || d.id_usuario || d.user_id || d.pk || d._id,
       nombre: d.name || d.nombre || d.username || '',
       apellido1: d.surname || d.apellido1 || d.last_name || '',
