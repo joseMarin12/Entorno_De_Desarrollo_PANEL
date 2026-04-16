@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Http;
 class FormacionController extends Controller
 {
     private string $n8nUrl = 'http://n8n:5678/webhook/formaciones';
+    private string $n8nUrlPut = 'http://n8n:5678/webhook/acdd3a76-1a5b-457a-8ec9-8b81a5ef35e5/formaciones';
+    private string $n8nUrlDelete = 'http://n8n:5678/webhook/2c485b24-d491-4e8b-bc3c-13f7b4c2e910/formaciones';
 
     // 1. El método proxy que te faltaba y que llama api.php
     public function proxy(Request $request)
@@ -33,7 +35,7 @@ class FormacionController extends Controller
             return response()->json(['error' => 'Error al obtener formaciones'], 500);
         }
 
-        return response()->json($response->json());
+        return response()->json(['data' => $response->json()]);
     }
 
     private function store(Request $request)
@@ -48,7 +50,7 @@ class FormacionController extends Controller
             return response()->json(['error' => 'Error al crear formación'], 500);
         }
 
-        return response()->json($response->json(), 201);
+        return response()->json(['data' => $response->json()], 201);
     }
 
     private function update(Request $request)
@@ -57,13 +59,13 @@ class FormacionController extends Controller
         $data = $request->input('formacionData', []);
 
         // Tu n8n usa un webhook PUT en la ruta /formaciones/{id}
-        $response = Http::put("{$this->n8nUrl}/{$id}", $data);
+        $response = Http::put("{$this->n8nUrlPut}/{$id}", $data);
 
         if ($response->failed()) {
             return response()->json(['error' => 'Error al actualizar formación'], 500);
         }
 
-        return response()->json($response->json());
+        return response()->json(['data' => $response->json()]);
     }
 
     private function toggle(Request $request)
@@ -72,12 +74,12 @@ class FormacionController extends Controller
 
         // Tu n8n usa un webhook DELETE en la ruta /formaciones/{id} 
         // (que ahora sabemos que internamente hace un Toggle lógico)
-        $response = Http::delete("{$this->n8nUrl}/{$id}");
+        $response = Http::delete("{$this->n8nUrlDelete}/{$id}");
 
         if ($response->failed()) {
             return response()->json(['error' => 'Error al cambiar estado'], 500);
         }
 
-        return response()->json($response->json());
+        return response()->json(['data' => $response->json()]);
     }
 }
