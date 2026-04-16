@@ -34,15 +34,15 @@ export class UsuariosService {
         })
       );
       
-      console.log('Respuesta cruda de n8n:', res);
+
 
       const data = this.extractData(res);
       const mapped = this.mapFromBackend(data);
       
-      console.log('Usuarios mapeados:', mapped);
+
       this._usuarios.set(mapped);
     } catch (e: any) {
-      console.error('Error cargando usuarios:', e);
+
       this.error.set(e?.message ?? 'Error al cargar los usuarios');
     } finally {
       this.loading.set(false);
@@ -52,7 +52,7 @@ export class UsuariosService {
   // ── CRUD ─────────────────────────────────────────────────────────────────
 
   async add(data: Omit<Usuario, 'id'>): Promise<void> {
-    console.log('add(data) recibida:', data);
+
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -65,7 +65,7 @@ export class UsuariosService {
         password: data.password || 'password123',
         role_id: data.role_id || 1
       };
-      console.log('Enviando a n8n (add):', payload);
+
       const res = await firstValueFrom(this.http.post<any>(API_URL, payload));
       const responseData = Array.isArray(res) ? res[0] : (res.data ?? res);
       const mappedNewUser = this.mapSingleFromBackend(responseData);
@@ -97,7 +97,7 @@ export class UsuariosService {
   }
 
   async update(id: number, data: Omit<Usuario, 'id'>): Promise<void> {
-    console.log('update(id, data) recibida:', id, data);
+
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -115,16 +115,16 @@ export class UsuariosService {
 
       // Si hay nueva contraseña la usamos. Si no, usamos la que ya tiene el usuario
       if (data.password && data.password.trim() !== '') {
-        console.log('Usando nueva contraseña del formulario');
+
         payload.password = data.password;
       } else if (existingUser && existingUser.password) {
-        console.log('Usando contraseña existente del estado local');
+
         payload.password = existingUser.password;
       } else {
-        console.warn('AVISO: No hay contraseña nueva ni se ha encontrado la anterior en el estado local.');
+
       }
 
-      console.log('Enviando a n8n (update):', payload);
+
       const res = await firstValueFrom(this.http.post<any>(API_URL, payload));
       const updated = Array.isArray(res) ? res[0] : (res.data ?? res);
       
@@ -175,18 +175,35 @@ export class UsuariosService {
       const newState = u ? !u.enabled : true;
 
       const payload = {
-        action: 'Toogle status usuarios', // Nombre exacto que pusiste en n8n
+        action: 'Toogle status usuarios', // Revertido a la versión con doble 'o' que espera n8n
         id: id,
-        enabled: newState
+        enabled: newState,
+        activo: newState,                // Alias por si n8n usa este nombre
+        enabled_int: newState ? 1 : 0    // Formato numérico por si n8n lo prefiere
       };
       
-      console.log('Enviando a n8n (toggle):', payload);
+
 
       const res = await firstValueFrom(this.http.post<any>(API_URL, payload));
-      const updated = Array.isArray(res) ? res[0] : (res.data ?? res);
-      this._usuarios.update(list =>
-        list.map(u => (u.id === id ? this.mapSingleFromBackend(updated) : u))
-      );
+      const responseData = Array.isArray(res) ? res[0] : (res.data ?? res);
+      const mappedFromBackend = this.mapSingleFromBackend(responseData);
+      
+      this._usuarios.update(list => {
+        return list.map(u => {
+          if (u.id === id) {
+            // Empezamos con el estado que queríamos ponerle
+            const merged = { ...u, enabled: newState };
+            
+            // Si el backend devolvió un objeto real, dejamos que mande el backend
+            const isRealUser = responseData && (responseData.name || responseData.nombre || responseData.email || responseData.enabled !== undefined);
+            if (isRealUser) {
+              Object.assign(merged, mappedFromBackend);
+            }
+            return merged;
+          }
+          return u;
+        });
+      });
     } catch (e: any) {
       this.error.set(e?.message ?? 'Error al cambiar el estado del usuario');
       throw e;
@@ -235,7 +252,7 @@ export class UsuariosService {
               ? item.json 
               : item;
 
-    console.log('Teclas en objeto n8n:', Object.keys(d));
+
 
     return {
       id: Number(d.id || d.ID || d.id_usuario || d.user_id || d.pk || d._id),
