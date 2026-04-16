@@ -3,16 +3,16 @@ import { CommonModule } from '@angular/common';
 
 import { SeleccionadoresService } from '../../../../services/seleccionadores.service';
 import { ToastService } from '../../../../services/toast.service';
-import { Seleccionador, TipoSeleccionador } from '../../../../models/seleccionador.model';
+import { Seleccionador } from '../../../../models/seleccionador.model';
 
 import { SelStatsRowComponent } from '../../components/stats-row/sel-stats-row.component';
 import { SelToolbarComponent, SelFilterType, SelFilterTipoType } from '../../components/toolbar/sel-toolbar.component';
-import { SelTableComponent } from '../../components/seleccionadores-table/sel-table.component';
 import { SelModalFormComponent } from '../../components/modal-form/sel-modal-form.component';
 import { SelModalDetailComponent } from '../../components/modal-detail/sel-modal-detail.component';
 
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
+import { ColumnDef, TableComponent } from '../../../../shared/table/table.component';
 
 @Component({
   selector: 'app-seleccionadores-page',
@@ -21,7 +21,7 @@ import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/conf
     CommonModule,
     SelStatsRowComponent,
     SelToolbarComponent,
-    SelTableComponent,
+    TableComponent,
     SelModalFormComponent,
     SelModalDetailComponent,
     TopbarComponent,
@@ -32,6 +32,66 @@ import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/conf
 export class SeleccionadoresPageComponent {
   svc   = inject(SeleccionadoresService);
   toast = inject(ToastService);
+
+  tableColumns: ColumnDef[] = [
+    {
+      header: 'Nombre',
+      type: 'avatar-name',
+      nameFields: ['nombre', 'ap1', 'ap2'],
+      activeField: 'activo',
+      colorFn: (id) => this.svc.colorFor(id),
+      initialsFn: (row) => this.svc.initials(row)
+    },
+    {
+      header: 'Tipo',
+      type: 'enum-badge',
+      field: 'tipo',
+      enumMap: {
+        interno: { label: 'Interno', background: '#e8eaf6', color: '#3949ab' },
+        externo: { label: 'Externo', background: '#fff3e0', color: '#e65100' }
+      }
+    },
+    {
+      header: 'Empresas vinculadas',
+      type: 'relation-chip',
+      skipField: 'tipo',
+      skipValue: 'interno',
+      relationField: 'empresaVinculada',
+      relationNameField: 'nombre',
+      emptyLabel: 'Sin empresa'
+    },
+    {
+      header: 'Estado',
+      type: 'status-badge',
+      activeField: 'activo',
+      inactiveLabel: 'De baja'
+    },
+    {
+      header: 'Acciones',
+      type: 'actions',
+      actions: [
+        { type: 'detail', title: 'Ver detalle', icon: 'eye', variant: 'view' },
+        { type: 'edit', title: 'Editar', icon: 'edit', variant: 'edit' },
+        {
+          type: 'baja',
+          title: 'Dar de Baja',
+          icon: 'alert-circle',
+          variant: 'danger',
+          showWhen: 'active',
+          activeField: 'activo'
+        },
+        {
+          type: 'activar',
+          title: 'Activar',
+          icon: 'check-circle',
+          variant: 'success',
+          showWhen: 'inactive',
+          activeField: 'activo'
+        }
+      ]
+    }
+  ];
+
   selectedSeleccionador: Seleccionador | null = null;
   selectedSeleccionadorNombre = signal<string | null>(null);
 
@@ -56,9 +116,12 @@ export class SeleccionadoresPageComponent {
     const q = this.searchQuery.toLowerCase().trim();
     return this.svc.seleccionadores().filter(s => {
       // Filtro de estado (Activo/Inactivo)
-      const matchFilter =
-        this.activeFilter === ''       ? true :
-        this.activeFilter === 'activo' ? s.activo : !s.activo;
+      let matchFilter = true;
+      if (this.activeFilter === 'activo') {
+        matchFilter = s.activo;
+      } else if (this.activeFilter === 'baja') {
+        matchFilter = !s.activo;
+      }
 
       // Filtro de tipo (Interno/Externo)
       const matchType =
@@ -91,6 +154,25 @@ export class SeleccionadoresPageComponent {
   onTypeFilterChange(t: SelFilterTipoType): void {
     this.typeFilter = t;
     this.currentPage = 1;
+  }
+
+  onTableAction(event: { type: string; id: number }): void {
+    switch (event.type) {
+      case 'detail':
+        this.onDetailClick(event.id);
+        break;
+      case 'edit':
+        this.onEditClick(event.id);
+        break;
+      case 'baja':
+        this.onBajaClick(event.id);
+        break;
+      case 'activar':
+        this.onActivarClick(event.id);
+        break;
+      default:
+        break;
+    }
   }
 
   openAdd(): void {
