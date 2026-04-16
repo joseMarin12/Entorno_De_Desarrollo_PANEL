@@ -8,6 +8,9 @@ import { UsuariosService } from '../../../../services/usuarios.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './usuarios-table.component.html',
+  styles: [`
+    .action-btn:hover.detail { border-color: #7c6bba; background: #eeebff; }
+  `]
 })
 export class UsuariosTableComponent {
   @Input() usuarios: Usuario[] = [];
@@ -15,6 +18,7 @@ export class UsuariosTableComponent {
   @Input() pageSize = 10;
   @Input() totalFiltered = 0;
 
+  @Output() detailClick = new EventEmitter<number>();
   @Output() editClick = new EventEmitter<number>();
   @Output() bajaClick = new EventEmitter<number>();
   @Output() pageChange = new EventEmitter<number>();

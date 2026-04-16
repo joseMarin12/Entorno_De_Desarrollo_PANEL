@@ -19,11 +19,10 @@
     <!-- Estadísticas -->
     <app-usuarios-stats-row />
 
-    <!-- Toolbar: búsqueda + filtros + exportar -->
+    <!-- Toolbar: búsqueda + filtros -->
     <app-usuarios-toolbar
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
-      (exportCsv)="exportCSV()"
     />
 
     <!-- Tabla -->
@@ -32,6 +31,7 @@
       [currentPage]="currentPage"
       [pageSize]="PAGE_SIZE"
       [totalFiltered]="filtered.length"
+      (detailClick)="onDetailClick($event)"
       (editClick)="onEditClick($event)"
       (bajaClick)="onBajaClick($event)"
       (pageChange)="currentPage = $event"
@@ -61,5 +61,13 @@
     [mode]="selectedUsuario.enabled ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirmBaja()"
     (closed)="showBaja = false; selectedId = null"
+  />
+}
+
+@if (showDetail && selectedUsuario) {
+  <app-usuarios-modal-detail
+    [usuario]="selectedUsuario"
+    (edit)="onEditClick($event); showDetail = false"
+    (close)="showDetail = false; selectedId = null"
   />
 }

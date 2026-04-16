@@ -20,7 +20,7 @@
           </td>
         </tr>
       } @else {
-        @for (u of usuarios; track u.id) {
+        @for (u of usuarios; track u.id || $index) {
           <tr>
             <td>
               <div class="avatar-cell">
@@ -46,12 +46,20 @@
             </td>
             <td>
               <div class="actions">
+                <!-- Ver detalle -->
+                <button class="action-btn detail" title="Ver detalle" (click)="detailClick.emit(u.id)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c6bba" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+
+
                 <!-- Editar -->
                 <button class="action-btn edit" title="Editar" (click)="editClick.emit(u.id)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#476fab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-                    <path d="M9 14l2 2 4-4"/>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#476fab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
                 </button>
 

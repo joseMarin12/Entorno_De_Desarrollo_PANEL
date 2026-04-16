@@ -17,7 +17,11 @@
     </div>
 
     <!-- Estadísticas -->
-    <app-stats-row />
+    <app-stats-row
+      [total]="total()"
+      [activos]="totalActivos()"
+      [inactivos]="totalInactivos()"
+    />
 
     <!-- Toolbar: búsqueda + filtros -->
     <app-toolbar

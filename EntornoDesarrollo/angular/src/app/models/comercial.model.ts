@@ -1,5 +1,5 @@
 export interface Comercial {
-  id: number;
+  id: number | null;
   nombre: string;
   primer_apellido: string;
   segundo_apellido: string;

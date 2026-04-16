@@ -28,20 +28,12 @@ export type UsuariosFilterType = 'todos' | 'activos' | 'inactivos';
         <button class="view-tab" [class.active]="activeFilter() === 'activos'" (click)="setFilter('activos')">Activos</button>
         <button class="view-tab" [class.active]="activeFilter() === 'inactivos'" (click)="setFilter('inactivos')">Inactivos</button>
       </div>
-
-      <button class="btn btn-outline" style="margin-left:auto;" (click)="exportCsv.emit()">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-        </svg>
-        Exportar
-      </button>
     </div>
   `,
 })
 export class UsuariosToolbarComponent {
   @Output() searchChange = new EventEmitter<string>();
   @Output() filterChange = new EventEmitter<UsuariosFilterType>();
-  @Output() exportCsv = new EventEmitter<void>();
 
   searchValue = '';
   activeFilter = signal<UsuariosFilterType>('todos');
