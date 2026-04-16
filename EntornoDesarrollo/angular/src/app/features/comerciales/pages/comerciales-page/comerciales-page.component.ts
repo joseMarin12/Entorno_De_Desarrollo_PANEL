@@ -43,7 +43,7 @@ export class ComercialesPageComponent implements OnInit {
   searchQuery = '';
   activeFilter: FilterType = 'todos';
   currentPage = 1;
-  readonly PAGE_SIZE = 10;
+  readonly PAGE_SIZE = 6;
 
   // ── Estado modales ────────────────────────────────
   showAdd = false;
@@ -81,6 +81,18 @@ export class ComercialesPageComponent implements OnInit {
   get selectedComercial(): Comercial | null {
     if (this.selectedId === null) return null;
     return this.getById(this.selectedId) ?? null;
+  }
+
+  // ── Validación sincrónica ─────────────────────────
+  get existingEmails(): string[] {
+    return this.comerciales().map(c => c.email.toLowerCase());
+  }
+
+  get existingEmailsForEdit(): string[] {
+    if (!this.selectedId) return [];
+    return this.comerciales()
+      .filter(c => c.id !== this.selectedId)
+      .map(c => c.email.toLowerCase());
   }
 
   private loadAll(searchText = '', status = ''): void {
