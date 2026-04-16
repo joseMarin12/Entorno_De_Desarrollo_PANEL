@@ -13,7 +13,7 @@ export class UsuariosModalAddComponent {
   @Output() save = new EventEmitter<Omit<Usuario, 'id'>>();
   @Output() close = new EventEmitter<void>();
 
-  form = { nombre: '', apellido1: '', apellido2: '', email: '', enabled: true };
+  form = { nombre: '', apellido1: '', email: '', password: '', role_id: 1, enabled: true };
   errors: Record<string, string> = {};
 
   toggleEnabled(): void {
@@ -26,6 +26,9 @@ export class UsuariosModalAddComponent {
     if (!this.form.apellido1) this.errors['apellido1'] = 'Campo obligatorio';
     if (!this.form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email))
       this.errors['email'] = 'Introduce un email válido';
+    
+    if (!this.form.password) this.errors['password'] = 'Campo obligatorio';
+    if (!this.form.role_id) this.errors['role_id'] = 'Campo obligatorio';
 
     if (Object.keys(this.errors).length > 0) return;
 
@@ -34,7 +37,7 @@ export class UsuariosModalAddComponent {
   }
 
   reset(): void {
-    this.form = { nombre: '', apellido1: '', apellido2: '', email: '', enabled: true };
+    this.form = { nombre: '', apellido1: '', email: '', password: '', role_id: 1, enabled: true };
     this.errors = {};
   }
 }

@@ -52,22 +52,42 @@ export class UsuariosService {
   // ── CRUD ─────────────────────────────────────────────────────────────────
 
   async add(data: Omit<Usuario, 'id'>): Promise<void> {
+    console.log('add(data) recibida:', data);
     this.loading.set(true);
     this.error.set(null);
     try {
-      const res = await firstValueFrom(
-        this.http.post<any>(API_URL, {
-          action: 'createUser', // Coincide con n8n
-          name: data.nombre,    // Mapeo plano como espera tu n8n
-          surname: data.apellido1,
-          email: data.email,
-          enabled: data.enabled ?? true,
-          password: 'password123', // Valor por defecto si no viene
-          role_id: 1               // Valor por defecto para tu esquema
-        })
-      );
-      const newUser = Array.isArray(res) ? res[0] : (res.data ?? res);
-      this._usuarios.update(list => [this.mapSingleFromBackend(newUser), ...list]);
+      const payload = {
+        action: 'createUser',
+        name: data.nombre,
+        surname: data.apellido1,
+        email: data.email,
+        enabled: data.enabled ?? true,
+        password: data.password || 'password123',
+        role_id: data.role_id || 1
+      };
+      console.log('Enviando a n8n (add):', payload);
+      const res = await firstValueFrom(this.http.post<any>(API_URL, payload));
+      const responseData = Array.isArray(res) ? res[0] : (res.data ?? res);
+      const mappedNewUser = this.mapSingleFromBackend(responseData);
+
+      // Creamos el objeto final combinando lo que enviamos con lo que n8n nos devuelva (si devuelve algo)
+      const finalNewUser: Usuario = {
+        id: mappedNewUser.id || (responseData.id ? Number(responseData.id) : Date.now()),
+        nombre: data.nombre,
+        apellido1: data.apellido1,
+        email: data.email,
+        enabled: data.enabled ?? true,
+        password: data.password || payload.password,
+        role_id: Number(data.role_id || 1)
+      };
+
+      // Si el backend devolvió datos reales del usuario, dejamos que tengan prioridad
+      const isRealUser = responseData && (responseData.id || responseData.name || responseData.email);
+      if (isRealUser) {
+        Object.assign(finalNewUser, mappedNewUser);
+      }
+
+      this._usuarios.update(list => [finalNewUser, ...list]);
     } catch (e: any) {
       this.error.set(e?.message ?? 'Error al crear el usuario');
       throw e;
@@ -77,24 +97,68 @@ export class UsuariosService {
   }
 
   async update(id: number, data: Omit<Usuario, 'id'>): Promise<void> {
+    console.log('update(id, data) recibida:', id, data);
     this.loading.set(true);
     this.error.set(null);
     try {
-      const res = await firstValueFrom(
-        this.http.post<any>(API_URL, {
-          action: 'updateUser', // Coincide con n8n
-          id: id,               // n8n espera body.id
-          name: data.nombre,
-          surname: data.apellido1,
+      const existingUser = this.getById(id);
+
+      const payload: any = {
+        action: 'updateUser',
+        id: id,
+        name: data.nombre,
+        surname: data.apellido1,
+        email: data.email,
+        enabled: data.enabled,
+        role_id: data.role_id || 1
+      };
+
+      // Si hay nueva contraseña la usamos. Si no, usamos la que ya tiene el usuario
+      if (data.password && data.password.trim() !== '') {
+        console.log('Usando nueva contraseña del formulario');
+        payload.password = data.password;
+      } else if (existingUser && existingUser.password) {
+        console.log('Usando contraseña existente del estado local');
+        payload.password = existingUser.password;
+      } else {
+        console.warn('AVISO: No hay contraseña nueva ni se ha encontrado la anterior en el estado local.');
+      }
+
+      console.log('Enviando a n8n (update):', payload);
+      const res = await firstValueFrom(this.http.post<any>(API_URL, payload));
+      const updated = Array.isArray(res) ? res[0] : (res.data ?? res);
+      
+      this._usuarios.update(list => {
+        const index = list.findIndex(u => u.id === id);
+        if (index === -1) return list;
+        
+        const current = list[index];
+        const mappedFromBackend = this.mapSingleFromBackend(updated);
+        
+        // 1. Empezamos con los datos actuales y aplicamos lo que enviamos (data)
+        const merged = { 
+          ...current, 
+          nombre: data.nombre,
+          apellido1: data.apellido1,
           email: data.email,
           enabled: data.enabled,
-          role_id: 1
-        })
-      );
-      const updated = Array.isArray(res) ? res[0] : (res.data ?? res);
-      this._usuarios.update(list =>
-        list.map(u => (u.id === id ? this.mapSingleFromBackend(updated) : u))
-      );
+          role_id: data.role_id || current.role_id,
+          password: data.password || current.password
+        };
+
+        // 2. Si el backend devolvió un objeto de usuario real (y no solo un mensaje de éxito),
+        // dejamos que el mapeo del backend tenga la última palabra (por si hubo triggers en DB)
+        // Identificamos un objeto real si tiene campos significativos más allá del ID
+        const isRealUser = updated && (updated.name || updated.nombre || updated.email || updated.json);
+        
+        if (isRealUser) {
+          Object.assign(merged, mappedFromBackend);
+        }
+
+        const newList = [...list];
+        newList[index] = merged;
+        return newList;
+      });
     } catch (e: any) {
       this.error.set(e?.message ?? 'Error al actualizar el usuario');
       throw e;
@@ -107,12 +171,18 @@ export class UsuariosService {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const res = await firstValueFrom(
-        this.http.post<any>(API_URL, {
-          action: 'Toogle status usuarios', // Nombre exacto que pusiste en n8n
-          id: id
-        })
-      );
+      const u = this.getById(id);
+      const newState = u ? !u.enabled : true;
+
+      const payload = {
+        action: 'Toogle status usuarios', // Nombre exacto que pusiste en n8n
+        id: id,
+        enabled: newState
+      };
+      
+      console.log('Enviando a n8n (toggle):', payload);
+
+      const res = await firstValueFrom(this.http.post<any>(API_URL, payload));
       const updated = Array.isArray(res) ? res[0] : (res.data ?? res);
       this._usuarios.update(list =>
         list.map(u => (u.id === id ? this.mapSingleFromBackend(updated) : u))
@@ -165,21 +235,24 @@ export class UsuariosService {
               ? item.json 
               : item;
 
+    console.log('Teclas en objeto n8n:', Object.keys(d));
+
     return {
-      // Mapeo robusto de ID ()
-      id: d.id || d.ID || d.id_usuario || d.user_id || d.pk || d._id,
-      nombre: d.name || d.nombre || d.username || '',
-      apellido1: d.surname || d.apellido1 || d.last_name || '',
-      apellido2: d.surname2 || d.apellido2 || '',
-      email: d.email || d.user_email || '',
-      enabled: d.enabled === true || d.enabled === 1 || d.enabled === '1' || d.status === 'active'
+      id: Number(d.id || d.ID || d.id_usuario || d.user_id || d.pk || d._id),
+      nombre: d.name || d.nombre || d.username || d.nombre_usuario || '',
+      apellido1: d.surname || d.apellido1 || d.last_name || d.primer_apellido || '',
+      email: d.email || d.user_email || d.correo || '',
+      enabled: d.enabled === true || d.enabled === 1 || d.enabled === '1' || d.status === 'active' || d.activo === true,
+      password: d.password || d.pass || d.contraseña || d.pwd || '',
+      role_id: d.role_id || d.ID_ROL || d.id_rol || ''
     };
   }
 
   // ── Helpers UI ──────────────────────────────────────────────────────────
 
-  getById(id: number): Usuario | undefined {
-    return this._usuarios().find(u => u.id === id);
+  getById(id: number | string): Usuario | undefined {
+    const numericId = Number(id);
+    return this._usuarios().find(u => Number(u.id) === numericId);
   }
 
   fullName(u: Usuario): string {
