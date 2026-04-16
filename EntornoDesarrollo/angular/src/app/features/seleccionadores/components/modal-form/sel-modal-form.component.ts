@@ -104,14 +104,15 @@ export class SelModalFormComponent implements OnChanges {
   private getDefaultForm(): Omit<Seleccionador, 'id'> {
     return {
       nombre: '',
-      ap1: '',
-      ap2: '',
+      primer_apellido: '',
+      segundo_apellido: '',
       telefono: '',
       email: '',
       tipo: 'interno',
       activo: true,
-      empresaVinculada: undefined,
-      fechaInicio: '',
+      id_empresa: undefined,
+      empresa: undefined,
+      fecha_ini: '',
       salario: undefined,
       fee: undefined
     };
@@ -120,8 +121,9 @@ export class SelModalFormComponent implements OnChanges {
   setTipo(tipo: TipoSeleccionador): void {
     this.form.tipo = tipo;
     if (tipo === 'interno') {
-      this.form.empresaVinculada = undefined;
-      this.form.fechaInicio = '';
+      this.form.id_empresa = undefined;
+      this.form.empresa = undefined;
+      this.form.fecha_ini = '';
       this.form.salario = undefined;
       this.form.fee = undefined;
     }
@@ -132,13 +134,14 @@ export class SelModalFormComponent implements OnChanges {
   }
 
   submit(): void {
+    console.log('🔘 Botón Guardar pulsado. Validando datos...', this.form);
     this.errors = {};
     if (!this.form.nombre.trim()) this.errors['nombre'] = 'Campo obligatorio';
-    if (!this.form.ap1.trim()) this.errors['ap1'] = 'Campo obligatorio';
+    if (!this.form.primer_apellido.trim()) this.errors['primer_apellido'] = 'Campo obligatorio';
 
     if (this.form.tipo === 'externo') {
       if (!this.form.email?.trim()) this.errors['email'] = 'Campo obligatorio';
-      if (!this.form.empresaVinculada) {
+      if (!this.form.id_empresa) {
         this.errors['empresa'] = 'Selecciona una empresa';
       }
     }
@@ -148,9 +151,10 @@ export class SelModalFormComponent implements OnChanges {
     this.save.emit({ ...this.form });
   }
 
-  // Método simplificado para asignar la empresa única
+  // Método para asignar el ID de empresa para el backend
   onEmpresaChange(id: string): void {
     const empresaId = parseInt(id);
-    this.form.empresaVinculada = this.svc.empresasDisponibles.find(e => e.id === empresaId);
+    this.form.id_empresa = empresaId;
+    this.form.empresa = this.svc.empresasDisponibles().find(e => e.id === empresaId);
   }
 }

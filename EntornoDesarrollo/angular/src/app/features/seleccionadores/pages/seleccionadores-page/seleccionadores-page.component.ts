@@ -49,8 +49,12 @@ export class SeleccionadoresPageComponent {
 
   // ── Computed ──────────────────────────────────────────
   get filtered(): Seleccionador[] {
+    const data = this.svc.seleccionadores();
+    if (!Array.isArray(data)) return [];
+
     const q = this.searchQuery.toLowerCase().trim();
-    return this.svc.seleccionadores().filter(s => {
+    return data.filter(s => {
+      if (!s) return false;
       // Filtro de estado (Activo/Inactivo)
       const matchFilter =
         this.activeFilter === ''       ? true :
@@ -61,7 +65,7 @@ export class SeleccionadoresPageComponent {
         this.typeFilter === '' ? true : s.tipo === this.typeFilter;
         
       // Filtro de búsqueda por texto
-      const text = `${s.nombre} ${s.ap1} ${s.ap2} ${s.email}`.toLowerCase();
+      const text = `${s.nombre} ${s.primer_apellido} ${s.segundo_apellido} ${s.email}`.toLowerCase();
       const matchSearch = !q || text.includes(q);
       
       return matchFilter && matchType && matchSearch;
@@ -108,14 +112,15 @@ export class SeleccionadoresPageComponent {
     this.showForm = true;
   }
 
-  onSaveForm(data: Omit<Seleccionador, 'id'>): void {
+  async onSaveForm(data: Omit<Seleccionador, 'id'>): Promise<void> {
+    console.log('📩 Página recibió evento "save". Procesando...', data);
     if (this.selectedId != null) {
-      this.svc.update(this.selectedId, data);
-      const name = `${data.nombre} ${data.ap1}`;
+      await this.svc.update(this.selectedId, data);
+      const name = `${data.nombre} ${data.primer_apellido}`;
       this.toast.show('info', `✎ Seleccionador <strong>${name}</strong> actualizado`);
     } else {
-      this.svc.add(data);
-      const name = `${data.nombre} ${data.ap1}`;
+      await this.svc.add(data);
+      const name = `${data.nombre} ${data.primer_apellido}`;
       this.toast.show('success', `✓ Seleccionador <strong>${name}</strong> añadido`);
     }
     this.showForm = false;
@@ -134,11 +139,11 @@ export class SeleccionadoresPageComponent {
     this.showConfirm = true;
   }
 
-  onConfirm(): void {
+  async onConfirm(): Promise<void> {
     if (this.selectedId == null) return;
     const s = this.svc.getById(this.selectedId)!;
-    const name = `${s.nombre} ${s.ap1}`;
-    this.svc.toggleActivo(this.selectedId);
+    const name = `${s.nombre} ${s.primer_apellido}`;
+    await this.svc.toggleActivo(this.selectedId);
     this.showConfirm = false;
 
     if (this.confirmMode === 'baja') {

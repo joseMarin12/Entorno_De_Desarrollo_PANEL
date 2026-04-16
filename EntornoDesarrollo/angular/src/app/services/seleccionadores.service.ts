@@ -1,139 +1,191 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Seleccionador } from '../models/seleccionador.model';
+import { firstValueFrom } from 'rxjs';
+
+// ── URL base del proxy Laravel ───────────────────────────────────────────────
+const API_URL = 'http://localhost:8000/api/seleccionadores';
 
 @Injectable({ providedIn: 'root' })
 export class SeleccionadoresService {
-  private nextId = 8;
+  private http = inject(HttpClient);
 
-  private _seleccionadores = signal<Seleccionador[]>([
-    {
-      id: 1,
-      nombre: 'Javier',
-      ap1: 'Morales',
-      ap2: 'Fernández',
-      telefono: '612 345 678',
-      email: 'javier.morales@sgtech.com',
-      tipo: 'interno',
-      activo: true,
-    },
-    {
-      id: 2,
-      nombre: 'Laura',
-      ap1: 'García',
-      ap2: 'Pérez',
-      telefono: '623 456 789',
-      email: 'laura.garcia@sgtech.com',
-      tipo: 'interno',
-      activo: true,
-    },
-    {
-      id: 3,
-      nombre: 'Antonio',
-      ap1: 'Sanz',
-      ap2: 'López',
-      telefono: '634 567 890',
-      email: 'antonio.sanz@talentexpert.es',
-      tipo: 'externo',
-      activo: true,
-      empresaVinculada: { id: 1, nombre: 'Talent Expert SL' },
-      fechaInicio: '2024-03-01',
-      salario: 38000,
-      fee: 15,
-    },
-    {
-      id: 4,
-      nombre: 'María',
-      ap1: 'Pérez',
-      ap2: 'Romero',
-      telefono: '645 678 901',
-      email: 'maria.perez@recrupro.es',
-      tipo: 'externo',
-      activo: true,
-      empresaVinculada: { id: 2, nombre: 'RecruPro España' },
-      fechaInicio: '2024-06-15',
-      salario: 42000,
-      fee: 18,
-    },
-    {
-      id: 5,
-      nombre: 'Carlos',
-      ap1: 'Ruiz',
-      ap2: 'Blanco',
-      telefono: '656 789 012',
-      email: 'carlos.ruiz@sgtech.com',
-      tipo: 'interno',
-      activo: true,
-    },
-    {
-      id: 6,
-      nombre: 'Roberto',
-      ap1: 'Jiménez',
-      ap2: 'Castro',
-      telefono: '667 890 123',
-      email: 'roberto.jimenez@headhunting.es',
-      tipo: 'externo',
-      activo: false,
-      empresaVinculada: { id: 3, nombre: 'HeadHunting Pro' },
-      fechaInicio: '2023-11-01',
-      salario: 35000,
-      fee: 12,
-    },
-    {
-      id: 7,
-      nombre: 'Sara',
-      ap1: 'Navarro',
-      ap2: 'Torres',
-      telefono: '678 901 234',
-      email: 'sara.navarro@sgtech.com',
-      tipo: 'interno',
-      activo: true,
-    },
-  ]);
+  // ── Estado reactivo ──────────────────────────────────────────────────────
+  private _seleccionadores = signal<Seleccionador[]>([]);
+  private _empresas = signal<{id: number, nombre: string}[]>([]);
+  readonly loading     = signal(false);
+  readonly error       = signal<string | null>(null);
 
+  // Vistas derivadas (computed)
   readonly seleccionadores = this._seleccionadores.asReadonly();
-  readonly total     = computed(() => this._seleccionadores().length);
-  readonly activos   = computed(() => this._seleccionadores().filter(s => s.activo).length);
-  readonly inactivos = computed(() => this._seleccionadores().filter(s => !s.activo).length);
-  readonly externos  = computed(() => this._seleccionadores().filter(s => s.tipo === 'externo').length);
+  readonly empresasDisponibles = this._empresas.asReadonly();
+  readonly total           = computed(() => this._seleccionadores().length);
+  readonly activos         = computed(() => this._seleccionadores().filter(s => s && s.activo).length);
+  readonly inactivos       = computed(() => this._seleccionadores().filter(s => s && !s.activo).length);
+  readonly externos        = computed(() => this._seleccionadores().filter(s => s && s.tipo === 'externo').length);
 
-  // Listado de empresas disponibles para el formulario
-  readonly empresasDisponibles = [
-    { id: 1, nombre: 'Talent Expert SL' },
-    { id: 2, nombre: 'RecruPro España' },
-    { id: 3, nombre: 'HeadHunting Pro' },
-    { id: 4, nombre: 'Global Talent Group' },
-    { id: 5, nombre: 'Top Recruit España' },
-  ];
-
-  add(data: Omit<Seleccionador, 'id'>): void {
-    this._seleccionadores.update(list => [
-      ...list,
-      { id: this.nextId++, ...data }
-    ]);
+  constructor() {
+    this.loadAll();
+    this.loadEmpresas();
   }
 
-  update(id: number, data: Omit<Seleccionador, 'id'>): void {
-    this._seleccionadores.update(list =>
-      list.map(s => s.id === id ? { id, ...data } : s)
-    );
+  // ── Carga inicial ────────────────────────────────────────────────────────
+
+  /**
+   * Obtiene todos los seleccionadores vía n8n.
+   */
+  async loadAll(searchText = '', status = ''): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ data: Seleccionador[] }>(API_URL, {
+          action: 'getSeleccionadores',
+          filters: { searchText, status },
+        })
+      );
+      // Blindaje: nos aseguramos de que siempre sea un array
+      const rawData = res?.data;
+      this._seleccionadores.set(Array.isArray(rawData) ? rawData : []);
+    } catch (e: any) {
+      this.error.set(e?.message ?? 'Error al cargar los seleccionadores');
+    } finally {
+      this.loading.set(false);
+    }
   }
 
-  toggleActivo(id: number): void {
-    this._seleccionadores.update(list =>
-      list.map(s => s.id === id ? { ...s, activo: !s.activo } : s)
-    );
+  /**
+   * Obtiene las empresas reales desde la base de datos vía n8n.
+   */
+  async loadEmpresas(): Promise<void> {
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ data: {id: number, nombre: string}[] }>(API_URL, {
+          action: 'getEmpresas'
+        })
+      );
+      this._empresas.set(res.data ?? []);
+    } catch (e) {
+      console.warn('⚠️ No se pudieron cargar las empresas reales:', e);
+    }
   }
+
+  // ── CRUD ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Crea un nuevo seleccionador.
+   */
+  async add(data: Omit<Seleccionador, 'id'>): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      // Limpiamos los datos: convertimos undefined en null y normalizamos el campo 'tipo'
+      const cleanData = Object.fromEntries(
+        Object.entries(data).map(([key, val]) => {
+          let value = val === undefined ? null : val;
+          // Normalizamos el tipo para evitar fallos de Check Constraint en Postgres
+          if (key === 'tipo' && typeof value === 'string') {
+            value = value.toLowerCase().trim();
+          }
+          return [key, value];
+        })
+      );
+
+      console.log('🚀 Enviando a n8n [CREATE]:', cleanData);
+
+      const res = await firstValueFrom(
+        this.http.post<{ data: Seleccionador }>(API_URL, {
+          action: 'createSeleccionador',
+          seleccionadorData: cleanData,
+        })
+      );
+      console.log('✅ Respuesta de n8n [CREATE OK]:', res);
+      // Aseguramos que tomamos el objeto si viene en un array
+      const rawItem = res?.data;
+      const newItem = Array.isArray(rawItem) ? rawItem[0] : rawItem;
+      
+      if (newItem && typeof newItem === 'object') {
+        this._seleccionadores.update(list => [newItem, ...(Array.isArray(list) ? list : [])]);
+      }
+    } catch (e: any) {
+      console.error('❌ ERROR CRÍTICO al crear seleccionador:', e);
+      this.error.set(e?.message ?? 'Error al crear el seleccionador');
+      throw e;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /**
+   * Actualiza un seleccionador existente.
+   */
+  async update(id: number, data: Partial<Seleccionador>): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      // Limpiamos los datos: convertimos undefined en null para compatibilidad total con n8n
+      const cleanData = Object.fromEntries(
+        Object.entries(data).map(([key, val]) => [key, val === undefined ? null : val])
+      );
+
+      const res = await firstValueFrom(
+        this.http.post<{ data: Seleccionador }>(API_URL, {
+          action: 'updateSeleccionador',
+          seleccionadorId: id,
+          seleccionadorData: cleanData,
+        })
+      );
+      // Capturamos el objeto correctamente aunque n8n lo envíe en un array
+      const updatedItem = Array.isArray(res.data) ? res.data[0] : res.data;
+      this._seleccionadores.update(list =>
+        list.map(s => (s.id === id ? updatedItem : s))
+      );
+    } catch (e: any) {
+      this.error.set(e?.message ?? 'Error al actualizar el seleccionador');
+      throw e;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /**
+   * Cambia el estado de alta/baja.
+   */
+  async toggleActivo(id: number): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ data: Seleccionador }>(API_URL, {
+          action: 'toggleSeleccionadorStatus',
+          seleccionadorId: id,
+        })
+      );
+      // Capturamos el objeto correctamente aunque n8n lo envíe en un array
+      const updatedItem = Array.isArray(res.data) ? res.data[0] : res.data;
+      this._seleccionadores.update(list =>
+        list.map(s => (s.id === id ? updatedItem : s))
+      );
+    } catch (e: any) {
+      this.error.set(e?.message ?? 'Error al cambiar el estado');
+      throw e;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
 
   getById(id: number): Seleccionador | undefined {
     return this._seleccionadores().find(s => s.id === id);
   }
 
   fullName(s: Seleccionador): string {
-    return [s.nombre, s.ap1, s.ap2].filter(Boolean).join(' ');
+    return [s.nombre, s.primer_apellido, s.segundo_apellido].filter(Boolean).join(' ');
   }
 
   initials(s: Seleccionador): string {
-    return ((s.nombre[0] ?? '') + (s.ap1[0] ?? '')).toUpperCase();
+    return ((s.nombre?.[0] ?? '') + (s.primer_apellido?.[0] ?? '')).toUpperCase();
   }
 
   colorFor(id: number): string {
@@ -145,6 +197,6 @@ export class SeleccionadoresService {
       'linear-gradient(135deg,#23b4cd,#3198bf)',
       'linear-gradient(135deg,#5a4d9a,#476fab)',
     ];
-    return COLORS[(id - 1) % COLORS.length];
+    return COLORS[id % COLORS.length];
   }
 }

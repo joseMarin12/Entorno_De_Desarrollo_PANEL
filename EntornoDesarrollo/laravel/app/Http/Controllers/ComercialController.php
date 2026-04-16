@@ -12,7 +12,7 @@ class ComercialController extends Controller
     public function __construct()
     {
         // URL del webhook de n8n (ajustar según entorno)
-        $this->n8nUrl = env('N8N_WEBHOOK_URL', 'http://n8n:5678/webhook/gestion-comerciales');
+        $this->n8nUrl = env('N8N_WEBHOOK_COMERCIALES', 'http://n8n:5678/webhook/gestion-comerciales');
     }
 
     /**

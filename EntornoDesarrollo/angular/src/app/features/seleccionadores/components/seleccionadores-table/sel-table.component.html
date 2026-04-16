@@ -32,7 +32,7 @@
                 </div>
                 <div>
                   <div class="td-name" [style.color]="s.activo ? '' : 'var(--text-muted)'">
-                    {{ s.nombre }} {{ s.ap1 }} {{ s.ap2 }}
+                    {{ s.nombre }} {{ s.primer_apellido }} {{ s.segundo_apellido }}
                   </div>
                 </div>
               </div>
@@ -55,8 +55,8 @@
             <td>
               @if (s.tipo === 'interno') {
                 <span class="td-dash">—</span>
-              } @else if (s.empresaVinculada) {
-                <span class="empresa-chip">{{ s.empresaVinculada.nombre }}</span>
+              } @else if (s.empresa) {
+                <span class="empresa-chip">{{ s.empresa.nombre }}</span>
               } @else {
                 <span class="td-dash">Sin empresa</span>
               }

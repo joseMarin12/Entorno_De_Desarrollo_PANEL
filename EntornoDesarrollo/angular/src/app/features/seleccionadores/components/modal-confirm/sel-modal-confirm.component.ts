@@ -114,6 +114,6 @@ export class SelModalConfirmComponent {
 
   get name(): string {
     if (!this.seleccionador) return '';
-    return `${this.seleccionador.nombre} ${this.seleccionador.ap1}`;
+    return `${this.seleccionador.nombre} ${this.seleccionador.primer_apellido}`;
   }
 }

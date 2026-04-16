@@ -35,12 +35,12 @@
           <label class="form-label">Primer Apellido <em style="color:var(--danger)">*</em></label>
           <input
             class="form-input"
-            [class.error]="errors['ap1']"
+            [class.error]="errors['primer_apellido']"
             type="text"
             placeholder="Ej: Sánchez"
-            [(ngModel)]="form.ap1"
+            [(ngModel)]="form.primer_apellido"
           />
-          @if (errors['ap1']) { <span class="form-hint error-msg">{{ errors['ap1'] }}</span> }
+          @if (errors['primer_apellido']) { <span class="form-hint error-msg">{{ errors['primer_apellido'] }}</span> }
         </div>
         <div class="form-group">
           <label class="form-label">Segundo Apellido</label>
@@ -48,7 +48,7 @@
             class="form-input"
             type="text"
             placeholder="Opcional"
-            [(ngModel)]="form.ap2"
+            [(ngModel)]="form.segundo_apellido"
           />
         </div>
       </div>
@@ -107,11 +107,11 @@
               <label class="form-label">Empresa vinculada <em style="color:var(--danger)">*</em></label>
               <select 
                 class="form-select" 
-                [ngModel]="form.empresaVinculada?.id" 
+                [ngModel]="form.id_empresa" 
                 (ngModelChange)="onEmpresaChange($event)"
               >
                 <option [ngValue]="undefined">Selecciona empresa...</option>
-                @for (e of svc.empresasDisponibles; track e.id) {
+                @for (e of svc.empresasDisponibles(); track e.id) {
                   <option [value]="e.id">{{ e.nombre }}</option>
                 }
               </select>
@@ -122,7 +122,7 @@
               <input
                 class="form-input"
                 type="date"
-                [(ngModel)]="form.fechaInicio"
+                [(ngModel)]="form.fecha_ini"
               />
             </div>
           </div>
