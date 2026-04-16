@@ -14,7 +14,7 @@
 
     <div class="modal-body">
       <div class="form-grid">
-        <div class="form-group">
+        <div class="form-group full">
           <label class="form-label">Nombre <span class="req">*</span></label>
           <input class="form-input" [class.error]="errors['nombre']" type="text" placeholder="Ej: Carlos" [(ngModel)]="form.nombre">
           @if (errors['nombre']) { <span class="form-hint error-msg">{{ errors['nombre'] }}</span> }
