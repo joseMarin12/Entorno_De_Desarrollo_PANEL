@@ -25,7 +25,7 @@ services:
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
       - ./postgres/init-n8n-db.sh:/docker-entrypoint-initdb.d/02-init-n8n-db.sh
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d panel"]
+      test: [ "CMD-SHELL", "pg_isready -U admin -d panel" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -37,7 +37,7 @@ services:
     networks:
       - app_network
     environment:
-      PGADMIN_DEFAULT_EMAIL: nicolas.vazquez@sgtech.tech
+      PGADMIN_DEFAULT_EMAIL: admin@sgtech.tech
       PGADMIN_DEFAULT_PASSWORD: SGPasswordPostgres
     ports:
       - "5050:80"

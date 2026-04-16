@@ -18,7 +18,8 @@
   </div>
 
   <!-- Estadísticas -->
-  <app-stats-row />
+  <app-stats-row [total]="total()" [activas]="totalActivos()" [inactivas]="totalInactivos()">
+  </app-stats-row>
 
   <!-- Toolbar: búsqueda + filtros -->
   <app-toolbar (searchChange)="onSearchChange($event)" (filterChange)="onFilterChange($event)" />
@@ -40,7 +41,6 @@
 }
 
 @if (showBaja && selectedFormacion) {
-<app-modal-baja *ngIf="showBaja" [formacion]="selectedFormacion" (confirm)="onConfirmBaja()"
-  (cancel)="showBaja = false">
+<app-modal-baja *ngIf="showBaja" [formacion]="selectedFormacion" (confirm)="onConfirmBaja()" (close)="showBaja = false">
 </app-modal-baja>
 }
