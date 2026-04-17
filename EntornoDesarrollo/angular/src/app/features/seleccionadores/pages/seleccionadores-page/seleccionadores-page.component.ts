@@ -37,7 +37,7 @@ export class SeleccionadoresPageComponent {
     {
       header: 'Nombre',
       type: 'avatar-name',
-      nameFields: ['nombre', 'ap1', 'ap2'],
+      nameFields: ['nombre', 'primer_apellido', 'segundo_apellido'],
       activeField: 'activo',
       colorFn: (id) => this.svc.colorFor(id),
       initialsFn: (row) => this.svc.initials(row)
@@ -216,7 +216,7 @@ export class SeleccionadoresPageComponent {
     this.selectedId = id;
     this.confirmMode = ConfirmMode.DESACTIVAR;
     const seleccionador = this.svc.getById(this.selectedId);
-    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.ap1}` : null);
+    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.primer_apellido}` : null);
     this.showConfirm = true;
   }
 
@@ -224,7 +224,7 @@ export class SeleccionadoresPageComponent {
     this.selectedId = id;
     this.confirmMode = ConfirmMode.ACTIVAR;
     const seleccionador = this.svc.getById(this.selectedId);
-    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.ap1}` : null);
+    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.primer_apellido}` : null);
     this.showConfirm = true;
   }
 
