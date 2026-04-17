@@ -1,0 +1,66 @@
+<div class="modal-overlay open">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Editar Usuario</div>
+        <div class="modal-subtitle">{{ subtitle }}</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Nombre <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['nombre']" type="text" placeholder="Ej: Carlos" [(ngModel)]="form.nombre">
+          @if (errors['nombre']) { <span class="form-hint error-msg">{{ errors['nombre'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Primer apellido <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['apellido1']" type="text" placeholder="Ej: García" [(ngModel)]="form.apellido1">
+          @if (errors['apellido1']) { <span class="form-hint error-msg">{{ errors['apellido1'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Segundo apellido</label>
+          <input class="form-input" type="text" placeholder="Ej: López" [(ngModel)]="form.apellido2">
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Email <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['email']" type="email" placeholder="usuario@example.com" [(ngModel)]="form.email">
+          @if (errors['email']) { <span class="form-hint error-msg">{{ errors['email'] }}</span> }
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Estado</label>
+          <div class="toggle-wrap" (click)="toggleEnabled()">
+            <div class="toggle" [class.on]="form.enabled"></div>
+            <div>
+              <div class="toggle-label">{{ form.enabled ? 'Activo' : 'Inactivo' }}</div>
+              <div class="toggle-sub">
+                {{ form.enabled ? 'El usuario tiene acceso' : 'El usuario está desactivado' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="close.emit()">Cancelar</button>
+      <button class="btn btn-primary" (click)="submit()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Guardar Cambios
+      </button>
+    </div>
+  </div>
+</div>

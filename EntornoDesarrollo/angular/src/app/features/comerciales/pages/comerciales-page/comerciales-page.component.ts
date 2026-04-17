@@ -1,7 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { ComercialesService } from '../../../../services/comerciales.service';
+import { ComercialesApiService } from '../../../../services/comerciales-api.service';
 import { ToastService } from '../../../../services/toast.service';
 import { Comercial } from '../../../../models/comercial.model';
 
@@ -11,7 +11,7 @@ import { ToolbarComponent, FilterType } from '../../components/toolbar/toolbar.c
 import { ComercialesTableComponent } from '../../components/comerciales-table/comerciales-table.component';
 import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
 import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
-import { ModalBajaComponent } from '../../components/modal-baja/modal-baja.component';
+import { ConfirmMode, ConfirmationModalComponent } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-comerciales-page',
@@ -24,13 +24,20 @@ import { ModalBajaComponent } from '../../components/modal-baja/modal-baja.compo
     ComercialesTableComponent,
     ModalAddComponent,
     ModalEditComponent,
-    ModalBajaComponent,
-  ],
+    ConfirmationModalComponent
+],
   templateUrl: './comerciales-page.component.html',
 })
 export class ComercialesPageComponent implements OnInit {
-  svc = inject(ComercialesService);
+  api = inject(ComercialesApiService);
   toast = inject(ToastService);
+  ConfirmMode = ConfirmMode;
+
+  private readonly _comerciales = signal<Comercial[]>([]);
+  readonly comerciales = this._comerciales.asReadonly();
+  readonly total = computed(() => this._comerciales().length);
+  readonly totalActivos = computed(() => this._comerciales().filter(c => c.activo).length);
+  readonly totalInactivos = computed(() => this._comerciales().filter(c => !c.activo).length);
 
   // ── Filtros ──────────────────────────────────────
   searchQuery = '';
@@ -46,18 +53,21 @@ export class ComercialesPageComponent implements OnInit {
 
   // ── Ciclo de vida ─────────────────────────────────
   ngOnInit(): void {
-    this.svc.loadAll();
+    this.loadAll();
   }
 
   // ── Computed ──────────────────────────────────────
   get filtered(): Comercial[] {
-    return this.svc.comerciales().filter(c => {
-      const matchFilter =
-        this.activeFilter === 'todos' ? true :
-          this.activeFilter === 'activos' ? c.activo : !c.activo;
+    return this.comerciales().filter(c => {
+      let matchFilter = true;
+      if (this.activeFilter === 'activos') {
+        matchFilter = c.activo;
+      } else if (this.activeFilter === 'baja') {
+        matchFilter = !c.activo;
+      }
       const q = this.searchQuery.toLowerCase().trim();
       const matchSearch = !q
-        || this.svc.fullName(c).toLowerCase().includes(q)
+        || this.fullName(c).toLowerCase().includes(q)
         || c.email.toLowerCase().includes(q);
       return matchFilter && matchSearch;
     });
@@ -69,7 +79,15 @@ export class ComercialesPageComponent implements OnInit {
   }
 
   get selectedComercial(): Comercial | null {
-    return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
+    if (this.selectedId === null) return null;
+    return this.getById(this.selectedId) ?? null;
+  }
+
+  private loadAll(searchText = '', status = ''): void {
+    this.api.findAll(searchText, status).subscribe({
+      next: (list) => this._comerciales.set(list ?? []),
+      error: () => this.toast.show('error', '✗ No se pudo cargar los comerciales. Inténtalo de nuevo.'),
+    });
   }
 
   // ── Handlers ──────────────────────────────────────
@@ -87,14 +105,15 @@ export class ComercialesPageComponent implements OnInit {
     this.showAdd = true;
   }
 
-  async onSaveAdd(data: Omit<Comercial, 'id'>): Promise<void> {
-    try {
-      await this.svc.add(data);
-      this.showAdd = false;
-      this.toast.show('success', `✓ Comercial <strong>${data.nombre} ${data.primer_apellido}</strong> añadido correctamente`);
-    } catch {
-      this.toast.show('error', `✗ No se pudo añadir el comercial. Inténtalo de nuevo.`);
-    }
+  onSaveAdd(data: Omit<Comercial, 'id'>): void {
+    this.api.create({ ...data, id: null }).subscribe({
+      next: (created) => {
+        this._comerciales.update(list => [created, ...list]);
+        this.showAdd = false;
+        this.toast.show('success', `✓ Comercial <strong>${data.nombre} ${data.primer_apellido}</strong> añadido correctamente`);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo añadir el comercial. Inténtalo de nuevo.'),
+    });
   }
 
   onEditClick(id: number): void {
@@ -102,15 +121,16 @@ export class ComercialesPageComponent implements OnInit {
     this.showEdit = true;
   }
 
-  async onSaveEdit(data: Comercial): Promise<void> {
-    try {
-      await this.svc.update(data.id, data);
-      this.showEdit = false;
-      this.selectedId = null;
-      this.toast.show('info', `✎ Comercial <strong>${data.nombre} ${data.primer_apellido}</strong> actualizado`);
-    } catch {
-      this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
-    }
+  onSaveEdit(data: Comercial): void {
+    this.api.update(data.id!, data).subscribe({
+      next: (updated) => {
+        this._comerciales.update(list => list.map(c => (c.id === data.id ? updated : c)));
+        this.showEdit = false;
+        this.selectedId = null;
+        this.toast.show('info', `✎ Comercial <strong>${data.nombre} ${data.primer_apellido}</strong> actualizado`);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo guardar los cambios. Inténtalo de nuevo.'),
+    });
   }
 
   onBajaClick(id: number): void {
@@ -118,22 +138,31 @@ export class ComercialesPageComponent implements OnInit {
     this.showBaja = true;
   }
 
-  async onConfirmBaja(): Promise<void> {
+  onConfirmBaja(): void {
     if (this.selectedId == null) return;
-    const c = this.svc.getById(this.selectedId)!;
+    const c = this.getById(this.selectedId)!;
     const wasActive = c.activo;
-    try {
-      await this.svc.toggleActivo(this.selectedId);
-      this.showBaja = false;
-      this.selectedId = null;
-      if (wasActive) {
-        this.toast.show('warning', `⊘ Comercial <strong>${this.svc.fullName(c)}</strong> dado de baja`);
-      } else {
-        this.toast.show('success', `↺ Comercial <strong>${this.svc.fullName(c)}</strong> reactivado`);
-      }
-    } catch {
-      this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`);
-    }
+    this.api.toggleStatus(this.selectedId).subscribe({
+      next: (updated) => {
+        this._comerciales.update(list => list.map(item => (item.id === this.selectedId ? updated : item)));
+        this.showBaja = false;
+        this.selectedId = null;
+        if (wasActive) {
+          this.toast.show('warning', `⊘ Comercial <strong>${this.fullName(c)}</strong> dado de baja`);
+        } else {
+          this.toast.show('success', `↺ Comercial <strong>${this.fullName(c)}</strong> reactivado`);
+        }
+      },
+      error: () => this.toast.show('error', '✗ No se pudo cambiar el estado. Inténtalo de nuevo.'),
+    });
+  }
+
+  getById(id: number): Comercial | undefined {
+    return this._comerciales().find(c => c.id === id);
+  }
+
+  fullName(c: Comercial): string {
+    return [c.nombre, c.primer_apellido, c.segundo_apellido].filter(Boolean).join(' ');
   }
 
 }

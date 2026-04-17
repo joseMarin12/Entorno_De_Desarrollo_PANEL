@@ -1,0 +1,147 @@
+import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { UsuariosService } from '../../../../services/usuarios.service';
+import { ToastService } from '../../../../services/toast.service';
+import { Usuario } from '../../../../models/usuarios.model';
+import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
+import { UsuariosStatsRowComponent } from '../../components/stats-row/usuarios-stats-row.component';
+import { UsuariosToolbarComponent, UsuariosFilterType } from '../../components/toolbar/usuarios-toolbar.component';
+import { UsuariosTableComponent } from '../../components/usuarios-table/usuarios-table.component';
+import { UsuariosModalAddComponent } from '../../components/modal-add/modal-add.component';
+import { UsuariosModalEditComponent } from '../../components/modal-edit/modal-edit.component';
+import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
+import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
+
+@Component({
+    selector: 'app-usuarios-page',
+    standalone: true,
+    imports: [
+    CommonModule,
+    TopbarComponent,
+    UsuariosStatsRowComponent,
+    UsuariosToolbarComponent,
+    UsuariosTableComponent,
+    UsuariosModalAddComponent,
+    UsuariosModalEditComponent,
+    UsuariosModalDetailComponent,
+    ConfirmationModalComponent
+],
+    templateUrl: './usuarios-page.component.html',
+})
+export class UsuariosPageComponent implements OnInit {
+    svc = inject(UsuariosService);
+    toast = inject(ToastService);
+    ConfirmMode = ConfirmMode;
+
+    // ── Filtros ──────────────────────────────────────
+    searchQuery = '';
+    activeFilter: UsuariosFilterType = 'todos';
+    currentPage = 1;
+    readonly PAGE_SIZE = 10;
+
+    // ── Estado modales ────────────────────────────────
+    showAdd = false;
+    showEdit = false;
+    showBaja = false;
+    showDetail = false;
+    selectedId: number | null = null;
+
+    // ── Ciclo de vida ─────────────────────────────────
+    ngOnInit(): void {
+        this.svc.loadAll();
+    }
+
+    // ── Computed ──────────────────────────────────────
+    get filtered(): Usuario[] {
+        const q = this.searchQuery.toLowerCase().trim();
+        return this.svc.usuarios().filter((u) => {
+            const matchesFilter =
+                this.activeFilter === 'todos' ? true :
+                    this.activeFilter === 'activos' ? u.enabled : !u.enabled;
+            const matchesSearch =
+                !q ||
+                this.svc.fullName(u).toLowerCase().includes(q) ||
+                u.email.toLowerCase().includes(q);
+            return matchesFilter && matchesSearch;
+        });
+    }
+
+    get paginatedUsuarios(): Usuario[] {
+        const start = (this.currentPage - 1) * this.PAGE_SIZE;
+        return this.filtered.slice(start, start + this.PAGE_SIZE);
+    }
+
+    get selectedUsuario(): Usuario | null {
+        return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
+    }
+
+    // ── Handlers ──────────────────────────────────────
+    onSearchChange(query: string): void {
+        this.searchQuery = query;
+        this.currentPage = 1;
+    }
+
+    onFilterChange(filter: UsuariosFilterType): void {
+        this.activeFilter = filter;
+        this.currentPage = 1;
+    }
+
+    openAdd(): void {
+        this.showAdd = true;
+    }
+
+    async onSaveAdd(data: Omit<Usuario, 'id'>): Promise<void> {
+        try {
+            await this.svc.add(data);
+            this.showAdd = false;
+            this.toast.show('success', `✓ Usuario <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
+        } catch {
+            this.toast.show('error', `✗ No se pudo añadir el usuario. Inténtalo de nuevo.`);
+        }
+    }
+
+    onDetailClick(id: number): void {
+        this.selectedId = id;
+        this.showDetail = true;
+    }
+
+    onEditClick(id: number): void {
+        this.selectedId = id;
+        this.showEdit = true;
+    }
+
+    async onSaveEdit(data: Usuario): Promise<void> {
+        try {
+            await this.svc.update(data.id, data);
+            this.showEdit = false;
+            this.selectedId = null;
+            this.toast.show('info', `✎ Usuario <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
+        } catch {
+            this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
+        }
+    }
+
+    onBajaClick(id: number): void {
+        this.selectedId = id;
+        this.showBaja = true;
+    }
+
+    async onConfirmBaja(): Promise<void> {
+        if (this.selectedId == null) return;
+        const u = this.svc.getById(this.selectedId)!;
+        const wasActive = u.enabled;
+        try {
+            await this.svc.toggleActivo(this.selectedId);
+            this.showBaja = false;
+            this.selectedId = null;
+            if (wasActive) {
+                this.toast.show('warning', `⊘ Usuario <strong>${this.svc.fullName(u)}</strong> dado de baja`);
+            } else {
+                this.toast.show('success', `↺ Usuario <strong>${this.svc.fullName(u)}</strong> reactivado`);
+            }
+        } catch {
+            this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`);
+        }
+    }
+}

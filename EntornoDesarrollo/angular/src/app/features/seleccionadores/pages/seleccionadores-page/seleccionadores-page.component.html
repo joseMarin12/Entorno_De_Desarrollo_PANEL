@@ -1,7 +1,7 @@
 <app-topbar pageTitle="Seleccionadores" />
 
 <div class="page-content">
-    
+
     <!-- Cabecera -->
     <div class="page-header">
       <div>
@@ -29,15 +29,14 @@
   </div>
 
   <!-- Tabla -->
-  <app-sel-table
-    [seleccionadores]="paginated"
+  <app-table
+    [columns]="tableColumns"
+    [rows]="paginated"
     [currentPage]="currentPage"
     [pageSize]="PAGE_SIZE"
     [totalFiltered]="filtered.length"
-    (detailClick)="onDetailClick($event)"
-    (editClick)="onEditClick($event)"
-    (bajaClick)="onBajaClick($event)"
-    (activarClick)="onActivarClick($event)"
+    [entityLabel]="'seleccionadores'"
+    (actionClick)="onTableAction($event)"
     (pageChange)="currentPage = $event"
   />
 
@@ -62,11 +61,11 @@
 }
 
 <!-- Modal confirmar baja / activar -->
-@if (showConfirm && selectedSeleccionador) {
-  <app-sel-modal-confirm
-    [seleccionador]="selectedSeleccionador"
-    [mode]="confirmMode"
+@if (showConfirm && selectedSeleccionadorNombre()) {
+  <app-confirmation-modal
+    [name]="selectedSeleccionadorNombre() ?? ''"
+    [mode]="confirmMode === ConfirmMode.DESACTIVAR ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirm()"
-    (close)="showConfirm = false; selectedId = null"
+    (closed)="showConfirm = false; selectedId = null"
   />
 }

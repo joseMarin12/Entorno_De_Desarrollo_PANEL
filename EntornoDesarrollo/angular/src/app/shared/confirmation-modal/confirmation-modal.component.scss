@@ -1,16 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Seleccionador } from '../../../../models/seleccionador.model';
-
-export type ConfirmMode = 'baja' | 'activar';
-
-@Component({
-  selector: 'app-sel-modal-confirm',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './sel-modal-confirm.component.html',
-  styles: [`
-    .sel-confirm-modal {
+ .sel-confirm-modal {
       background: #fff;
       border-radius: 16px;
       width: 100%;

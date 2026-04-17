@@ -323,6 +323,7 @@ tbody tr:hover td { background: #fafbff; }
 .form-label { font-size: 12px; font-weight: 600; color: var(--text); }
 .form-label .req { color: var(--danger); margin-left: 2px; }
 .form-input, .form-select {
+  width: 100%;
   padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
   font-family: 'Poppins', sans-serif; font-size: 13px;
   color: var(--text); background: #fff; outline: none;

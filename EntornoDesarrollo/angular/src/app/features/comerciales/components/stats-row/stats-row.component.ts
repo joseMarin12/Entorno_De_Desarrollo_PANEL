@@ -1,6 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ComercialesService } from '../../../../services/comerciales.service';
 
 @Component({
   selector: 'app-stats-row',
@@ -15,7 +14,7 @@ import { ComercialesService } from '../../../../services/comerciales.service';
           </svg>
         </div>
         <div>
-          <div class="stat-num">{{ svc.total() }}</div>
+          <div class="stat-num">{{ total() }}</div>
           <div class="stat-label">Total comerciales</div>
         </div>
       </div>
@@ -27,7 +26,7 @@ import { ComercialesService } from '../../../../services/comerciales.service';
           </svg>
         </div>
         <div>
-          <div class="stat-num">{{ svc.totalActivos() }}</div>
+          <div class="stat-num">{{ activos() }}</div>
           <div class="stat-label">Activos</div>
         </div>
       </div>
@@ -39,7 +38,7 @@ import { ComercialesService } from '../../../../services/comerciales.service';
           </svg>
         </div>
         <div>
-          <div class="stat-num">{{ svc.totalInactivos() }}</div>
+          <div class="stat-num">{{ inactivos() }}</div>
           <div class="stat-label">Dados de baja</div>
         </div>
       </div>
@@ -47,5 +46,7 @@ import { ComercialesService } from '../../../../services/comerciales.service';
   `,
 })
 export class StatsRowComponent {
-  svc = inject(ComercialesService);
+  total = input(0);
+  activos = input(0);
+  inactivos = input(0);
 }
