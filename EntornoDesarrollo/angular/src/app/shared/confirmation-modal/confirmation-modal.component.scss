@@ -90,18 +90,3 @@
     .sel-confirm-btn-success:hover {
       background: #ecfdf5;
     }
-  `],
-})
-export class SelModalConfirmComponent {
-  @Input() seleccionador: Seleccionador | null = null;
-  @Input() mode: ConfirmMode = 'baja';
-  @Output() confirm = new EventEmitter<void>();
-  @Output() close   = new EventEmitter<void>();
-
-  get isBaja(): boolean { return this.mode === 'baja'; }
-
-  get name(): string {
-    if (!this.seleccionador) return '';
-    return `${this.seleccionador.nombre} ${this.seleccionador.primer_apellido}`;
-  }
-}
