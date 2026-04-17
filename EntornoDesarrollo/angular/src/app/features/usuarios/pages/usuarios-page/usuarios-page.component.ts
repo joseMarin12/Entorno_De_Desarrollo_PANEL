@@ -12,6 +12,8 @@ import { UsuariosModalAddComponent } from '../../components/modal-add/modal-add.
 import { UsuariosModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
+import { ComercialesApiService } from '../../../../services/comerciales-api.service';
+import { computed, signal } from '@angular/core';
 
 @Component({
     selector: 'app-usuarios-page',
@@ -31,8 +33,11 @@ import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/conf
 })
 export class UsuariosPageComponent implements OnInit {
     svc = inject(UsuariosService);
+    comercialesSvc = inject(ComercialesApiService);
     toast = inject(ToastService);
     ConfirmMode = ConfirmMode;
+
+    private _comercialesEmails = signal<string[]>([]);
 
     // ── Filtros ──────────────────────────────────────
     searchQuery = '';
@@ -50,6 +55,16 @@ export class UsuariosPageComponent implements OnInit {
     // ── Ciclo de vida ─────────────────────────────────
     ngOnInit(): void {
         this.svc.loadAll();
+        this.loadComercialesEmails();
+    }
+
+    private loadComercialesEmails(): void {
+        this.comercialesSvc.findAll().subscribe({
+            next: (list) => {
+                const emails = (list || []).map(c => c.email.toLowerCase());
+                this._comercialesEmails.set(emails);
+            }
+        });
     }
 
     // ── Computed ──────────────────────────────────────
@@ -75,6 +90,14 @@ export class UsuariosPageComponent implements OnInit {
     get selectedUsuario(): Usuario | null {
         return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
     }
+
+    // ── Validación de Emails ──────────────────────────
+    readonly emailUsuarios = computed(() => {
+        const fromUsers = this.svc.usuarios().map(u => u.email.toLowerCase());
+        const fromComerciales = this._comercialesEmails();
+        // Combinamos ambos evitando duplicados (aunque no debería haberlos)
+        return Array.from(new Set([...fromUsers, ...fromComerciales]));
+    });
 
     // ── Handlers ──────────────────────────────────────
     onSearchChange(query: string): void {
