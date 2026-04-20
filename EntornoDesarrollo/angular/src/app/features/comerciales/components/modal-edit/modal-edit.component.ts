@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, SimpleChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Comercial } from '../../../../models/comercial.model';
@@ -11,14 +11,15 @@ import { Comercial } from '../../../../models/comercial.model';
 })
 export class ModalEditComponent implements OnChanges {
   @Input() comercial: Comercial | null = null;
+  @Input() existingEmails: string[] = [];
   @Output() save  = new EventEmitter<Comercial>();
   @Output() close = new EventEmitter<void>();
 
   form = { nombre: '', primer_apellido: '', segundo_apellido: '', telefono: '', email: '', activo: true };
   errors: Record<string, string> = {};
 
-  ngOnChanges(): void {
-    if (this.comercial) {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['comercial'] && this.comercial) {
       this.form = { ...this.comercial };
       this.errors = {};
     }
@@ -38,8 +39,11 @@ export class ModalEditComponent implements OnChanges {
     if (!this.form.nombre)    this.errors['nombre']    = 'Campo obligatorio';
     if (!this.form.primer_apellido) this.errors['primer_apellido'] = 'Campo obligatorio';
     if (!this.form.telefono)  this.errors['telefono']  = 'Campo obligatorio';
-    if (!this.form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email))
+    if (!this.form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email)) {
       this.errors['email'] = 'Introduce un email válido';
+    } else if (this.existingEmails.includes(this.form.email.trim().toLowerCase())) {
+      this.errors['email'] = 'Este correo ya está registrado';
+    }
 
     if (Object.keys(this.errors).length > 0) return;
 

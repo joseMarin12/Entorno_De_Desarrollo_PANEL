@@ -27,14 +27,14 @@
 
     <!-- Tabla -->
     <app-usuarios-table
-      [usuarios]="paginatedUsuarios"
+      [usuarios]="svc.usuarios()"
       [currentPage]="currentPage"
       [pageSize]="PAGE_SIZE"
-      [totalFiltered]="filtered.length"
+      [totalFiltered]="svc.total()"
       (detailClick)="onDetailClick($event)"
       (editClick)="onEditClick($event)"
       (bajaClick)="onBajaClick($event)"
-      (pageChange)="currentPage = $event"
+      (pageChange)="onPageChange($event)"
     />
 
 </div>
@@ -42,6 +42,7 @@
 <!-- Modales -->
 @if (showAdd) {
   <app-usuarios-modal-add
+    [emailUsuarios]="emailUsuarios()"
     (save)="onSaveAdd($event)"
     (close)="showAdd = false"
   />
@@ -50,6 +51,7 @@
 @if (showEdit && selectedUsuario) {
   <app-usuarios-modal-edit
     [usuario]="selectedUsuario"
+    [emailUsuarios]="emailUsuarios()"
     (save)="onSaveEdit($event)"
     (close)="showEdit = false; selectedId = null"
   />

@@ -12,6 +12,8 @@ import { UsuariosModalAddComponent } from '../../components/modal-add/modal-add.
 import { UsuariosModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
+import { ComercialesApiService } from '../../../../services/comerciales-api.service';
+import { computed, signal } from '@angular/core';
 
 @Component({
     selector: 'app-usuarios-page',
@@ -31,8 +33,11 @@ import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/conf
 })
 export class UsuariosPageComponent implements OnInit {
     svc = inject(UsuariosService);
+    comercialesSvc = inject(ComercialesApiService);
     toast = inject(ToastService);
     ConfirmMode = ConfirmMode;
+
+    private _comercialesEmails = signal<string[]>([]);
 
     // ── Filtros ──────────────────────────────────────
     searchQuery = '';
@@ -49,42 +54,57 @@ export class UsuariosPageComponent implements OnInit {
 
     // ── Ciclo de vida ─────────────────────────────────
     ngOnInit(): void {
-        this.svc.loadAll();
+        this.loadPage();
+        this.loadComercialesEmails();
     }
 
-    // ── Computed ──────────────────────────────────────
-    get filtered(): Usuario[] {
-        const q = this.searchQuery.toLowerCase().trim();
-        return this.svc.usuarios().filter((u) => {
-            const matchesFilter =
-                this.activeFilter === 'todos' ? true :
-                    this.activeFilter === 'activos' ? u.enabled : !u.enabled;
-            const matchesSearch =
-                !q ||
-                this.svc.fullName(u).toLowerCase().includes(q) ||
-                u.email.toLowerCase().includes(q);
-            return matchesFilter && matchesSearch;
+    private loadPage(): void {
+        const filters = {
+            searchText: this.searchQuery,
+            status: this.activeFilter === 'activos' ? true : this.activeFilter === 'inactivos' ? false : ''
+        };
+        this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters);
+    }
+
+    private loadComercialesEmails(): void {
+        this.comercialesSvc.findAll().subscribe({
+            next: (list) => {
+                const emails = (list || []).map(c => c.email.toLowerCase());
+                this._comercialesEmails.set(emails);
+            }
         });
-    }
-
-    get paginatedUsuarios(): Usuario[] {
-        const start = (this.currentPage - 1) * this.PAGE_SIZE;
-        return this.filtered.slice(start, start + this.PAGE_SIZE);
     }
 
     get selectedUsuario(): Usuario | null {
         return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
     }
 
+    // ── Validación de Emails ──────────────────────────
+    readonly emailUsuarios = computed(() => {
+        // En paginación servidor, solo tenemos los emails de la página actual en this.svc.usuarios()
+        // Para una validación completa, idealmente el backend debería proveer esto o cargar todos los emails una vez.
+        // Por ahora mantenemos la lógica con lo que tenemos.
+        const fromUsers = this.svc.usuarios().map(u => u.email.toLowerCase());
+        const fromComerciales = this._comercialesEmails();
+        return Array.from(new Set([...fromUsers, ...fromComerciales]));
+    });
+
     // ── Handlers ──────────────────────────────────────
     onSearchChange(query: string): void {
         this.searchQuery = query;
         this.currentPage = 1;
+        this.loadPage();
     }
 
     onFilterChange(filter: UsuariosFilterType): void {
         this.activeFilter = filter;
         this.currentPage = 1;
+        this.loadPage();
+    }
+
+    onPageChange(page: number): void {
+        this.currentPage = page;
+        this.loadPage();
     }
 
     openAdd(): void {
