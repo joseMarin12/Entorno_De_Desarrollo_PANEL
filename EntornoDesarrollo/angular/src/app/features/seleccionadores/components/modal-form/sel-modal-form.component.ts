@@ -2,7 +2,6 @@ import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Seleccionador, TipoSeleccionador, EmpresaVinculada } from '../../../../models/seleccionador.model';
-import { SeleccionadoresService } from '../../../../services/seleccionadores.service';
 
 @Component({
   selector: 'app-sel-modal-form',
@@ -78,10 +77,9 @@ import { SeleccionadoresService } from '../../../../services/seleccionadores.ser
 })
 export class SelModalFormComponent implements OnChanges {
   @Input() seleccionador: Seleccionador | null = null;
+  @Input() empresasDisponibles: {id: number, nombre: string}[] = [];
   @Output() save  = new EventEmitter<Omit<Seleccionador, 'id'>>();
   @Output() close = new EventEmitter<void>();
-
-  svc = inject(SeleccionadoresService);
 
   form: Omit<Seleccionador, 'id'> = this.getDefaultForm();
   errors: Record<string, string> = {};
@@ -155,6 +153,6 @@ export class SelModalFormComponent implements OnChanges {
   onEmpresaChange(id: string): void {
     const empresaId = parseInt(id);
     this.form.id_empresa = empresaId;
-    this.form.empresa = this.svc.empresasDisponibles().find(e => e.id === empresaId);
+    this.form.empresa = this.empresasDisponibles.find(e => e.id === empresaId);
   }
 }

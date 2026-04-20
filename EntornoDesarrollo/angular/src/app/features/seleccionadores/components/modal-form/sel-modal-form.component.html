@@ -111,7 +111,7 @@
                 (ngModelChange)="onEmpresaChange($event)"
               >
                 <option [ngValue]="undefined">Selecciona empresa...</option>
-                @for (e of svc.empresasDisponibles(); track e.id) {
+                @for (e of empresasDisponibles; track e.id) {
                   <option [value]="e.id">{{ e.nombre }}</option>
                 }
               </select>

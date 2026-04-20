@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Seleccionador } from '../../../../models/seleccionador.model';
-import { SeleccionadoresService } from '../../../../services/seleccionadores.service';
+import { Seleccionador, getColorFor, getInitials, getFullName } from '../../../../models/seleccionador.model';
 
 @Component({
   selector: 'app-sel-modal-detail',
@@ -47,7 +46,9 @@ export class SelModalDetailComponent {
   @Output() close = new EventEmitter<void>();
   @Output() edit = new EventEmitter<number>();
 
-  svc = inject(SeleccionadoresService);
+  colorFor = getColorFor;
+  initials = getInitials;
+  fullName = getFullName;
 
   get statusLabel(): string {
     return this.seleccionador.activo ? 'Activo' : 'De baja';

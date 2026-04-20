@@ -1,6 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SeleccionadoresService } from '../../../../services/seleccionadores.service';
 
 @Component({
   selector: 'app-sel-stats-row',
@@ -17,7 +16,7 @@ import { SeleccionadoresService } from '../../../../services/seleccionadores.ser
           </svg>
         </div>
         <div>
-          <div class="stat-num">{{ svc.total() }}</div>
+          <div class="stat-num">{{ total() }}</div>
           <div class="stat-label">Total registrados</div>
         </div>
       </div>
@@ -30,7 +29,7 @@ import { SeleccionadoresService } from '../../../../services/seleccionadores.ser
           </svg>
         </div>
         <div>
-          <div class="stat-num">{{ svc.activos() }}</div>
+          <div class="stat-num">{{ activos() }}</div>
           <div class="stat-label">Activos</div>
         </div>
       </div>
@@ -43,7 +42,7 @@ import { SeleccionadoresService } from '../../../../services/seleccionadores.ser
           </svg>
         </div>
         <div>
-          <div class="stat-num">{{ svc.inactivos() }}</div>
+          <div class="stat-num">{{ inactivos() }}</div>
           <div class="stat-label">De baja</div>
         </div>
       </div>
@@ -58,7 +57,7 @@ import { SeleccionadoresService } from '../../../../services/seleccionadores.ser
           </svg>
         </div>
         <div>
-          <div class="stat-num">{{ svc.externos() }}</div>
+          <div class="stat-num">{{ externos() }}</div>
           <div class="stat-label">Externos</div>
         </div>
       </div>
@@ -78,5 +77,8 @@ import { SeleccionadoresService } from '../../../../services/seleccionadores.ser
   `]
 })
 export class SelStatsRowComponent {
-  svc = inject(SeleccionadoresService);
+  total = input(0);
+  activos = input(0);
+  inactivos = input(0);
+  externos = input(0);
 }
