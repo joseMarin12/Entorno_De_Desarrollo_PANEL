@@ -9,31 +9,40 @@ export class UsuariosService extends BaseCrud<Usuario> {
 
   protected override readonly API_URL = `${environment.apiUrl}/usuarios`;
 
-  // ── Estado reactivo ──────────────────────────────────────────────────────
   private _usuarios = signal<Usuario[]>([]);
   readonly loading  = signal(false);
   readonly error    = signal<string | null>(null);
+  readonly totalRecords = signal(0);
 
-  // ── Vistas derivadas (computed) ──────────────────────────────────────────
   readonly usuarios = this._usuarios.asReadonly();
-  readonly total    = computed(() => this._usuarios().length);
-  readonly activos  = computed(() => this._usuarios().filter(u => u.enabled).length);
-  readonly inactivos= computed(() => this._usuarios().filter(u => !u.enabled).length);
+  readonly total    = this.totalRecords.asReadonly();
+  readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
+  readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
 
-  // ── Carga inicial ────────────────────────────────────────────────────────
-
-  async loadAll(searchText = '', status = ''): Promise<void> {
+  async loadAll(page = 1, limit = 10, filters: any = {}): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
       const res = await firstValueFrom(
         this._findAll({
           action: 'getUser',
-          filters: { searchText, status },
+          page,
+          limit,
+          filters,
         })
       );
-      // BaseCrud ya devuelve el array de datos (o undefined si falla el formato)
-      const mapped = (res || []).map(item => this.mapSingleFromBackend(item));
+
+      const rawData = res || [];
+      const mapped = rawData.map((item: any) => this.mapSingleFromBackend(item));
+
+      if (rawData.length > 0) {
+        const firstRow = rawData[0] as any;
+        const total = Number(firstRow.total_count || mapped.length);
+        this.totalRecords.set(total);
+      } else {
+        this.totalRecords.set(0);
+      }
+
       this._usuarios.set(mapped);
     } catch (e: any) {
       this.error.set(e?.message ?? 'Error al cargar los usuarios');
@@ -41,8 +50,6 @@ export class UsuariosService extends BaseCrud<Usuario> {
       this.loading.set(false);
     }
   }
-
-  // ── CRUD ─────────────────────────────────────────────────────────────────
 
   async add(data: Omit<Usuario, 'id'>): Promise<void> {
     this.loading.set(true);
@@ -59,8 +66,6 @@ export class UsuariosService extends BaseCrud<Usuario> {
       };
 
       const res = await firstValueFrom(this._create(payload));
-      
-      // Construimos el usuario final mezclando lo enviado con la respuesta del backend
       const newUser = this.applyRobustMerge(res, {
         ...data,
         id: res?.id ? Number(res.id) : Date.now(),
@@ -92,7 +97,6 @@ export class UsuariosService extends BaseCrud<Usuario> {
         role_id: Number(data.role_id || 1)
       };
 
-      // Lógica de preservación de contraseña
       if (data.password?.trim()) {
         payload.password = data.password;
       } else if (existing?.password) {
@@ -152,17 +156,8 @@ export class UsuariosService extends BaseCrud<Usuario> {
     }
   }
 
-  // ── Mapeadores y Mezcla Robustas ──────────────────────────────────────────
-
-  /**
-   * Mezcla de forma segura la respuesta del backend con los datos locales.
-   * Si el backend devuelve un objeto real (con nombre o email), confiamos en el mapeo.
-   * Si no, mantenemos los datos que enviamos para evitar que la fila se quede vacía o gris.
-   */
   private applyRobustMerge(backendRes: any, localData: Usuario): Usuario {
     const mapped = this.mapSingleFromBackend(backendRes);
-    
-    // Identificamos respuesta real si el objeto tiene datos significativos
     const isReal = backendRes && (backendRes.id || backendRes.nombre || backendRes.name || backendRes.email);
     
     if (isReal) {
@@ -172,7 +167,6 @@ export class UsuariosService extends BaseCrud<Usuario> {
   }
 
   private mapSingleFromBackend(item: any): Usuario {
-    // n8n a veces envuelve en .json
     const d = (item && item.json && typeof item.json === 'object' && !Array.isArray(item.json)) 
               ? item.json 
               : item;
@@ -189,8 +183,6 @@ export class UsuariosService extends BaseCrud<Usuario> {
       role_id: Number(d.role_id || d.ID_ROL || d.id_rol || 1)
     };
   }
-
-  // ── Helpers UI ──────────────────────────────────────────────────────────
 
   getById(id: number | string): Usuario | undefined {
     const numericId = Number(id);
