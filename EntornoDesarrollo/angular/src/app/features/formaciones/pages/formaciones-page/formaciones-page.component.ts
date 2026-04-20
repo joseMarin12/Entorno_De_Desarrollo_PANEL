@@ -49,7 +49,8 @@ export class FormacionesPageComponent implements OnInit {
 
   // ── Ciclo de vida ─────────────────────────────────
   ngOnInit(): void {
-    this.svc.loadAll();
+    // subscribe() para disparar el Observable (sin él no se ejecuta nada)
+    this.svc.loadAll().subscribe();
   }
 
   // ── Computed ──────────────────────────────────────
@@ -90,14 +91,14 @@ export class FormacionesPageComponent implements OnInit {
     this.showAdd = true;
   }
 
-  async onSaveAdd(data: Omit<Formacion, 'id'>): Promise<void> {
-    try {
-      await this.svc.add(data);
-      this.showAdd = false;
-      this.toast.show('success', `✓ Formación <strong>${data.curso}</strong> añadida correctamente`);
-    } catch {
-      this.toast.show('error', `✗ No se pudo añadir la formación. Inténtalo de nuevo.`);
-    }
+  onSaveAdd(data: Omit<Formacion, 'id'>): void {
+    this.svc.add(data).subscribe({
+      next: () => {
+        this.showAdd = false;
+        this.toast.show('success', `✓ Formación <strong>${data.curso}</strong> añadida correctamente`);
+      },
+      error: () => this.toast.show('error', `✗ No se pudo añadir la formación. Inténtalo de nuevo.`),
+    });
   }
 
   onEditClick(id: number): void {
@@ -105,15 +106,15 @@ export class FormacionesPageComponent implements OnInit {
     this.showEdit = true;
   }
 
-  async onSaveEdit(data: Formacion): Promise<void> {
-    try {
-      await this.svc.update(data.id, data);
-      this.showEdit = false;
-      this.selectedId = null;
-      this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
-    } catch {
-      this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
-    }
+  onSaveEdit(data: Formacion): void {
+    this.svc.update(data.id, data).subscribe({
+      next: () => {
+        this.showEdit = false;
+        this.selectedId = null;
+        this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
+      },
+      error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
+    });
   }
 
   onBajaClick(id: number): void {
@@ -126,21 +127,21 @@ export class FormacionesPageComponent implements OnInit {
     this.showParticipantes = true;
   }
 
-  async onConfirmBaja(): Promise<void> {
+  onConfirmBaja(): void {
     if (this.selectedId == null) return;
     const c = this.svc.getById(this.selectedId)!;
     const wasActive = c.activo === true;
-    try {
-      await this.svc.toggleActivo(this.selectedId);
-      this.showBaja = false;
-      this.selectedId = null;
-      if (wasActive) {
-        this.toast.show('warning', `⊘ Formación <strong>${this.svc.title(c)}</strong> dada de baja`);
-      } else {
-        this.toast.show('success', `↺ Formación <strong>${this.svc.title(c)}</strong> reactivada`);
-      }
-    } catch {
-      this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`);
-    }
+    this.svc.toggleActivo(this.selectedId).subscribe({
+      next: () => {
+        this.showBaja = false;
+        this.selectedId = null;
+        if (wasActive) {
+          this.toast.show('warning', `⊘ Formación <strong>${this.svc.title(c)}</strong> dada de baja`);
+        } else {
+          this.toast.show('success', `↺ Formación <strong>${this.svc.title(c)}</strong> reactivada`);
+        }
+      },
+      error: () => this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`),
+    });
   }
 }

@@ -30,7 +30,7 @@ export class ModalParticipantesComponent implements OnInit, OnDestroy {
   }
 
   loadData() {
-    this.ftService.loadTrabajadores(this.formacion.id, this.searchQuery);
+    this.ftService.loadTrabajadores(this.formacion.id, this.searchQuery).subscribe();
   }
 
   onSearch(event: Event) {
@@ -38,7 +38,10 @@ export class ModalParticipantesComponent implements OnInit, OnDestroy {
     this.loadData();
   }
 
-  async toggleAsignacion(trabajadorId: number, currentAssigned: boolean) {
-    await this.ftService.setAsignado(this.formacion.id, trabajadorId, !currentAssigned);
+  toggleAsignacion(trabajadorId: number, currentAssigned: boolean): void {
+    const obs$ = currentAssigned
+      ? this.ftService.removeTrabajador(this.formacion.id, trabajadorId)
+      : this.ftService.addTrabajador(this.formacion.id, trabajadorId);
+    obs$.subscribe();
   }
 }
