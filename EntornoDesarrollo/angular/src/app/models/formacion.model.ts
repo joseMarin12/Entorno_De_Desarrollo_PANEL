@@ -22,12 +22,7 @@ export interface Formacion {
   coste?: number;
   bonificacion?: number;
   total?: number;
-  activo: boolean;
+  activo?: boolean;
   created_at?: string;
   updated_at?: string;
-  estado_nombre?: string;
-  area_nombre?: string;
-  modalidad_nombre?: string;
-  ejecucion_nombre?: string;
-  num_trabajadores?: number;
 }

@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Formacion } from '../../../../models/formacion.model';
-import { FormacionesApiService } from '../../../../services/formaciones.service';
+import { FormacionesService } from '../../../../services/formaciones.service';
 
 @Component({
   selector: 'app-formaciones-table',
@@ -17,9 +17,10 @@ export class FormacionesTableComponent {
 
   @Output() editClick = new EventEmitter<number>();
   @Output() bajaClick = new EventEmitter<number>();
+  @Output() participantesClick = new EventEmitter<number>();
   @Output() pageChange = new EventEmitter<number>();
 
-  svc = inject(FormacionesApiService);
+  svc = inject(FormacionesService);
 
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.totalFiltered / this.pageSize));

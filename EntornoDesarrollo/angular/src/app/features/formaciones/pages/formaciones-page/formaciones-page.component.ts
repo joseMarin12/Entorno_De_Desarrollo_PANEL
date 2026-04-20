@@ -1,7 +1,7 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { FormacionesApiService } from '../../../../services/formaciones.service'; // Asegúrate de que el nombre del archivo sea el correcto
+import { FormacionesService } from '../../../../services/formaciones.service';
 import { ToastService } from '../../../../services/toast.service';
 import { Formacion } from '../../../../models/formacion.model';
 
@@ -12,7 +12,7 @@ import { FormacionesTableComponent } from '../../components/formaciones-table/fo
 import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
 import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { ModalBajaComponent } from '../../components/modal-baja/modal-baja.component';
-import { ConfirmMode, ConfirmationModalComponent } from '../../../../shared/confirmation-modal/confirmation-modal.component';
+import { ModalParticipantesComponent } from '../../components/modal-participantes/modal-participantes.component';
 
 @Component({
   selector: 'app-formaciones-page',
@@ -25,23 +25,14 @@ import { ConfirmMode, ConfirmationModalComponent } from '../../../../shared/conf
     FormacionesTableComponent,
     ModalAddComponent,
     ModalEditComponent,
-    ConfirmationModalComponent, // Cambiado aquí basándome en tu base
-    ModalBajaComponent
+    ModalBajaComponent,
+    ModalParticipantesComponent,
   ],
   templateUrl: './formaciones-page.component.html',
 })
 export class FormacionesPageComponent implements OnInit {
-  api = inject(FormacionesApiService);
+  svc = inject(FormacionesService);
   toast = inject(ToastService);
-  ConfirmMode = ConfirmMode;
-
-  // ── Estado (Signals) ──────────────────────────────
-  private readonly _formaciones = signal<Formacion[]>([]);
-  readonly formaciones = this._formaciones.asReadonly();
-
-  readonly total = computed(() => this._formaciones().length);
-  readonly totalActivos = computed(() => this._formaciones().filter(f => f.activo).length);
-  readonly totalInactivos = computed(() => this._formaciones().filter(f => !f.activo).length);
 
   // ── Filtros ──────────────────────────────────────
   searchQuery = '';
@@ -53,47 +44,35 @@ export class FormacionesPageComponent implements OnInit {
   showAdd = false;
   showEdit = false;
   showBaja = false;
+  showParticipantes = false;
   selectedId: number | null = null;
 
   // ── Ciclo de vida ─────────────────────────────────
   ngOnInit(): void {
-    this.loadAll();
+    this.svc.loadAll();
   }
 
   // ── Computed ──────────────────────────────────────
   get filtered(): Formacion[] {
-    return this.formaciones().filter(f => {
-      let matchFilter = true;
-      if (this.activeFilter === 'activos') {
-        matchFilter = f.activo === true;
-      } else if (this.activeFilter === 'baja') {
-        matchFilter = f.activo === false;
-      }
-
+    return this.svc.formaciones().filter(c => {
+      const matchFilter =
+        this.activeFilter === 'todos' ? true :
+          this.activeFilter === 'activos' ? c.activo === true : c.activo === false;
       const q = this.searchQuery.toLowerCase().trim();
       const matchSearch = !q
-        || (f.curso && f.curso.toLowerCase().includes(q))
-        || (f.denominacion && f.denominacion.toLowerCase().includes(q));
-
+        || this.svc.title(c).toLowerCase().includes(q)
+        || (c.denominacion && c.denominacion.toLowerCase().includes(q));
       return matchFilter && matchSearch;
     });
   }
 
-  get paginatedFormaciones(): Formacion[] {
+  get paginatedformaciones(): Formacion[] {
     const start = (this.currentPage - 1) * this.PAGE_SIZE;
     return this.filtered.slice(start, start + this.PAGE_SIZE);
   }
 
-  get selectedFormacion(): Formacion | null {
-    if (this.selectedId === null) return null;
-    return this.getById(this.selectedId) ?? null;
-  }
-
-  private loadAll(searchText = '', status = ''): void {
-    this.api.findAll(searchText, status).subscribe({
-      next: (list) => this._formaciones.set(list ?? []),
-      error: () => this.toast.show('error', '✗ No se pudo cargar las formaciones. Inténtalo de nuevo.'),
-    });
+  get selectedformacion(): Formacion | null {
+    return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
   }
 
   // ── Handlers ──────────────────────────────────────
@@ -111,17 +90,14 @@ export class FormacionesPageComponent implements OnInit {
     this.showAdd = true;
   }
 
-  onSaveAdd(data: Omit<Formacion, 'id'>): void {
-    // Si TS se queja por el 'id: null', puedes usar 'id: null as any' temporalmente, 
-    // pero lo ideal es que el DTO del backend lo acepte o se omita.
-    this.api.create({ ...data, id: null as any }).subscribe({
-      next: (created) => {
-        this._formaciones.update(list => [created, ...list]);
-        this.showAdd = false;
-        this.toast.show('success', `✓ Formación <strong>${data.curso}</strong> añadida correctamente`);
-      },
-      error: () => this.toast.show('error', '✗ No se pudo añadir la formación. Inténtalo de nuevo.'),
-    });
+  async onSaveAdd(data: Omit<Formacion, 'id'>): Promise<void> {
+    try {
+      await this.svc.add(data);
+      this.showAdd = false;
+      this.toast.show('success', `✓ Formación <strong>${data.curso}</strong> añadida correctamente`);
+    } catch {
+      this.toast.show('error', `✗ No se pudo añadir la formación. Inténtalo de nuevo.`);
+    }
   }
 
   onEditClick(id: number): void {
@@ -129,16 +105,15 @@ export class FormacionesPageComponent implements OnInit {
     this.showEdit = true;
   }
 
-  onSaveEdit(data: Formacion): void {
-    this.api.update(data.id!, data).subscribe({
-      next: (updated) => {
-        this._formaciones.update(list => list.map(f => (f.id === data.id ? updated : f)));
-        this.showEdit = false;
-        this.selectedId = null;
-        this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
-      },
-      error: () => this.toast.show('error', '✗ No se pudo guardar los cambios. Inténtalo de nuevo.'),
-    });
+  async onSaveEdit(data: Formacion): Promise<void> {
+    try {
+      await this.svc.update(data.id, data);
+      this.showEdit = false;
+      this.selectedId = null;
+      this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
+    } catch {
+      this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
+    }
   }
 
   onBajaClick(id: number): void {
@@ -146,29 +121,26 @@ export class FormacionesPageComponent implements OnInit {
     this.showBaja = true;
   }
 
-  onConfirmBaja(): void {
-    if (this.selectedId == null) return;
-
-    const f = this.getById(this.selectedId)!;
-    const wasActive = f.activo;
-
-    this.api.toggleStatus(this.selectedId).subscribe({
-      next: (updated) => {
-        this._formaciones.update(list => list.map(item => (item.id === this.selectedId ? updated : item)));
-        this.showBaja = false;
-        this.selectedId = null;
-
-        if (wasActive) {
-          this.toast.show('warning', `⊘ Formación <strong>${f.curso}</strong> dada de baja`);
-        } else {
-          this.toast.show('success', `↺ Formación <strong>${f.curso}</strong> reactivada`);
-        }
-      },
-      error: () => this.toast.show('error', '✗ No se pudo cambiar el estado. Inténtalo de nuevo.'),
-    });
+  onParticipantesClick(id: number): void {
+    this.selectedId = id;
+    this.showParticipantes = true;
   }
 
-  getById(id: number): Formacion | undefined {
-    return this._formaciones().find(f => f.id === id);
+  async onConfirmBaja(): Promise<void> {
+    if (this.selectedId == null) return;
+    const c = this.svc.getById(this.selectedId)!;
+    const wasActive = c.activo === true;
+    try {
+      await this.svc.toggleActivo(this.selectedId);
+      this.showBaja = false;
+      this.selectedId = null;
+      if (wasActive) {
+        this.toast.show('warning', `⊘ Formación <strong>${this.svc.title(c)}</strong> dada de baja`);
+      } else {
+        this.toast.show('success', `↺ Formación <strong>${this.svc.title(c)}</strong> reactivada`);
+      }
+    } catch {
+      this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`);
+    }
   }
 }

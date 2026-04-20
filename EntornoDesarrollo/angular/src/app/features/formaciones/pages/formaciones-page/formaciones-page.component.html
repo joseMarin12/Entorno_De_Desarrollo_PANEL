@@ -18,16 +18,15 @@
   </div>
 
   <!-- Estadísticas -->
-  <app-stats-row [total]="total()" [activas]="totalActivos()" [inactivas]="totalInactivos()">
-  </app-stats-row>
+  <app-stats-row />
 
   <!-- Toolbar: búsqueda + filtros -->
   <app-toolbar (searchChange)="onSearchChange($event)" (filterChange)="onFilterChange($event)" />
 
   <!-- Tabla -->
-  <app-formaciones-table [formaciones]="paginatedFormaciones" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"
+  <app-formaciones-table [formaciones]="paginatedformaciones" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"
     [totalFiltered]="filtered.length" (editClick)="onEditClick($event)" (bajaClick)="onBajaClick($event)"
-    (pageChange)="currentPage = $event" />
+    (participantesClick)="onParticipantesClick($event)" (pageChange)="currentPage = $event" />
 
 </div>
 <!-- Modales -->
@@ -35,12 +34,16 @@
 <app-modal-add (save)="onSaveAdd($event)" (close)="showAdd = false" />
 }
 
-@if (showEdit && selectedFormacion) {
-<app-modal-edit [formacion]="selectedFormacion" (save)="onSaveEdit($event)"
+@if (showEdit && selectedformacion) {
+<app-modal-edit [formacion]="selectedformacion" (save)="onSaveEdit($event)"
   (close)="showEdit = false; selectedId = null" />
 }
 
-@if (showBaja && selectedFormacion) {
-<app-modal-baja *ngIf="showBaja" [formacion]="selectedFormacion" (confirm)="onConfirmBaja()" (close)="showBaja = false">
-</app-modal-baja>
+@if (showBaja && selectedformacion) {
+<app-modal-baja [formacion]="selectedformacion" (confirm)="onConfirmBaja()"
+  (close)="showBaja = false; selectedId = null" />
+}
+
+@if (showParticipantes && selectedformacion) {
+<app-modal-participantes [formacion]="selectedformacion" (close)="showParticipantes = false; selectedId = null" />
 }
