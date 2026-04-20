@@ -1,0 +1,706 @@
+{
+  "updatedAt": "2026-04-17T08:21:37.249Z",
+  "createdAt": "2026-04-17T07:18:11.927Z",
+  "id": "RYal61EBcdb05JzC",
+  "name": "Comerciales API - Robust Errors",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gestion-comerciales",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "6e61fbcd-a29d-4696-a83e-988b53777c2d",
+      "name": "API de Gestion de Comerciales",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2208,
+        2000
+      ],
+      "webhookId": "comerciales-webhook-uuid-0001"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getAll",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-get-comerciales"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Comerciales"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "create",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-create-comercial"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Create Comercial"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "update",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-update-comercial"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Update Comercial"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "toggleStatus",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-toggle-status"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Toggle Status"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Invalid Action"
+        }
+      },
+      "id": "e0227439-f46b-4169-8d1b-37fd935f4074",
+      "name": "Route by Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1984,
+        2000
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = 'SELECT id, nombre, primer_apellido, segundo_apellido, telefono, email, activo, created_at, updated_at FROM comerciales WHERE 1=1';\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(CONCAT(nombre, ' ', primer_apellido, ' ', COALESCE(segundo_apellido,'')) ILIKE $${paramIndex} OR email ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  conditions.push(`activo = $${paramIndex}`);\n  params.push(filters.status);\n  paramIndex++;\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\nquery += ' ORDER BY created_at DESC';\n\nreturn [{ json: { query, params } }];"
+      },
+      "id": "0945a9da-9719-4327-8fac-4363f3319619",
+      "name": "Build Get Comerciales Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1760,
+        1648
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "id": "812aa6ed-12b1-4ee2-8063-c7d0c667da57",
+      "name": "Get Comerciales",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1536,
+        1648
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zFyzuLeU91ps6k4G",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "name",
+          "value": "comerciales"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nombre": "={{ $json.body.comercialData.nombre }}",
+            "primer_apellido": "={{ $json.body.comercialData.primer_apellido }}",
+            "segundo_apellido": "={{ $json.body.comercialData.segundo_apellido }}",
+            "telefono": "={{ $json.body.comercialData.telefono }}",
+            "email": "={{ $json.body.comercialData.email }}",
+            "activo": "={{ $json.body.comercialData.activo }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "primer_apellido",
+              "displayName": "primer_apellido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "segundo_apellido",
+              "displayName": "segundo_apellido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "activo",
+              "displayName": "activo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "outputColumns": [
+            "id",
+            "nombre",
+            "primer_apellido",
+            "segundo_apellido",
+            "telefono",
+            "email",
+            "activo",
+            "created_at",
+            "updated_at"
+          ]
+        }
+      },
+      "id": "edf1ef1c-9224-4c16-b458-30f0031a9ca6",
+      "name": "Create Comercial",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1568,
+        1840
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zFyzuLeU91ps6k4G",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE comerciales SET nombre = $1, primer_apellido = $2, segundo_apellido = $3, telefono = $4, email = $5, activo = $6, updated_at = NOW() WHERE id = $7 RETURNING id, nombre, primer_apellido, segundo_apellido, telefono, email, activo, updated_at",
+        "options": {
+          "queryReplacement": "={{ [$json.body.comercialData.nombre, $json.body.comercialData.primer_apellido, $json.body.comercialData.segundo_apellido, $json.body.comercialData.telefono, $json.body.comercialData.email, $json.body.comercialData.activo, $json.body.comercialId] }}"
+        }
+      },
+      "id": "0a763608-8a4b-402f-bd6d-2c1a6d8bed72",
+      "name": "Update Comercial",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1536,
+        2032
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zFyzuLeU91ps6k4G",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE comerciales SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING id, nombre, primer_apellido, activo, updated_at",
+        "options": {
+          "queryReplacement": "={{ [$json.body.comercialId] }}"
+        }
+      },
+      "id": "2c12d2c6-0129-455f-b1a6-946abca70212",
+      "name": "Toggle Comercial Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1536,
+        2224
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zFyzuLeU91ps6k4G",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $json || {};\nconst errObj = src.error ?? src;\nconst rawMessage = String(\n  errObj?.message ??\n  errObj?.description ??\n  errObj?.error?.message ??\n  errObj?.cause?.message ??\n  src?.message ??\n  'Error de base de datos'\n).trim();\nconst detail = String(\n  errObj?.detail ??\n  errObj?.error?.detail ??\n  errObj?.cause?.detail ??\n  ''\n).trim();\nconst code = String(\n  errObj?.code ??\n  errObj?.error?.code ??\n  errObj?.cause?.code ??\n  errObj?.originalError?.code ??\n  errObj?.cause?.originalError?.code ??\n  ''\n).trim();\nconst isDuplicate = code === '23505' ||\n  rawMessage.toLowerCase().includes('duplicate key') ||\n  rawMessage.toLowerCase().includes('unique constraint') ||\n  rawMessage.toLowerCase().includes('already exists') ||\n  detail.toLowerCase().includes('already exists');\nconst message = isDuplicate ? 'El email ya existe.' : rawMessage;\nreturn [{\n  json: {\n    success: false,\n    message,\n    code: isDuplicate ? '23505' : code,\n    detail,\n    isDuplicate\n  }\n}];"
+      },
+      "id": "9e677284-9f17-4a7f-8dd4-82abdf08397c",
+      "name": "Normalize DB Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1264,
+        2160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "is-unique-violation",
+              "leftValue": "={{ $json.isDuplicate }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d6e9ae92-585e-436b-a823-142179b9829e",
+      "name": "Is Unique Violation",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1040,
+        2160
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-success-invalid",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "assign-message-invalid",
+              "name": "message",
+              "value": "Invalid action. Supported actions: getAll, create, update, toggleStatus",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d9dbd9c8-f3a9-40ae-a8d2-cfbf834b607a",
+      "name": "Invalid Action Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1760,
+        2432
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, data: $input.all().map(item => item.json) } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "5fd8709a-01a1-4435-84b9-27ba0ce0805b",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -816,
+        1952
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "40a1538c-7445-47e2-8d81-50d1636e1179",
+      "name": "Respond Conflict 409",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -816,
+        2128
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "28f74783-ea28-481b-94e0-6d5b13288668",
+      "name": "Respond DB Error 500",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -816,
+        2256
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "45eb7728-3c0b-4cff-8717-ad29cdaafdf6",
+      "name": "Respond Error Action 400",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1536,
+        2432
+      ]
+    }
+  ],
+  "connections": {
+    "API de Gestion de Comerciales": {
+      "main": [
+        [
+          {
+            "node": "Route by Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Action": {
+      "main": [
+        [
+          {
+            "node": "Build Get Comerciales Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Comercial",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Comercial",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Toggle Comercial Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Action Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Comerciales Query": {
+      "main": [
+        [
+          {
+            "node": "Get Comerciales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Comerciales": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalize DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Comercial": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalize DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Comercial": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalize DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toggle Comercial Status": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalize DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize DB Error": {
+      "main": [
+        [
+          {
+            "node": "Is Unique Violation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Unique Violation": {
+      "main": [
+        [
+          {
+            "node": "Respond Conflict 409",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond DB Error 500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid Action Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Error Action 400",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "a315a64e-bf66-45c4-aa31-9142c0e96e8e",
+  "activeVersionId": "a315a64e-bf66-45c4-aa31-9142c0e96e8e",
+  "versionCounter": 19,
+  "triggerCount": 1,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-04-17T07:18:11.927Z",
+      "createdAt": "2026-04-17T07:18:11.927Z",
+      "role": "workflow:owner",
+      "workflowId": "RYal61EBcdb05JzC",
+      "projectId": "sMjt2I0TYmPreJmq",
+      "project": {
+        "updatedAt": "2026-04-15T15:06:24.553Z",
+        "createdAt": "2026-04-15T15:05:31.736Z",
+        "id": "sMjt2I0TYmPreJmq",
+        "name": "David Rodrigo Rodriguez <david.rodrigo@sgtech.tech>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b9a55146-5558-4f0e-be5b-a7d5287479d1"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version a315a64e",
+    "description": ""
+  }
+}
