@@ -1,0 +1,410 @@
+{
+  "updatedAt": "2026-04-16T15:17:20.619Z",
+  "createdAt": "2026-04-07T12:46:03.434Z",
+  "id": "XTiMhyI8VAdEyHsB",
+  "name": "Formaciones",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "formaciones",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        3056,
+        1280
+      ],
+      "id": "0438ec7e-3c16-4c18-9eb2-cd2dd50a7595",
+      "name": "Post",
+      "webhookId": "64715c7b-30f6-4c66-aa76-2c2f6ee5af5f"
+    },
+    {
+      "parameters": {
+        "path": "formaciones",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        3056,
+        1120
+      ],
+      "id": "32801b0b-d5ba-48c9-9750-c2d83e0e95b8",
+      "name": "Get",
+      "webhookId": "64715c7b-30f6-4c66-aa76-2c2f6ee5af5f"
+    },
+    {
+      "parameters": {
+        "httpMethod": "PUT",
+        "path": "formaciones/:id",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        3056,
+        1440
+      ],
+      "id": "1c86b93d-7fb3-4d5f-880c-c2cbea21740d",
+      "name": "Put",
+      "webhookId": "acdd3a76-1a5b-457a-8ec9-8b81a5ef35e5"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT f.*,\n  ef.nombre as estado_nombre,\n  af.nombre as area_nombre,\n  mf.nombre as modalidad_nombre,\n  exe.nombre as ejecucion_nombre,\n  COUNT(ft.id_trabajador) as num_trabajadores\nFROM formacion f\nLEFT JOIN estado_formacion ef ON ef.id = f.id_estado\nLEFT JOIN area_formacion af ON af.id = f.id_area\nLEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\nLEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\nLEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\nGROUP BY f.id, ef.nombre, af.nombre, mf.nombre, exe.nombre\nORDER BY f.fecha_inicio DESC NULLS LAST",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3264,
+        1120
+      ],
+      "id": "1058206e-cf94-4c45-ade9-9b3361c1795a",
+      "name": "Select",
+      "credentials": {
+        "postgres": {
+          "id": "zFyzuLeU91ps6k4G",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO formacion (\n  id_estado, curso, denominacion, motivo, id_area,\n  recursos, id_responsable, id_modalidad, duracion, dentro_fuera_jornada,\n  observaciones, fecha_prevista, fecha_inicio, fecha_fin, horario,\n  id_ejecucion, eficacia, anio, coste, bonificacion, total\n) VALUES (\n  $1, $2, $3, $4, $5,\n  $6, $7, $8, $9, $10,\n  $11, $12, $13, $14, $15,\n  $16, $17, $18, $19, $20, $21\n) RETURNING *;",
+        "options": {
+          "queryReplacement": "={{ $json.body.id_estado }},{{ $json.body.curso }},{{ $json.body.denominacion }},{{ $json.body.motivo }},{{ $json.body.id_area }},{{ $json.body.recursos }},{{ $json.body.id_responsable }},{{ $json.body.id_modalidad }},{{ $json.body.duracion }},{{ $json.body.dentro_fuera_jornada }},{{ $json.body.observaciones }},{{ $json.body.fecha_prevista }},{{ $json.body.fecha_inicio }},{{ $json.body.fecha_fin }},{{ $json.body.horario }},{{ $json.body.id_ejecucion }},{{ $json.body.eficacia }},{{ $json.body.anio }},{{ $json.body.coste }},{{ $json.body.bonificacion }},{{ $json.body.total }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3264,
+        1280
+      ],
+      "id": "67d6e95a-cb0a-4315-a8d1-7ec261b492a8",
+      "name": "Insert",
+      "credentials": {
+        "postgres": {
+          "id": "zFyzuLeU91ps6k4G",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE formacion SET\n  id_estado = $1,\n  curso = $2,\n  denominacion = $3,\n  motivo = $4,\n  id_area = $5,\n  recursos = $6,\n  id_responsable = $7,\n  id_modalidad = $8,\n  duracion = $9,\n  dentro_fuera_jornada = $10,\n  observaciones = $11,\n  fecha_prevista = $12,\n  fecha_inicio = $13,\n  fecha_fin = $14,\n  horario = $15,\n  id_ejecucion = $16,\n  eficacia = $17,\n  anio = $18,\n  coste = $19,\n  bonificacion = $20,\n  total = $21\nWHERE id = $22\nRETURNING *;",
+        "options": {
+          "queryReplacement": "={{ $json.body.id_estado }},{{ $json.body.curso }},{{ $json.body.denominacion }},{{ $json.body.motivo }},{{ $json.body.id_area }},{{ $json.body.recursos }},{{ $json.body.id_responsable }},{{ $json.body.id_modalidad }},{{ $json.body.duracion }},{{ $json.body.dentro_fuera_jornada }},{{ $json.body.observaciones }},{{ $json.body.fecha_prevista }},{{ $json.body.fecha_inicio }},{{ $json.body.fecha_fin }},{{ $json.body.horario }},{{ $json.body.id_ejecucion }},{{ $json.body.eficacia }},{{ $json.body.anio }},{{ $json.body.coste }},{{ $json.body.bonificacion }},{{ $json.body.total }},{{ $json.params.id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3472,
+        1440
+      ],
+      "id": "40f3593d-0ce4-4dbc-b24c-0686d1251255",
+      "name": "Update",
+      "credentials": {
+        "postgres": {
+          "id": "zFyzuLeU91ps6k4G",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3472,
+        1120
+      ],
+      "id": "f31ff88e-9d9b-44c7-bd3d-4da8d016cbaa",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3472,
+        1280
+      ],
+      "id": "9452f971-260f-42be-b0a2-e10106391f47",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3680,
+        1440
+      ],
+      "id": "a15a9a7b-ff65-489f-9e89-714782ad6e47",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const id = $json.params?.id || $json.query?.id || $input.first().json.params?.id;\nreturn [{ json: { ...$json, params: { id } } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3264,
+        1440
+      ],
+      "id": "802e76d2-1814-4c75-98f4-20b85cff1a94",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const id = $json.params?.id || $json.query?.id || $input.first().json.params?.id;\nreturn [{ json: { ...$json, params: { id } } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3264,
+        1600
+      ],
+      "id": "d233f99b-2acc-43e9-8afc-73d1af601b2e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3680,
+        1600
+      ],
+      "id": "215a9616-80f5-4233-93c8-3fb4af16f6d2",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE formacion SET activo = NOT activo WHERE id = $1 RETURNING *;",
+        "options": {
+          "queryReplacement": "={{ $json.params.id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3472,
+        1600
+      ],
+      "id": "1b6731ce-37c1-468e-9854-1c185c289399",
+      "name": "Delete",
+      "credentials": {
+        "postgres": {
+          "id": "zFyzuLeU91ps6k4G",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "DELETE",
+        "path": "formaciones/:id",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        3056,
+        1600
+      ],
+      "id": "4ee63eed-19d1-473d-b74e-b88555514599",
+      "name": "Delete1",
+      "webhookId": "2c485b24-d491-4e8b-bc3c-13f7b4c2e910"
+    }
+  ],
+  "connections": {
+    "Post": {
+      "main": [
+        [
+          {
+            "node": "Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get": {
+      "main": [
+        [
+          {
+            "node": "Select",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Put": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "f67b93e0-2d7e-441b-8c61-c49b9136e0b9",
+  "activeVersionId": "f67b93e0-2d7e-441b-8c61-c49b9136e0b9",
+  "versionCounter": 234,
+  "triggerCount": 4,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-04-20T08:18:15.468Z",
+      "createdAt": "2026-04-20T08:18:15.468Z",
+      "role": "workflow:owner",
+      "workflowId": "XTiMhyI8VAdEyHsB",
+      "projectId": "sMjt2I0TYmPreJmq",
+      "project": {
+        "updatedAt": "2026-04-15T15:06:24.553Z",
+        "createdAt": "2026-04-15T15:05:31.736Z",
+        "id": "sMjt2I0TYmPreJmq",
+        "name": "David Rodrigo Rodriguez <david.rodrigo@sgtech.tech>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b9a55146-5558-4f0e-be5b-a7d5287479d1"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Formaciones CRUD fixed",
+    "description": ""
+  }
+}

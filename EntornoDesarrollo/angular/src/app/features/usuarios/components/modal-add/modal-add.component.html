@@ -27,14 +27,21 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Segundo apellido</label>
-          <input class="form-input" type="text" placeholder="Ej: López" [(ngModel)]="form.apellido2">
+          <label class="form-label">Contraseña <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['password']" type="password" placeholder="••••••••" [(ngModel)]="form.password">
+          @if (errors['password']) { <span class="form-hint error-msg">{{ errors['password'] }}</span> }
         </div>
 
         <div class="form-group full">
           <label class="form-label">Email <span class="req">*</span></label>
           <input class="form-input" [class.error]="errors['email']" type="email" placeholder="usuario@example.com" [(ngModel)]="form.email">
           @if (errors['email']) { <span class="form-hint error-msg">{{ errors['email'] }}</span> }
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">ID de Rol <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['role_id']" type="number" placeholder="Ej: 1" [(ngModel)]="form.role_id">
+          @if (errors['role_id']) { <span class="form-hint error-msg">{{ errors['role_id'] }}</span> }
         </div>
 
         <div class="form-group full">
