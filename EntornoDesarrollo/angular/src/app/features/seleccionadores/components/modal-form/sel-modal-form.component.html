@@ -35,12 +35,12 @@
           <label class="form-label">Primer Apellido <em style="color:var(--danger)">*</em></label>
           <input
             class="form-input"
-            [class.error]="errors['ap1']"
+            [class.error]="errors['primer_apellido']"
             type="text"
             placeholder="Ej: Sánchez"
-            [(ngModel)]="form.ap1"
+            [(ngModel)]="form.primer_apellido"
           />
-          @if (errors['ap1']) { <span class="form-hint error-msg">{{ errors['ap1'] }}</span> }
+          @if (errors['primer_apellido']) { <span class="form-hint error-msg">{{ errors['primer_apellido'] }}</span> }
         </div>
         <div class="form-group">
           <label class="form-label">Segundo Apellido</label>
@@ -48,7 +48,7 @@
             class="form-input"
             type="text"
             placeholder="Opcional"
-            [(ngModel)]="form.ap2"
+            [(ngModel)]="form.segundo_apellido"
           />
         </div>
       </div>
@@ -76,19 +76,9 @@
       <!-- SECCIÓN EXTERNOS -->
       @if (form.tipo === 'externo') {
         <div class="external-section">
-          <span class="section-title">Datos de contacto y vinculación</span>
+          <span class="section-title">Datos Comerciales y de Contacto (Externos)</span>
 
-          <!-- Contacto (Ahora solo para externos) -->
           <div class="form-grid" style="margin-bottom: 16px;">
-            <div class="form-group">
-              <label class="form-label">Teléfono</label>
-              <input
-                class="form-input"
-                type="text"
-                placeholder="Ej: 612 345 678"
-                [(ngModel)]="form.telefono"
-              />
-            </div>
             <div class="form-group">
               <label class="form-label">Email <em style="color:var(--danger)">*</em></label>
               <input
@@ -100,6 +90,17 @@
               />
               @if (errors['email']) { <span class="form-hint error-msg">{{ errors['email'] }}</span> }
             </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input
+                class="form-input"
+                [class.error]="errors['telefono']"
+                type="text"
+                placeholder="Ej: 612 345 678"
+                [(ngModel)]="form.telefono"
+              />
+              @if (errors['telefono']) { <span class="form-hint error-msg">{{ errors['telefono'] }}</span> }
+            </div>
           </div>
 
           <div class="form-grid" style="margin-bottom: 16px;">
@@ -107,11 +108,12 @@
               <label class="form-label">Empresa vinculada <em style="color:var(--danger)">*</em></label>
               <select 
                 class="form-select" 
-                [ngModel]="form.empresaVinculada?.id" 
+                [class.error]="errors['empresa']"
+                [ngModel]="form.id_empresa" 
                 (ngModelChange)="onEmpresaChange($event)"
               >
                 <option [ngValue]="undefined">Selecciona empresa...</option>
-                @for (e of svc.empresasDisponibles; track e.id) {
+                @for (e of empresasDisponibles; track e.id) {
                   <option [value]="e.id">{{ e.nombre }}</option>
                 }
               </select>
@@ -122,7 +124,7 @@
               <input
                 class="form-input"
                 type="date"
-                [(ngModel)]="form.fechaInicio"
+                [(ngModel)]="form.fecha_ini"
               />
             </div>
           </div>
@@ -132,19 +134,23 @@
               <label class="form-label">Salario (€)</label>
               <input
                 class="form-input"
+                [class.error]="errors['salario']"
                 type="number"
                 placeholder="Ej: 32000"
                 [(ngModel)]="form.salario"
               />
+              @if (errors['salario']) { <span class="form-hint error-msg">{{ errors['salario'] }}</span> }
             </div>
             <div class="form-group">
               <label class="form-label">Fee (%)</label>
               <input
                 class="form-input"
+                [class.error]="errors['fee']"
                 type="number"
                 placeholder="Ej: 15"
                 [(ngModel)]="form.fee"
               />
+              @if (errors['fee']) { <span class="form-hint error-msg">{{ errors['fee'] }}</span> }
             </div>
           </div>
         </div>

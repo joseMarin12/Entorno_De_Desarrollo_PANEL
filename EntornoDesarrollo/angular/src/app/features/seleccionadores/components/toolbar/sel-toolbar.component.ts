@@ -13,8 +13,8 @@ export type SelFilterTipoType = '' | 'interno' | 'externo';
     <div class="toolbar sel-toolbar">
 
       <!-- Búsqueda -->
-      <div class="search-wrap" style="flex:1; max-width:340px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="search-wrap" style="max-width: 420px; flex: 1;">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <input
@@ -28,7 +28,7 @@ export type SelFilterTipoType = '' | 'interno' | 'externo';
 
       <!-- Filtro por tipo -->
       <select
-        class="form-select toolbar-select"
+        class="form-select custom-select"
         [(ngModel)]="tipoValue"
         (ngModelChange)="tipoFilterChange.emit($event)"
       >
@@ -39,7 +39,7 @@ export type SelFilterTipoType = '' | 'interno' | 'externo';
 
       <!-- Filtro por estado -->
       <select
-        class="form-select toolbar-select"
+        class="form-select custom-select"
         [(ngModel)]="filterValue"
         (ngModelChange)="filterChange.emit($event)"
       >
@@ -51,11 +51,18 @@ export type SelFilterTipoType = '' | 'interno' | 'externo';
     </div>
   `,
   styles: [`
-    .sel-toolbar { margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-    .toolbar-select { min-width: 165px; padding: 9px 12px; }
-    @media (max-width: 640px) {
-      .toolbar-select { width: 100%; }
-      .search-wrap { max-width: 100% !important; width: 100%; }
+    .sel-toolbar {
+      flex-wrap: wrap;
+    }
+    .custom-select {
+      width: 200px;
+      height: 38px;
+      cursor: pointer;
+    }
+    
+    @media (max-width: 768px) {
+      .custom-select { width: 100%; }
+      .search-wrap { max-width: 100% !important; }
     }
   `]
 })

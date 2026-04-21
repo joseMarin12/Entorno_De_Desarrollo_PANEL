@@ -17,7 +17,12 @@
     </div>
 
   <!-- Estadísticas -->
-  <app-sel-stats-row />
+  <app-sel-stats-row 
+    [total]="total()"
+    [activos]="activos()"
+    [inactivos]="inactivos()"
+    [externos]="externos()"
+  />
 
   <!-- Toolbar: búsqueda + filtros -->
   <div style="margin-bottom:16px">
@@ -46,6 +51,8 @@
 @if (showForm) {
   <app-sel-modal-form
     [seleccionador]="selectedSeleccionador"
+    [empresasDisponibles]="empresasDisponibles()"
+    [existingEmails]="existingEmailsForEdit"
     (save)="onSaveForm($event)"
     (close)="showForm = false; selectedId = null"
   />

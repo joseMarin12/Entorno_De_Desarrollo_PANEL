@@ -151,7 +151,7 @@ CREATE TABLE trabajador (
     direccion VARCHAR(128),
     nacionalidad VARCHAR(45),
     fecha_nacimiento DATE,
-    id_seleccionador INT, -- Referencia a la nueva tabla unificada
+    id_seleccionadores INT, -- Referencia a la nueva tabla unificada
     activo BOOLEAN DEFAULT TRUE,
     fecha_ini DATE,
     fecha_fin DATE,
@@ -159,7 +159,7 @@ CREATE TABLE trabajador (
     id_localidad INT,
     freelance BOOLEAN DEFAULT FALSE,
     id_provincia INT,
-    FOREIGN KEY (id_seleccionador) REFERENCES seleccionadores(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_seleccionadores) REFERENCES seleccionadores(id) ON DELETE SET NULL,
     FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE SET NULL,
     FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE SET NULL
 );
@@ -288,7 +288,7 @@ CREATE TABLE documento_firma_historial (
 
 -- Indices
 
-CREATE INDEX idx_trabajador_seleccionador ON trabajador(id_seleccionador);
+CREATE INDEX idx_trabajador_seleccionadores ON trabajador(id_seleccionadores);
 CREATE INDEX idx_trabajador_localidad ON trabajador(id_localidad);
 CREATE INDEX idx_asignacion_empresa ON asignacion(id_empresa);
 CREATE INDEX idx_asignacion_trabajador ON asignacion(id_trabajador);
