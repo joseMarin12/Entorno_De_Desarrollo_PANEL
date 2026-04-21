@@ -6,7 +6,7 @@ import { EmpresasApiService } from '../../../../services/empresas-api.service';
 import { ComercialesApiService } from '../../../../services/comerciales-api.service';
 import { Comercial, comercialFullName } from '../../../../models/comercial.model';
 import { TipoEmpresa } from '../../../../models/tipo-empresa.model';
-import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-modal-edit',
@@ -34,7 +34,7 @@ export class ModalEditComponent implements OnChanges, OnInit {
   async ngOnInit(): Promise<void> {
     await Promise.allSettled([
       firstValueFrom(this.comercialesApi.findAll('', 'activo'))
-        .then(comerciales => this._comerciales.set(comerciales))
+        .then(response => this._comerciales.set(response.data ?? []))
         .catch(() => console.warn('No se pudieron cargar los comerciales')),
 
       firstValueFrom(this.empresasApi.findTipos())
