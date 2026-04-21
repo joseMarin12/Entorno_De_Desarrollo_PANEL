@@ -108,9 +108,6 @@ CREATE TABLE contacto_empresa (
     FOREIGN KEY (id_empresa) REFERENCES empresa(id)
 );
 
--- Selecciones y trabajadores
- 
--- Seleccionadores (Fusión de Internos y Externos)
 CREATE TABLE seleccionadores (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(64) NOT NULL,
@@ -143,7 +140,7 @@ CREATE TABLE trabajador (
     direccion VARCHAR(128),
     nacionalidad VARCHAR(45),
     fecha_nacimiento DATE,
-    id_seleccionadores INT, -- Referencia a la nueva tabla unificada
+    id_seleccionadores INT, 
     activo BOOLEAN DEFAULT TRUE,
     fecha_ini DATE,
     fecha_fin DATE,
