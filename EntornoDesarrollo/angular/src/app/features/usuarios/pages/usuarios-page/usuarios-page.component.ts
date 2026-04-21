@@ -67,9 +67,9 @@ export class UsuariosPageComponent implements OnInit {
     }
 
     private loadComercialesEmails(): void {
-        this.comercialesSvc.findAll().subscribe({
-            next: (list) => {
-                const emails = (list || []).map(c => c.email.toLowerCase());
+        this.comercialesSvc.findAll('', '', 1, 1000).subscribe({
+            next: (page) => {
+                const emails = (page.data || []).map(c => c.email.toLowerCase());
                 this._comercialesEmails.set(emails);
             }
         });
