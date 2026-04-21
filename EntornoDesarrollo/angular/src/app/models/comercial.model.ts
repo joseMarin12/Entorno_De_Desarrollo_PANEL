@@ -9,3 +9,7 @@ export interface Comercial {
   created_at?: string;
   updated_at?: string;
 }
+
+export function comercialFullName(c: Comercial): string {
+  return [c.nombre, c.primer_apellido, c.segundo_apellido].filter(Boolean).join(' ');
+}

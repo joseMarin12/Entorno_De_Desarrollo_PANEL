@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ComercialController;
 use App\Http\Controllers\UsuariosController;
+use App\Http\Controllers\EmpresaController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,3 +26,4 @@ use Illuminate\Support\Facades\Route;
 Route::post('/comerciales', [ComercialController::class, 'proxy']);
 Route::post('/usuarios', [UsuariosController::class, 'proxy']);
 Route::apiResource('formaciones', FormacionController::class);
+Route::post('/empresas', [EmpresaController::class, 'proxy']);
