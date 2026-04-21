@@ -4,11 +4,12 @@ import { tap } from 'rxjs/operators';
 
 import { BaseCrud } from './base.service';
 import { Trabajador } from '../models/trabajador.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class FormacionTrabajadorService extends BaseCrud<Trabajador> {
 
-  protected readonly API_URL = 'http://localhost:8000/api/formaciones';
+  protected readonly API_URL = `${environment.apiUrl}/formaciones`;
 
   // ── Estado reactivo ──────────────────────────────────────────────────────
   private _trabajadores = signal<Trabajador[]>([]);

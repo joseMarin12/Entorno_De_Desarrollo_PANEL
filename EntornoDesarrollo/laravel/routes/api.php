@@ -37,5 +37,4 @@ Route::post('/seleccionadores', [SeleccionadorController::class, 'proxy']);
 
 Route::post('/usuarios', [UsuariosController::class, 'proxy']);
 Route::post('/formaciones', [FormacionController::class, 'proxy']);
-Route::apiResource('formaciones', FormacionController::class);
 Route::post('/empresas', [EmpresaController::class, 'proxy']);
