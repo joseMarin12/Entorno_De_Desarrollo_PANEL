@@ -1,6 +1,4 @@
-CREATE DATABASE sgtech_v3;
-
-\c sgtech_v3;
+-- Roles y permisos
 
 CREATE TABLE role (
     id SERIAL PRIMARY KEY,
@@ -38,29 +36,34 @@ CREATE TABLE role_localization_permission (
     FOREIGN KEY (permissionId) REFERENCES permission(id)
 );
 
-CREATE TABLE comercial (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(45),
+-- Comerciales y empresas
+ 
+CREATE TABLE comerciales (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre VARCHAR(45) NOT NULL,
     primer_apellido VARCHAR(45),
     segundo_apellido VARCHAR(45),
     telefono VARCHAR(20),
-    email VARCHAR(128)
+    email VARCHAR(128) UNIQUE,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,  
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP  
 );
 
 CREATE TABLE tipo_empresa (
-    id SERIAL PRIMARY KEY,
-    tipo_empresa VARCHAR(45)
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    tipo_empresa VARCHAR(45) NOT NULL
 );
 
 CREATE TABLE empresa (
-    id SERIAL PRIMARY KEY,
-    nombre_empresa VARCHAR(45),
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre_empresa VARCHAR(45) NOT NULL,
     razon_social VARCHAR(128),
-    cif VARCHAR(9),
+    cif VARCHAR(9) UNIQUE,
     id_tipo_empresa INT,
     id_comerciales INT,  --cambie el nombre de la columna para que coincida con la tabla comerciales
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, --fecha de actualizacion de la empresa
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_tipo_empresa) REFERENCES tipo_empresa(id) ON DELETE SET NULL,
     FOREIGN KEY (id_comerciales) REFERENCES comerciales(id) ON DELETE SET NULL  --cambie el nombre de la columna para que coincida con la tabla comerciales
 );
@@ -105,21 +108,35 @@ CREATE TABLE contacto_empresa (
     FOREIGN KEY (id_empresa) REFERENCES empresa(id)
 );
 
-CREATE TABLE seleccion (
-    id SERIAL PRIMARY KEY,
-    nombre_seleccion VARCHAR(45),
-    primer_apellido_seleccion VARCHAR(45),
-    segundo_apellido_seleccion VARCHAR(45)
+-- Selecciones y trabajadores
+ 
+-- Seleccionadores (Fusión de Internos y Externos)
+CREATE TABLE seleccionadores (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre VARCHAR(64) NOT NULL,
+    primer_apellido VARCHAR(64) NOT NULL,
+    segundo_apellido VARCHAR(64),
+    tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('interno', 'externo')),
+    email VARCHAR(128) UNIQUE,
+    telefono VARCHAR(20),
+    id_empresa INT,
+    fecha_ini DATE,
+    salario INT,
+    fee INT,
+    activo BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE SET NULL
 );
 
 CREATE TABLE trabajador (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(45),
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre VARCHAR(45) NOT NULL,
     primer_apellido VARCHAR(45),
     segundo_apellido VARCHAR(45),
     telefono VARCHAR(20),
-    email VARCHAR(64),
-    dni_nif_pasaporte VARCHAR(10),
+    email VARCHAR(64) UNIQUE,
+    dni_nif_pasaporte VARCHAR(10) UNIQUE,
     salario DOUBLE PRECISION,
     cheques_guarderia INT,
     cheques_restaurante INT,
@@ -132,7 +149,7 @@ CREATE TABLE trabajador (
     fecha_fin DATE,
     codigo_postal VARCHAR(5),
     id_localidad INT,
-    freelance BOOLEAN,
+    freelance BOOLEAN DEFAULT FALSE,
     id_provincia INT,
     FOREIGN KEY (id_seleccionadores) REFERENCES seleccionadores(id) ON DELETE SET NULL,
     FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE SET NULL,
@@ -158,29 +175,13 @@ CREATE TABLE asignacion (
     id SERIAL PRIMARY KEY,
     id_empresa INT,
     id_trabajador INT,
-    id_comercial INT,
+    id_comerciales INT,
     fecha_ini DATE,
     fecha_fin DATE,
     tarifa DOUBLE PRECISION,
     FOREIGN KEY (id_empresa) REFERENCES empresa(id),
     FOREIGN KEY (id_trabajador) REFERENCES trabajador(id),
-    FOREIGN KEY (id_comercial) REFERENCES comercial(id)
-);
-
-CREATE TABLE headhunting (
-    id SERIAL PRIMARY KEY,
-    id_empresa INT,
-    id_seleccion INT,
-    nombre VARCHAR(64),
-    primer_apellido VARCHAR(64),
-    segundo_apellido VARCHAR(64),
-    telefono VARCHAR(12),
-    email VARCHAR(64),
-    fecha_ini DATE,
-    salario INT,
-    fee INT,
-    FOREIGN KEY (id_empresa) REFERENCES empresa(id),
-    FOREIGN KEY (id_seleccion) REFERENCES seleccion(id)
+    FOREIGN KEY (id_comerciales) REFERENCES comerciales(id)
 );
 
 CREATE TABLE estado_formacion (
@@ -246,34 +247,36 @@ CREATE TABLE formacion_trabajador (
     FOREIGN KEY (id_trabajador) REFERENCES trabajador(id)
 );
 
+-- Documentos para firmar
+ 
 CREATE TABLE tipo_documento_firma (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100)
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL
 );
-
+ 
 CREATE TABLE documento_firma (
-    id SERIAL PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre_fichero VARCHAR(255),
     id_tipo_documento INT,
     id_trabajador INT,
     link_sharepoint VARCHAR(500),
     estado VARCHAR(45),
     fecha_asignacion DATE,
-    FOREIGN KEY (id_tipo_documento) REFERENCES tipo_documento_firma(id),
-    FOREIGN KEY (id_trabajador) REFERENCES trabajador(id)
+    FOREIGN KEY (id_tipo_documento) REFERENCES tipo_documento_firma(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE
 );
-
+ 
 CREATE TABLE documento_firma_historial (
-    id SERIAL PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_documento_firma INT,
     nombre_fichero VARCHAR(255),
     link_sharepoint VARCHAR(500),
-    fecha_subida TIMESTAMP,
-    FOREIGN KEY (id_documento_firma) REFERENCES documento_firma(id)
+    fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_documento_firma) REFERENCES documento_firma(id) ON DELETE CASCADE
 );
-
+ 
 -- Indices
-
+ 
 CREATE INDEX idx_trabajador_seleccionadores ON trabajador(id_seleccionadores);
 CREATE INDEX idx_trabajador_localidad ON trabajador(id_localidad);
 CREATE INDEX idx_asignacion_empresa ON asignacion(id_empresa);
