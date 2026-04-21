@@ -55,7 +55,9 @@ export class FormacionesPageComponent implements OnInit {
 
   // ── Computed ──────────────────────────────────────
   get filtered(): Formacion[] {
-    return this.svc.formaciones().filter(c => {
+    const formaciones = this.svc.formaciones();
+    if(!formaciones || formaciones.length === 0) return [];
+    return formaciones.filter(c => {
       const matchFilter =
         this.activeFilter === 'todos' ? true :
           this.activeFilter === 'activos' ? c.activo === true : c.activo === false;

@@ -59,7 +59,7 @@ CREATE TABLE empresa (
     cif VARCHAR(9),
     id_tipo_empresa INT,
     id_comerciales INT,  --cambie el nombre de la columna para que coincida con la tabla comerciales
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, --fecha de actualizacion de la empresa
     FOREIGN KEY (id_tipo_empresa) REFERENCES tipo_empresa(id) ON DELETE SET NULL,
     FOREIGN KEY (id_comerciales) REFERENCES comerciales(id) ON DELETE SET NULL  --cambie el nombre de la columna para que coincida con la tabla comerciales
