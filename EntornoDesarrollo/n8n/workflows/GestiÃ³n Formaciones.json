@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-20T11:11:16.522Z",
+  "updatedAt": "2026-04-20T14:25:46.725Z",
   "createdAt": "2026-04-20T08:43:55.636Z",
   "id": "R5yHppLWfre3MYim",
   "name": "Gestión Formaciones",
@@ -216,7 +216,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT f.*,\n  ef.nombre as estado_nombre,\n  af.nombre as area_nombre,\n  mf.nombre as modalidad_nombre,\n  exe.nombre as ejecucion_nombre,\n  COUNT(ft.id_trabajador) as num_trabajadores\nFROM formacion f\nLEFT JOIN estado_formacion ef ON ef.id = f.id_estado\nLEFT JOIN area_formacion af ON af.id = f.id_area\nLEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\nLEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\nLEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id`;\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`AND (f.curso ILIKE $${paramIndex} OR f.denominacion ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.id_estado !== undefined && filters.id_estado !== null && filters.id_estado !== '') {\n  conditions.push(`AND f.id_estado = $${paramIndex}`);\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\nif (conditions.length > 0) {\n  query += ' ' + conditions.join(' ');\n}\n\nquery += ' GROUP BY f.id, ef.nombre, af.nombre, mf.nombre, exe.nombre ORDER BY f.created_at DESC NULLS LAST';\n\nreturn [{ json: { query, params } }];"
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 15;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE f.activo = true';\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  whereClause += ` AND (f.curso ILIKE $${paramIndex} OR f.denominacion ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.id_estado !== undefined && filters.id_estado !== null && filters.id_estado !== '') {\n  whereClause += `f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\nparams.push(pageSize);\nconst limitParam = paramIndex++;\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) as total\n  FROM formacion f\n  ${whereClause}\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre as estado_nombre,\n    af.nombre as area_nombre,\n    mf.nombre as modalidad_nombre,\n    exe.nombre as ejecucion_nombre,\n    COUNT(ft.id_trabajador) as num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY f.id, ef.nombre, af.nombre, mf.nombre, exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\nSELECT paginado.*, total_count.total as total_records\nFROM paginado, total_count;\n`;\n\nreturn [{ json: { query, params, page, pageSize } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -655,9 +655,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "ca2aa39d-ab90-4f22-a711-06d43c79af54",
-  "activeVersionId": "ca2aa39d-ab90-4f22-a711-06d43c79af54",
-  "versionCounter": 20,
+  "versionId": "8a0cf846-5c0b-4d0a-8f1e-24848f2b8061",
+  "activeVersionId": "8a0cf846-5c0b-4d0a-8f1e-24848f2b8061",
+  "versionCounter": 36,
   "triggerCount": 1,
   "tags": [],
   "shared": [
@@ -680,7 +680,7 @@
     }
   ],
   "versionMetadata": {
-    "name": "FormacionPostTrabajdoresFix",
+    "name": "FormacionesFinal",
     "description": ""
   }
 }
