@@ -1,7 +1,8 @@
-import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Seleccionador, TipoSeleccionador, EmpresaVinculada } from '../../../../models/seleccionador.model';
+import { Seleccionador, TipoSeleccionador } from '../../../../models/seleccionador.model';
+import { ToastService } from '../../../../services/toast.service';
 
 @Component({
   selector: 'app-sel-modal-form',
@@ -78,8 +79,11 @@ import { Seleccionador, TipoSeleccionador, EmpresaVinculada } from '../../../../
 export class SelModalFormComponent implements OnChanges {
   @Input() seleccionador: Seleccionador | null = null;
   @Input() empresasDisponibles: {id: number, nombre: string}[] = [];
+  @Input() existingEmails: string[] = [];
   @Output() save  = new EventEmitter<Omit<Seleccionador, 'id'>>();
   @Output() close = new EventEmitter<void>();
+
+  private toast = inject(ToastService);
 
   form: Omit<Seleccionador, 'id'> = this.getDefaultForm();
   errors: Record<string, string> = {};
@@ -90,13 +94,18 @@ export class SelModalFormComponent implements OnChanges {
     return this.isEdit ? 'Modifica los datos del seleccionador' : 'Rellena los datos del nuevo seleccionador';
   }
 
-  ngOnChanges(): void {
-    if (this.seleccionador) {
-      this.form = { ...this.seleccionador };
-    } else {
-      this.form = this.getDefaultForm();
+  ngOnChanges(changes: SimpleChanges): void {
+    // Solo reiniciar el form cuando cambia el seleccionador (crear vs. editar)
+    // Ignorar cambios de 'empresasDisponibles' y 'existingEmails' para no
+    // interrumpir la interacción del usuario con el formulario
+    if ('seleccionador' in changes) {
+      if (this.seleccionador) {
+        this.form = { ...this.seleccionador };
+      } else {
+        this.form = this.getDefaultForm();
+      }
+      this.errors = {};
     }
-    this.errors = {};
   }
 
   private getDefaultForm(): Omit<Seleccionador, 'id'> {
@@ -119,6 +128,8 @@ export class SelModalFormComponent implements OnChanges {
   setTipo(tipo: TipoSeleccionador): void {
     this.form.tipo = tipo;
     if (tipo === 'interno') {
+      this.form.telefono = '';
+      this.form.email = '';
       this.form.id_empresa = undefined;
       this.form.empresa = undefined;
       this.form.fecha_ini = '';
@@ -132,19 +143,60 @@ export class SelModalFormComponent implements OnChanges {
   }
 
   submit(): void {
-    console.log('🔘 Botón Guardar pulsado. Validando datos...', this.form);
     this.errors = {};
-    if (!this.form.nombre.trim()) this.errors['nombre'] = 'Campo obligatorio';
-    if (!this.form.primer_apellido.trim()) this.errors['primer_apellido'] = 'Campo obligatorio';
+    
+    // Validaciones comunes
+    if (!this.form.nombre?.trim()) {
+      this.errors['nombre'] = 'Campo obligatorio';
+    } else if (this.form.nombre.trim().length < 2) {
+      this.errors['nombre'] = 'El nombre es muy corto';
+    }
 
+    if (!this.form.primer_apellido?.trim()) {
+      this.errors['primer_apellido'] = 'Campo obligatorio';
+    } else if (this.form.primer_apellido.trim().length < 2) {
+      this.errors['primer_apellido'] = 'El apellido es muy corto';
+    }
+
+    // Validaciones específicas para externos
     if (this.form.tipo === 'externo') {
-      if (!this.form.email?.trim()) this.errors['email'] = 'Campo obligatorio';
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!this.form.email?.trim()) {
+        this.errors['email'] = 'Campo obligatorio';
+      } else if (!emailRegex.test(this.form.email.trim())) {
+        this.errors['email'] = 'Formato de correo inválido';
+      } else if (this.existingEmails.includes(this.form.email.trim().toLowerCase())) {
+        this.errors['email'] = 'Este correo ya está registrado';
+      }
+
+      if (this.form.telefono?.trim()) {
+        const phoneRegex = /^[0-9\+\s\-]{6,15}$/;
+        if (!phoneRegex.test(this.form.telefono.trim())) {
+          this.errors['telefono'] = 'Formato de teléfono inválido';
+        }
+      }
+
       if (!this.form.id_empresa) {
         this.errors['empresa'] = 'Selecciona una empresa';
       }
+      
+      if (this.form.salario !== undefined && this.form.salario !== null) {
+        if (this.form.salario <= 0) {
+          this.errors['salario'] = 'El salario debe ser mayor a 0';
+        }
+      }
+
+      if (this.form.fee !== undefined && this.form.fee !== null) {
+        if (this.form.fee < 0 || this.form.fee > 100) {
+          this.errors['fee'] = 'El fee debe estar entre 0 y 100';
+        }
+      }
     }
 
-    if (Object.keys(this.errors).length > 0) return;
+    if (Object.keys(this.errors).length > 0) {
+      this.toast.show('warning', 'Hay campos con errores. Por favor, revisa las alertas en rojo.');
+      return;
+    }
 
     this.save.emit({ ...this.form });
   }

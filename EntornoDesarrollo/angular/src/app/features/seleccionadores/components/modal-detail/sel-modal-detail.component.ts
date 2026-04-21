@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Seleccionador, getColorFor, getInitials, getFullName } from '../../../../models/seleccionador.model';
+import { Seleccionador, getColorFor, getInitials } from '../../../../models/seleccionador.model';
 
 @Component({
   selector: 'app-sel-modal-detail',
@@ -39,6 +39,11 @@ import { Seleccionador, getColorFor, getInitials, getFullName } from '../../../.
       font-size: 24px; font-weight: 700; color: #fff;
       margin-bottom: 16px;
     }
+    
+    .empty-dash { color: #a1a1aa; font-weight: 400; }
+    .field-disabled .detail-label { color: #9ca3af !important; }
+    .field-disabled .detail-value,
+    .field-disabled .empty-dash { color: #9ca3af !important; opacity: 0.8 !important; }
   `]
 })
 export class SelModalDetailComponent {
@@ -48,7 +53,6 @@ export class SelModalDetailComponent {
 
   colorFor = getColorFor;
   initials = getInitials;
-  fullName = getFullName;
 
   get statusLabel(): string {
     return this.seleccionador.activo ? 'Activo' : 'De baja';

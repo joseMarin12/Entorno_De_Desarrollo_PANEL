@@ -184,6 +184,15 @@ export class SeleccionadoresPageComponent implements OnInit {
     return this.seleccionadores().find(s => s.id === id);
   }
 
+  // ── Correos Registrados (Para validación única) ───────────────
+  get existingEmailsForEdit(): string[] {
+    const list = this.seleccionadores();
+    if (!this.selectedId) {
+      return list.filter(s => s && s.email).map(s => s.email!.toLowerCase());
+    }
+    return list.filter(s => s && s.id !== this.selectedId && s.email).map(s => s.email!.toLowerCase());
+  }
+
   // ── Handlers ─────────────────────────────────────────
   onSearchChange(q: string): void {
     this.searchQuery = q;

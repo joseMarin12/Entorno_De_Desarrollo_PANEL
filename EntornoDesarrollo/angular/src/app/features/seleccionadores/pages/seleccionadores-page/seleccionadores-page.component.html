@@ -52,6 +52,7 @@
   <app-sel-modal-form
     [seleccionador]="selectedSeleccionador"
     [empresasDisponibles]="empresasDisponibles()"
+    [existingEmails]="existingEmailsForEdit"
     (save)="onSaveForm($event)"
     (close)="showForm = false; selectedId = null"
   />
