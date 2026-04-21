@@ -1,4 +1,4 @@
-﻿<app-topbar pageTitle="Formaciones" />
+<app-topbar pageTitle="Formaciones" />
 
 <div class="page-content">
 
@@ -24,26 +24,33 @@
   <app-toolbar (searchChange)="onSearchChange($event)" (filterChange)="onFilterChange($event)" />
 
   <!-- Tabla -->
-  <app-formaciones-table [formaciones]="paginatedformaciones" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"
-    [totalFiltered]="filtered.length" (editClick)="onEditClick($event)" (bajaClick)="onBajaClick($event)"
-    (participantesClick)="onParticipantesClick($event)" (pageChange)="currentPage = $event" />
+  <app-formaciones-table
+    [formaciones]="paginatedformaciones()"
+    [currentPage]="currentPage()"
+    [pageSize]="PAGE_SIZE"
+    [totalFiltered]="filtered().length"
+    (editClick)="onEditClick($event)"
+    (bajaClick)="onBajaClick($event)"
+    (participantesClick)="onParticipantesClick($event)"
+    (pageChange)="currentPage.set($event)" />
 
 </div>
+
 <!-- Modales -->
 @if (showAdd) {
-<app-modal-add (save)="onSaveAdd($event)" (close)="showAdd = false" />
+  <app-modal-add (save)="onSaveAdd($event)" (close)="showAdd = false" />
 }
 
-@if (showEdit && selectedformacion) {
-<app-modal-edit [formacion]="selectedformacion" (save)="onSaveEdit($event)"
-  (close)="showEdit = false; selectedId = null" />
+@if (showEdit && selectedformacion()) {
+  <app-modal-edit [formacion]="selectedformacion()!" (save)="onSaveEdit($event)"
+    (close)="showEdit = false; selectedId.set(null)" />
 }
 
-@if (showBaja && selectedformacion) {
-<app-modal-baja [formacion]="selectedformacion" (confirm)="onConfirmBaja()"
-  (close)="showBaja = false; selectedId = null" />
+@if (showBaja && selectedformacion()) {
+  <app-modal-baja [formacion]="selectedformacion()!" (confirm)="onConfirmBaja()"
+    (close)="showBaja = false; selectedId.set(null)" />
 }
 
-@if (showParticipantes && selectedformacion) {
-<app-modal-participantes [formacion]="selectedformacion" (close)="showParticipantes = false; selectedId = null" />
+@if (showParticipantes && selectedformacion()) {
+  <app-modal-participantes [formacion]="selectedformacion()!" (close)="showParticipantes = false; selectedId.set(null)" />
 }

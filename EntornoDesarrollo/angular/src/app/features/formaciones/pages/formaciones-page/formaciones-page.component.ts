@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { FormacionesService } from '../../../../services/formaciones.service';
@@ -34,59 +34,62 @@ export class FormacionesPageComponent implements OnInit {
   svc = inject(FormacionesService);
   toast = inject(ToastService);
 
-  // ── Filtros ──────────────────────────────────────
-  searchQuery = '';
-  activeFilter: FilterType = 'todos';
-  currentPage = 1;
-  readonly PAGE_SIZE = 10;
+  // ── Filtros (Signals para que computed() los detecte) ─────────────────────
+  readonly searchQuery  = signal('');
+  readonly activeFilter = signal<FilterType>('todos');
+  readonly currentPage  = signal(1);
+  readonly PAGE_SIZE    = 10;
 
-  // ── Estado modales ────────────────────────────────
+  // ── Estado modales ────────────────────────────────────────────────────────
   showAdd = false;
   showEdit = false;
   showBaja = false;
   showParticipantes = false;
-  selectedId: number | null = null;
+  readonly selectedId = signal<number | null>(null);
 
-  // ── Ciclo de vida ─────────────────────────────────
+  // ── Ciclo de vida ─────────────────────────────────────────────────────────
   ngOnInit(): void {
-    // subscribe() para disparar el Observable (sin él no se ejecuta nada)
     this.svc.loadAll().subscribe();
   }
 
-  // ── Computed ──────────────────────────────────────
-  get filtered(): Formacion[] {
+  // ── Computed (memoizados: solo recalculan si cambia alguna dependencia) ───
+  readonly filtered = computed(() => {
     const formaciones = this.svc.formaciones();
-    if(!formaciones || formaciones.length === 0) return [];
+    const filter  = this.activeFilter();
+    const q       = this.searchQuery().toLowerCase().trim();
+
     return formaciones.filter(c => {
       const matchFilter =
-        this.activeFilter === 'todos' ? true :
-          this.activeFilter === 'activos' ? c.activo === true : c.activo === false;
-      const q = this.searchQuery.toLowerCase().trim();
+        filter === 'todos'   ? true :
+        filter === 'activos' ? c.activo === true : c.activo === false;
+
       const matchSearch = !q
         || this.svc.title(c).toLowerCase().includes(q)
         || (c.denominacion && c.denominacion.toLowerCase().includes(q));
+
       return matchFilter && matchSearch;
     });
-  }
+  });
 
-  get paginatedformaciones(): Formacion[] {
-    const start = (this.currentPage - 1) * this.PAGE_SIZE;
-    return this.filtered.slice(start, start + this.PAGE_SIZE);
-  }
+  readonly paginatedformaciones = computed(() => {
+    const start = (this.currentPage() - 1) * this.PAGE_SIZE;
+    return this.filtered().slice(start, start + this.PAGE_SIZE);
+  });
 
-  get selectedformacion(): Formacion | null {
-    return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
-  }
+  readonly selectedformacion = computed<Formacion | null>(() => {
+    const id = this.selectedId();
+    return id != null ? (this.svc.getById(id) ?? null) : null;
+  });
 
-  // ── Handlers ──────────────────────────────────────
+  // ── Handlers ──────────────────────────────────────────────────────────────
   onSearchChange(q: string): void {
-    this.searchQuery = q;
-    this.currentPage = 1;
+    this.searchQuery.set(q);
+    this.currentPage.set(1);
   }
 
   onFilterChange(f: FilterType): void {
-    this.activeFilter = f;
-    this.currentPage = 1;
+    this.activeFilter.set(f);
+    this.currentPage.set(1);
   }
 
   openAdd(): void {
@@ -104,7 +107,7 @@ export class FormacionesPageComponent implements OnInit {
   }
 
   onEditClick(id: number): void {
-    this.selectedId = id;
+    this.selectedId.set(id);
     this.showEdit = true;
   }
 
@@ -112,7 +115,7 @@ export class FormacionesPageComponent implements OnInit {
     this.svc.update(data.id, data).subscribe({
       next: () => {
         this.showEdit = false;
-        this.selectedId = null;
+        this.selectedId.set(null);
         this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
       },
       error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
@@ -120,23 +123,24 @@ export class FormacionesPageComponent implements OnInit {
   }
 
   onBajaClick(id: number): void {
-    this.selectedId = id;
+    this.selectedId.set(id);
     this.showBaja = true;
   }
 
   onParticipantesClick(id: number): void {
-    this.selectedId = id;
+    this.selectedId.set(id);
     this.showParticipantes = true;
   }
 
   onConfirmBaja(): void {
-    if (this.selectedId == null) return;
-    const c = this.svc.getById(this.selectedId)!;
+    const id = this.selectedId();
+    if (id == null) return;
+    const c = this.svc.getById(id)!;
     const wasActive = c.activo === true;
-    this.svc.toggleActivo(this.selectedId).subscribe({
+    this.svc.toggleActivo(id).subscribe({
       next: () => {
         this.showBaja = false;
-        this.selectedId = null;
+        this.selectedId.set(null);
         if (wasActive) {
           this.toast.show('warning', `⊘ Formación <strong>${this.svc.title(c)}</strong> dada de baja`);
         } else {
