@@ -13,11 +13,13 @@ export class EmpresasService {
 
   // ── Estado reactivo ──────────────────────────────────────────────────────
   private _empresas = signal<Empresa[]>([]);
+  private _tipos = signal<{ id: number; nombre: string }[]>([]);
   readonly loading     = signal(false);
   readonly error       = signal<string | null>(null);
 
   // ── Vistas derivadas (computed) ──────────────────────────────────────────
   readonly empresas    = this._empresas.asReadonly();
+  readonly tipos       = this._tipos.asReadonly();
   readonly totalActivos   = computed(() => this._empresas().filter(e => e.activo).length);
   readonly totalInactivos = computed(() => this._empresas().filter(e => !e.activo).length);
   readonly total          = computed(() => this._empresas().length);
@@ -43,6 +45,22 @@ export class EmpresasService {
       this.error.set(e?.message ?? 'Error al cargar las empresas');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  /**
+   * Carga los tipos de empresas.
+   */
+  async loadTipos(): Promise<void> {
+    try {
+      const res = await firstValueFrom(
+        this.http.post<{ data: { id: number; nombre: string }[] }>(API_URL, {
+          action: 'getTiposEmpresa',
+        })
+      );
+      this._tipos.set(res.data ?? []);
+    } catch (e: any) {
+      this.error.set(e?.message ?? 'Error al cargar los tipos de empresa');
     }
   }
 

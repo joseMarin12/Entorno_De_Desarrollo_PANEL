@@ -1,4 +1,4 @@
-﻿import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Formacion } from '../../../../models/formacion.model';
@@ -18,17 +18,24 @@ export class ModalAddComponent {
     curso: '',
     denominacion: '',
     motivo: '',
+    id_area: 0,
     recursos: '',
+    id_responsable: 0,
+    id_modalidad: 0,
+    duracion: 0,
     dentro_fuera_jornada: '',
     observaciones: '',
     fecha_prevista: '',
     fecha_inicio: '',
     fecha_fin: '',
     horario: '',
+    id_ejecucion: 0,
     eficacia: '',
+    anio: new Date().getFullYear(),
     coste: 0,
     bonificacion: 0,
-    total: 0
+    total: 0,
+    activo: true
   };
 
   errors: Record<string, string> = {};
