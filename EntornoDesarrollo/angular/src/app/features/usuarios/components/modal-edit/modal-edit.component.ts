@@ -11,15 +11,23 @@ import { Usuario } from '../../../../models/usuarios.model';
 })
 export class UsuariosModalEditComponent implements OnChanges {
   @Input() usuario: Usuario | null = null;
+  @Input() emailUsuarios: string[] = [];
   @Output() save = new EventEmitter<Usuario>();
   @Output() close = new EventEmitter<void>();
 
-  form = { nombre: '', apellido1: '', apellido2: '', email: '', enabled: true };
+  form = { nombre: '', apellido1: '', email: '', password: '', role_id: 1 as number | string, enabled: true };
   errors: Record<string, string> = {};
 
   ngOnChanges(): void {
     if (this.usuario) {
-      this.form = { ...this.usuario };
+      this.form = { 
+        nombre: this.usuario.nombre,
+        apellido1: this.usuario.apellido1,
+        email: this.usuario.email,
+        enabled: this.usuario.enabled,
+        role_id: this.usuario.role_id || 1,
+        password: '' // Se deja vacío por defecto en edición
+      };
       this.errors = {};
     }
   }
@@ -37,8 +45,17 @@ export class UsuariosModalEditComponent implements OnChanges {
     this.errors = {};
     if (!this.form.nombre) this.errors['nombre'] = 'Campo obligatorio';
     if (!this.form.apellido1) this.errors['apellido1'] = 'Campo obligatorio';
-    if (!this.form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email))
+    if (!this.form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email)) {
       this.errors['email'] = 'Introduce un email válido';
+    } else {
+      const emailLower = this.form.email.trim().toLowerCase();
+      const currentEmailLower = this.usuario?.email?.toLowerCase();
+      
+      // Si el email ha cambiado y ya existe en la lista de registrados
+      if (emailLower !== currentEmailLower && this.emailUsuarios.includes(emailLower)) {
+        this.errors['email'] = 'Este correo ya pertenece a un usuario o comercial registrado';
+      }
+    }
 
     if (Object.keys(this.errors).length > 0) return;
 

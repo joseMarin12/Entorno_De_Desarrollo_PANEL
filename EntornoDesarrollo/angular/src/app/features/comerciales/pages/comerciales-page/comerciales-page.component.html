@@ -17,7 +17,11 @@
     </div>
 
     <!-- Estadísticas -->
-    <app-stats-row />
+    <app-stats-row
+      [total]="total()"
+      [activos]="totalActivos()"
+      [inactivos]="totalInactivos()"
+    />
 
     <!-- Toolbar: búsqueda + filtros -->
     <app-toolbar
@@ -40,6 +44,7 @@
 <!-- Modales -->
 @if (showAdd) {
   <app-modal-add
+    [existingEmails]="existingEmails"
     (save)="onSaveAdd($event)"
     (close)="showAdd = false"
   />
@@ -48,6 +53,7 @@
 @if (showEdit && selectedComercial) {
   <app-modal-edit
     [comercial]="selectedComercial"
+    [existingEmails]="existingEmailsForEdit"
     (save)="onSaveEdit($event)"
     (close)="showEdit = false; selectedId = null"
   />

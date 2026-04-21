@@ -4,7 +4,6 @@
       <tr>
         <th>Nombre</th>
         <th>Primer Apellido</th>
-        <th>Segundo Apellido</th>
         <th>Email</th>
         <th>Estado</th>
         <th>Acciones</th>
@@ -35,7 +34,6 @@
               </div>
             </td>
             <td [style.color]="u.enabled ? '' : 'var(--text-muted)'">{{ u.apellido1 }}</td>
-            <td [style.color]="u.enabled ? '' : 'var(--text-muted)'">{{ u.apellido2 }}</td>
             <td [style.color]="u.enabled ? '' : 'var(--text-muted)'">{{ u.email }}</td>
             <td>
               @if (u.enabled) {

@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Empresa } from '../../../../models/empresa.model';
-import { EmpresasService } from '../../../../services/empresas.service';
+
 
 @Component({
   selector: 'app-empresas-table',
@@ -21,8 +21,6 @@ export class EmpresasTableComponent {
   @Output() bajaClick  = new EventEmitter<number>();
   @Output() pageChange = new EventEmitter<number>();
 
-  svc = inject(EmpresasService);
-
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.totalFiltered / this.pageSize));
   }
@@ -38,6 +36,14 @@ export class EmpresasTableComponent {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
+  fullName(e: Empresa): string {
+    return [e.nombre, e.razonSocial].filter(Boolean).join(' ');
+  }
+
+  initials(e: Empresa): string {
+    return (e.nombre[0] + e.nombre[1]).toUpperCase();
+  }  
+
   goToDirecciones(id: number): void {
     this.router.navigate(['/empresas', id, 'direcciones']);
   }
@@ -45,4 +51,15 @@ export class EmpresasTableComponent {
   goToContactos(id: number): void {
     this.router.navigate(['/empresas', id, 'contactos']);
   } 
+
+  colorFor(id: number): string {
+    const COLORS = [
+      'linear-gradient(135deg,#5a4d9a,#476fab)',
+      'linear-gradient(135deg,#476fab,#23b4cd)',
+      'linear-gradient(135deg,#3198bf,#23b4cd)',
+      'linear-gradient(135deg,#55569e,#3198bf)',
+      'linear-gradient(135deg,#5a4d9a,#23b4cd)',
+    ];
+    return COLORS[(id - 1) % COLORS.length];
+  }
 }

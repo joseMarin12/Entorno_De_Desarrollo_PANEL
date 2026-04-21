@@ -13,7 +13,7 @@
       </div>
 
       <select
-        class="form-select" style="min-width: 180px; padding: 9px 12px; margin: 0 16px;"
+        class="form-select" style="max-width: 180px; padding: 9px 12px; margin: 0 16px;"
         [(ngModel)]="filterValue"
         (ngModelChange)="filterChange.emit($event)"
       >
@@ -23,14 +23,14 @@
       </select>
 
       <select
-        class="form-select" style="min-width: 180px; padding: 9px 12px; margin: 0 16px;"
+        class="form-select" style="max-width: 180px; padding: 9px 12px; margin: 0 16px;"
         [(ngModel)]="tipoFilterValue"
         (ngModelChange)="tipoFilterChange.emit($event)"
       >
         <option value="">Tipo: Todos</option>
-        <option value="Tecnología">Tecnología</option>
-        <option value="Consultoría">Consultoría</option>
-        <option value="Servicios">Servicios</option>
+        @for (tipo of tipos(); track tipo.id) {
+          <option [value]="tipo.nombre">{{ tipo.nombre }}</option>
+        }
       </select>
 
     </div>

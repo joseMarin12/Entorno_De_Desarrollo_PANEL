@@ -1,73 +1,79 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Usuario } from '../models/usuarios.model';
-
-const API_URL = 'http://localhost:8000/api/usuarios';
+import { BaseCrud } from './base.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
-export class UsuariosService {
+export class UsuariosService extends BaseCrud<Usuario> {
 
-  private http = inject(HttpClient);
+  protected override readonly API_URL = `${environment.apiUrl}/usuarios`;
 
-  // ── Estado reactivo ──────────────────────────────────────────────────────
   private _usuarios = signal<Usuario[]>([]);
-  readonly loading     = signal(false);
-  readonly error       = signal<string | null>(null);
+  readonly loading  = signal(false);
+  readonly error    = signal<string | null>(null);
+  readonly totalRecords = signal(0);
 
-  // ── Vistas derivadas (computed) ──────────────────────────────────────────
   readonly usuarios = this._usuarios.asReadonly();
-  readonly total    = computed(() => this._usuarios().length);
-  readonly activos  = computed(() => this._usuarios().filter(u => u.enabled).length);
-  readonly inactivos= computed(() => this._usuarios().filter(u => !u.enabled).length);
+  readonly total    = this.totalRecords.asReadonly();
+  readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
+  readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
 
-  // ── Carga inicial ────────────────────────────────────────────────────────
-
-  async loadAll(searchText = '', status = ''): Promise<void> {
+  async loadAll(page = 1, limit = 10, filters: any = {}): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
       const res = await firstValueFrom(
-        this.http.post<any>(API_URL, {
+        this._findAll({
           action: 'getUser',
-          filters: { searchText, status },
+          page,
+          limit,
+          filters,
         })
       );
-      
-      console.log('Respuesta cruda de n8n:', res);
 
-      const data = this.extractData(res);
-      const mapped = this.mapFromBackend(data);
-      
-      console.log('Usuarios mapeados:', mapped);
+      const rawData = res || [];
+      const mapped = rawData.map((item: any) => this.mapSingleFromBackend(item));
+
+      if (rawData.length > 0) {
+        const firstRow = rawData[0] as any;
+        const total = Number(firstRow.total_count || mapped.length);
+        this.totalRecords.set(total);
+      } else {
+        this.totalRecords.set(0);
+      }
+
       this._usuarios.set(mapped);
     } catch (e: any) {
-      console.error('Error cargando usuarios:', e);
       this.error.set(e?.message ?? 'Error al cargar los usuarios');
     } finally {
       this.loading.set(false);
     }
   }
 
-  // ── CRUD ─────────────────────────────────────────────────────────────────
-
   async add(data: Omit<Usuario, 'id'>): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const res = await firstValueFrom(
-        this.http.post<any>(API_URL, {
-          action: 'createUser', // Coincide con n8n
-          name: data.nombre,    // Mapeo plano como espera tu n8n
-          surname: data.apellido1,
-          email: data.email,
-          enabled: data.enabled ?? true,
-          password: 'password123', // Valor por defecto si no viene
-          role_id: 1               // Valor por defecto para tu esquema
-        })
-      );
-      const newUser = Array.isArray(res) ? res[0] : (res.data ?? res);
-      this._usuarios.update(list => [this.mapSingleFromBackend(newUser), ...list]);
+      const payload = {
+        action: 'createUser',
+        name: data.nombre,
+        surname: data.apellido1,
+        email: data.email,
+        enabled: data.enabled ?? true,
+        password: data.password || 'password123',
+        role_id: Number(data.role_id || 1)
+      };
+
+      const res = await firstValueFrom(this._create(payload));
+      const newUser = this.applyRobustMerge(res, {
+        ...data,
+        id: res?.id ? Number(res.id) : Date.now(),
+        role_id: payload.role_id,
+        password: payload.password
+      });
+
+      this._usuarios.update(list => [newUser, ...list]);
     } catch (e: any) {
       this.error.set(e?.message ?? 'Error al crear el usuario');
       throw e;
@@ -80,21 +86,37 @@ export class UsuariosService {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const res = await firstValueFrom(
-        this.http.post<any>(API_URL, {
-          action: 'updateUser', // Coincide con n8n
-          id: id,               // n8n espera body.id
-          name: data.nombre,
-          surname: data.apellido1,
-          email: data.email,
-          enabled: data.enabled,
-          role_id: 1
-        })
-      );
-      const updated = Array.isArray(res) ? res[0] : (res.data ?? res);
-      this._usuarios.update(list =>
-        list.map(u => (u.id === id ? this.mapSingleFromBackend(updated) : u))
-      );
+      const existing = this.getById(id);
+      const payload: any = {
+        action: 'updateUser',
+        id,
+        name: data.nombre,
+        surname: data.apellido1,
+        email: data.email,
+        enabled: data.enabled,
+        role_id: Number(data.role_id || 1)
+      };
+
+      if (data.password?.trim()) {
+        payload.password = data.password;
+      } else if (existing?.password) {
+        payload.password = existing.password;
+      }
+
+      const res = await firstValueFrom(this._update(payload));
+      
+      this._usuarios.update(list => {
+        return list.map(u => {
+          if (u.id === id) {
+             return this.applyRobustMerge(res, {
+               ...u,
+               ...data,
+               password: payload.password || u.password
+             });
+          }
+          return u;
+        });
+      });
     } catch (e: any) {
       this.error.set(e?.message ?? 'Error al actualizar el usuario');
       throw e;
@@ -107,15 +129,24 @@ export class UsuariosService {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const res = await firstValueFrom(
-        this.http.post<any>(API_URL, {
-          action: 'Toogle status usuarios', // Nombre exacto que pusiste en n8n
-          id: id
-        })
-      );
-      const updated = Array.isArray(res) ? res[0] : (res.data ?? res);
-      this._usuarios.update(list =>
-        list.map(u => (u.id === id ? this.mapSingleFromBackend(updated) : u))
+      const u = this.getById(id);
+      const newState = u ? !u.enabled : true;
+
+      const payload = {
+        action: 'Toogle status usuarios',
+        id,
+        enabled: newState,
+        activo: newState,
+        enabled_int: newState ? 1 : 0
+      };
+
+      const res = await firstValueFrom(this._toggleStatus(payload));
+      
+      this._usuarios.update(list => 
+        list.map(user => user.id === id 
+          ? this.applyRobustMerge(res, { ...user, enabled: newState }) 
+          : user
+        )
       );
     } catch (e: any) {
       this.error.set(e?.message ?? 'Error al cambiar el estado del usuario');
@@ -125,61 +156,37 @@ export class UsuariosService {
     }
   }
 
-  // ── Mapeadores y Extracción ──────────────────────────────────────────
-
-  private extractData(res: any): any[] {
-    if (Array.isArray(res)) return res;
-    if (!res || typeof res !== 'object') return [];
-
-    // 1. Buscar arrays en claves comunes
-    if (Array.isArray(res.data)) return res.data;
-    if (Array.isArray(res.items)) return res.items;
-    if (Array.isArray(res.json)) return res.json;
-
-    // 2. Buscar si ALGUNA propiedad es un array (quedarnos con el más largo)
-    const arrays = Object.values(res).filter(v => Array.isArray(v)) as any[][];
-    if (arrays.length > 0) {
-      return arrays.sort((a, b) => b.length - a.length)[0];
+  private applyRobustMerge(backendRes: any, localData: Usuario): Usuario {
+    const mapped = this.mapSingleFromBackend(backendRes);
+    const isReal = backendRes && (backendRes.id || backendRes.nombre || backendRes.name || backendRes.email);
+    
+    if (isReal) {
+      return { ...localData, ...mapped };
     }
-
-    // 3. Caso especial: n8n entrega un objeto con .json que contiene lo que buscamos
-    if (res.json && typeof res.json === 'object') {
-      return this.extractData(res.json);
-    }
-
-    // 4. Si tiene pinta de ser un solo record
-    if (res.id || res.name || (res.json && res.json.id)) {
-      return [res];
-    }
-
-    return [];
-  }
-
-  private mapFromBackend(data: any[]): Usuario[] {
-    return data.map(item => this.mapSingleFromBackend(item));
+    return localData;
   }
 
   private mapSingleFromBackend(item: any): Usuario {
-    // n8n envuelve cada item en una propiedad "json" por defecto.
     const d = (item && item.json && typeof item.json === 'object' && !Array.isArray(item.json)) 
               ? item.json 
               : item;
 
+    if (!d || typeof d !== 'object') return {} as Usuario;
+
     return {
-      // Mapeo robusto de ID (n8n a veces usa nombres diferentes según Postgres o el nodo)
-      id: d.id || d.ID || d.id_usuario || d.user_id || d.pk || d._id,
+      id: Number(d.id || d.ID || d.id_usuario || 0),
       nombre: d.name || d.nombre || d.username || '',
       apellido1: d.surname || d.apellido1 || d.last_name || '',
-      apellido2: d.surname2 || d.apellido2 || '',
       email: d.email || d.user_email || '',
-      enabled: d.enabled === true || d.enabled === 1 || d.enabled === '1' || d.status === 'active'
+      enabled: d.enabled === true || d.enabled === 1 || d.enabled === '1' || d.status === 'active' || d.activo === true,
+      password: d.password || d.pass || d.contraseña || '',
+      role_id: Number(d.role_id || d.ID_ROL || d.id_rol || 1)
     };
   }
 
-  // ── Helpers UI ──────────────────────────────────────────────────────────
-
-  getById(id: number): Usuario | undefined {
-    return this._usuarios().find(u => u.id === id);
+  getById(id: number | string): Usuario | undefined {
+    const numericId = Number(id);
+    return this._usuarios().find(u => Number(u.id) === numericId);
   }
 
   fullName(u: Usuario): string {

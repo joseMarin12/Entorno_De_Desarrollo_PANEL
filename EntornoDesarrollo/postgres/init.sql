@@ -58,14 +58,23 @@ CREATE TABLE empresa (
     razon_social VARCHAR(128),
     cif VARCHAR(9),
     id_tipo_empresa INT,
-    id_comercial INT,
-    FOREIGN KEY (id_tipo_empresa) REFERENCES tipo_empresa(id),
-    FOREIGN KEY (id_comercial) REFERENCES comercial(id)
+    id_comerciales INT,  --cambie el nombre de la columna para que coincida con la tabla comerciales
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, --fecha de actualizacion de la empresa
+    FOREIGN KEY (id_tipo_empresa) REFERENCES tipo_empresa(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_comerciales) REFERENCES comerciales(id) ON DELETE SET NULL  --cambie el nombre de la columna para que coincida con la tabla comerciales
+);
+
+CREATE TABLE pais ( --cree la tabla pais
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    pais VARCHAR(45) NOT NULL
 );
 
 CREATE TABLE provincia (
-    id SERIAL PRIMARY KEY,
-    provincia VARCHAR(30)
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_pais INT,
+    provincia VARCHAR(30) NOT NULL,
+    FOREIGN KEY (id_pais) REFERENCES pais(id) ON DELETE CASCADE
 );
 
 CREATE TABLE localidad (
@@ -117,17 +126,17 @@ CREATE TABLE trabajador (
     direccion VARCHAR(128),
     nacionalidad VARCHAR(45),
     fecha_nacimiento DATE,
-    id_seleccion INT,
-    activo BOOLEAN,
+    id_seleccionadores INT, -- Referencia a la nueva tabla unificada
+    activo BOOLEAN DEFAULT TRUE,
     fecha_ini DATE,
     fecha_fin DATE,
     codigo_postal VARCHAR(5),
     id_localidad INT,
     freelance BOOLEAN,
     id_provincia INT,
-    FOREIGN KEY (id_seleccion) REFERENCES seleccion(id),
-    FOREIGN KEY (id_localidad) REFERENCES localidad(id),
-    FOREIGN KEY (id_provincia) REFERENCES provincia(id)
+    FOREIGN KEY (id_seleccionadores) REFERENCES seleccionadores(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE SET NULL
 );
 
 CREATE TABLE tipoDoc (
@@ -262,3 +271,11 @@ CREATE TABLE documento_firma_historial (
     fecha_subida TIMESTAMP,
     FOREIGN KEY (id_documento_firma) REFERENCES documento_firma(id)
 );
+
+-- Indices
+
+CREATE INDEX idx_trabajador_seleccionadores ON trabajador(id_seleccionadores);
+CREATE INDEX idx_trabajador_localidad ON trabajador(id_localidad);
+CREATE INDEX idx_asignacion_empresa ON asignacion(id_empresa);
+CREATE INDEX idx_asignacion_trabajador ON asignacion(id_trabajador);
+CREATE INDEX idx_empresa_tipo ON empresa(id_tipo_empresa);
