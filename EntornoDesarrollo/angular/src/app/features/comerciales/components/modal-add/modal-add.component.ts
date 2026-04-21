@@ -25,8 +25,12 @@ export class ModalAddComponent {
     this.errors = {};
     if (!this.form.nombre)    this.errors['nombre']    = 'Campo obligatorio';
     if (!this.form.primer_apellido) this.errors['primer_apellido'] = 'Campo obligatorio';
-    if (!this.form.telefono)  this.errors['telefono']  = 'Campo obligatorio';
-    if (!this.form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email)) {
+    if (!this.form.telefono) {
+      this.errors['telefono'] = 'Campo obligatorio';
+    } else if (!/^[0-9+\s]+$/.test(this.form.telefono)) {
+      this.errors['telefono'] = 'Formato no válido (solo números, + y espacios)';
+    }
+    if (!this.form.email || !/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(this.form.email)) {
       this.errors['email'] = 'Introduce un email válido';
     } else if (this.existingEmails.includes(this.form.email.trim().toLowerCase())) {
       this.errors['email'] = 'Este correo ya está registrado';

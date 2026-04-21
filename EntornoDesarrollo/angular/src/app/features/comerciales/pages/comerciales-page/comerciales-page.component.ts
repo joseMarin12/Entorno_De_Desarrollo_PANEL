@@ -136,7 +136,7 @@ export class ComercialesPageComponent implements OnInit {
   onSaveEdit(data: Comercial): void {
     this.api.update(data.id!, data).subscribe({
       next: (updated) => {
-        this._comerciales.update(list => list.map(c => (c.id === data.id ? updated : c)));
+        this._comerciales.update(list => list.map(c => (c.id === data.id ? { ...c, ...updated } : c)));
         this.showEdit = false;
         this.selectedId = null;
         this.toast.show('info', `✎ Comercial <strong>${data.nombre} ${data.primer_apellido}</strong> actualizado`);
@@ -156,7 +156,7 @@ export class ComercialesPageComponent implements OnInit {
     const wasActive = c.activo;
     this.api.toggleStatus(this.selectedId).subscribe({
       next: (updated) => {
-        this._comerciales.update(list => list.map(item => (item.id === this.selectedId ? updated : item)));
+        this._comerciales.update(list => list.map(item => (item.id === this.selectedId ? { ...item, ...updated } : item)));
         this.showBaja = false;
         this.selectedId = null;
         if (wasActive) {
