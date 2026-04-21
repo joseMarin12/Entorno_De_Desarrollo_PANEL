@@ -1,8 +1,9 @@
 export interface Formacion {
+  // ── Campos base de la tabla ─────────────────────
   id: number;
-  id_estado?: number;
   curso: string;
-  denominacion: string;
+  id_estado?: number;
+  denominacion?: string;
   motivo?: string;
   id_area?: number;
   recursos?: string;
@@ -21,4 +22,7 @@ export interface Formacion {
   coste?: number;
   bonificacion?: number;
   total?: number;
+  activo?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
