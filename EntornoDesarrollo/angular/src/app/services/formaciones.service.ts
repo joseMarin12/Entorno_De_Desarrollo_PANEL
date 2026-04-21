@@ -4,11 +4,12 @@ import { tap } from 'rxjs/operators';
 
 import { BaseCrud } from './base.service';
 import { Formacion } from '../models/formacion.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class FormacionesService extends BaseCrud<Formacion> {
 
-    protected readonly API_URL = 'http://localhost:8000/api/formaciones';
+    protected readonly API_URL = `${environment.apiUrl}/formaciones`;
 
     // ── Estado reactivo ──────────────────────────────────────────────────────
     private _formaciones = signal<Formacion[]>([]);
