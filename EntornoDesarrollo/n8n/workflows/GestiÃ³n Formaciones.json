@@ -1,0 +1,686 @@
+{
+  "updatedAt": "2026-04-20T11:11:16.522Z",
+  "createdAt": "2026-04-20T08:43:55.636Z",
+  "id": "R5yHppLWfre3MYim",
+  "name": "Gestión Formaciones",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gestion-formaciones",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        384
+      ],
+      "id": "ee427571-815e-4590-b347-112dc73a5916",
+      "name": "API Gestión Formaciones",
+      "webhookId": "formaciones-gestion-uuid-0001"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getFormaciones",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-get-formaciones"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Formaciones"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "createFormacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-create-formacion"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Create Formacion"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "updateFormacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-update-formacion"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Update Formacion"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "toggleFormacionStatus",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-toggle-formacion"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Toggle Status"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getTrabajadores",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-get-trabajadores"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Trabajadores"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "addTrabajadorToFormacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-add-trabajador"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Add Trabajador"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "removeTrabajadorFromFormacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-remove-trabajador"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Remove Trabajador"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Invalid Action"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -352,
+        384
+      ],
+      "id": "fa3cedab-4acd-440f-839b-96c9e0e555d7",
+      "name": "Route by Action"
+    },
+    {
+      "parameters": {
+        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT f.*,\n  ef.nombre as estado_nombre,\n  af.nombre as area_nombre,\n  mf.nombre as modalidad_nombre,\n  exe.nombre as ejecucion_nombre,\n  COUNT(ft.id_trabajador) as num_trabajadores\nFROM formacion f\nLEFT JOIN estado_formacion ef ON ef.id = f.id_estado\nLEFT JOIN area_formacion af ON af.id = f.id_area\nLEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\nLEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\nLEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id`;\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`AND (f.curso ILIKE $${paramIndex} OR f.denominacion ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.id_estado !== undefined && filters.id_estado !== null && filters.id_estado !== '') {\n  conditions.push(`AND f.id_estado = $${paramIndex}`);\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\nif (conditions.length > 0) {\n  query += ' ' + conditions.join(' ');\n}\n\nquery += ' GROUP BY f.id, ef.nombre, af.nombre, mf.nombre, exe.nombre ORDER BY f.created_at DESC NULLS LAST';\n\nreturn [{ json: { query, params } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        48
+      ],
+      "id": "fbf74ae7-f306-4e9c-81f6-b4446591f700",
+      "name": "Build Get Formaciones Query"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        96,
+        48
+      ],
+      "id": "81f121a4-c55e-42e8-a0fa-465a7b000671",
+      "name": "Get Formaciones",
+      "credentials": {
+        "postgres": {
+          "id": "4828RckJX3Hstso7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO formacion (\n  id_estado, curso, denominacion, motivo, id_area,\n  recursos, id_responsable, id_modalidad, duracion, dentro_fuera_jornada,\n  observaciones, fecha_prevista, fecha_inicio, fecha_fin, horario,\n  id_ejecucion, eficacia, anio, coste, bonificacion, total, activo\n) VALUES (\n  $1, $2, $3, $4, $5,\n  $6, $7, $8, $9, $10,\n  $11, $12, $13, $14, $15,\n  $16, $17, $18, $19, $20, $21, true\n) RETURNING *;",
+        "options": {
+          "queryReplacement": "={{ $json.body.formacionData.id_estado }},={{ $json.body.formacionData.curso }},={{ $json.body.formacionData.denominacion }},={{ $json.body.formacionData.motivo }},={{ $json.body.formacionData.id_area }},={{ $json.body.formacionData.recursos }},={{ $json.body.formacionData.id_responsable }},={{ $json.body.formacionData.id_modalidad }},={{ $json.body.formacionData.duracion }},={{ $json.body.formacionData.dentro_fuera_jornada }},={{ $json.body.formacionData.observaciones }},={{ $json.body.formacionData.fecha_prevista }},={{ $json.body.formacionData.fecha_inicio }},={{ $json.body.formacionData.fecha_fin }},={{ $json.body.formacionData.horario }},={{ $json.body.formacionData.id_ejecucion }},={{ $json.body.formacionData.eficacia }},={{ $json.body.formacionData.anio }},={{ $json.body.formacionData.coste }},={{ $json.body.formacionData.bonificacion }},={{ $json.body.formacionData.total }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        96,
+        240
+      ],
+      "id": "26938c25-b018-42ce-9bb7-efcdc407abc3",
+      "name": "Insert Formacion",
+      "credentials": {
+        "postgres": {
+          "id": "4828RckJX3Hstso7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE formacion SET\n  id_estado = $1, curso = $2, denominacion = $3, motivo = $4,\n  id_area = $5, recursos = $6, id_responsable = $7, id_modalidad = $8,\n  duracion = $9, dentro_fuera_jornada = $10, observaciones = $11,\n  fecha_prevista = $12, fecha_inicio = $13, fecha_fin = $14,\n  horario = $15, id_ejecucion = $16, eficacia = $17,\n  anio = $18, coste = $19, bonificacion = $20, total = $21,\n  updated_at = NOW()\nWHERE id = $22\nRETURNING *;",
+        "options": {
+          "queryReplacement": "={{ $json.body.formacionData.id_estado }},={{ $json.body.formacionData.curso }},={{ $json.body.formacionData.denominacion }},={{ $json.body.formacionData.motivo }},={{ $json.body.formacionData.id_area }},={{ $json.body.formacionData.recursos }},={{ $json.body.formacionData.id_responsable }},={{ $json.body.formacionData.id_modalidad }},={{ $json.body.formacionData.duracion }},={{ $json.body.formacionData.dentro_fuera_jornada }},={{ $json.body.formacionData.observaciones }},={{ $json.body.formacionData.fecha_prevista }},={{ $json.body.formacionData.fecha_inicio }},={{ $json.body.formacionData.fecha_fin }},={{ $json.body.formacionData.horario }},={{ $json.body.formacionData.id_ejecucion }},={{ $json.body.formacionData.eficacia }},={{ $json.body.formacionData.anio }},={{ $json.body.formacionData.coste }},={{ $json.body.formacionData.bonificacion }},={{ $json.body.formacionData.total }},={{ $json.body.formacionId }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        96,
+        432
+      ],
+      "id": "7a774ed7-109c-4853-b29c-60f1f048df85",
+      "name": "Update Formacion",
+      "credentials": {
+        "postgres": {
+          "id": "4828RckJX3Hstso7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE formacion SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING id, curso, activo, updated_at;",
+        "options": {
+          "queryReplacement": "={{ $json.body.formacionId }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        96,
+        624
+      ],
+      "id": "16b53842-f1bd-4a35-ad82-e38a0608531d",
+      "name": "Toggle Formacion Status",
+      "credentials": {
+        "postgres": {
+          "id": "4828RckJX3Hstso7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst idFormacion = body.id_formacion;\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT\n  t.id,\n  t.nombre,\n  t.primer_apellido,\n  t.segundo_apellido,\n  t.dni_nif_pasaporte,\n  t.email,\n  t.telefono,\n  t.activo,\n  CASE WHEN ft.id IS NOT NULL THEN true ELSE false END as asignado\nFROM trabajador t\nLEFT JOIN formacion_trabajador ft\n  ON ft.id_trabajador = t.id AND ft.id_formacion = $${paramIndex}\nWHERE t.activo = true`;\nparams.push(idFormacion);\nparamIndex++;\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  query += ` AND (CONCAT(t.nombre, ' ', t.primer_apellido, ' ', COALESCE(t.segundo_apellido,'')) ILIKE $${paramIndex} OR t.dni_nif_pasaporte ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.soloDisponibles === true) {\n  query += ' AND ft.id IS NULL';\n}\n\nquery += ' ORDER BY t.primer_apellido, t.nombre';\n\nreturn [{ json: { query, params } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        800
+      ],
+      "id": "9fa85371-0c7c-45b9-aa9d-1715d0b1ad6f",
+      "name": "Build Get Trabajadores Query"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        96,
+        800
+      ],
+      "id": "c2886c75-ccd9-44b6-bd94-d84d9a4ab8c2",
+      "name": "Get Trabajadores",
+      "credentials": {
+        "postgres": {
+          "id": "4828RckJX3Hstso7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO formacion_trabajador (id_formacion, id_trabajador)\nSELECT $1, $2\nWHERE NOT EXISTS (\n  SELECT 1 FROM formacion_trabajador\n  WHERE id_formacion = $1 AND id_trabajador = $2\n)\nRETURNING *;",
+        "options": {
+          "queryReplacement": "={{ $json.body.id_formacion }},={{ $json.body.id_trabajador }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        96,
+        992
+      ],
+      "id": "8ac77d33-0f52-4f9a-8d93-78dd08c1e140",
+      "name": "Add Trabajador",
+      "credentials": {
+        "postgres": {
+          "id": "4828RckJX3Hstso7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM formacion_trabajador\nWHERE id_formacion = $1 AND id_trabajador = $2\nRETURNING id;",
+        "options": {
+          "queryReplacement": "={{ $json.body.id_formacion }},={{ $json.body.id_trabajador }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        96,
+        1168
+      ],
+      "id": "935b51b7-040b-434e-b77d-df7b826a2533",
+      "name": "Remove Trabajador",
+      "credentials": {
+        "postgres": {
+          "id": "4828RckJX3Hstso7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "2",
+              "name": "error",
+              "value": "Acción inválida. Acciones: getFormaciones, createFormacion, updateFormacion, toggleFormacionStatus, getTrabajadores, addTrabajadorToFormacion, removeTrabajadorFromFormacion",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        1344
+      ],
+      "id": "e5af6836-bf2b-4bab-a6ea-b26e871a9034",
+      "name": "Invalid Action Response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item => item.json) }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        320,
+        336
+      ],
+      "id": "c309396c-fb81-4c74-af17-95542f7f63c6",
+      "name": "Respond Success"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        96,
+        1344
+      ],
+      "id": "a1bc5a54-8833-46d0-bfa8-ea68c4523e60",
+      "name": "Respond Error"
+    }
+  ],
+  "connections": {
+    "API Gestión Formaciones": {
+      "main": [
+        [
+          {
+            "node": "Route by Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Action": {
+      "main": [
+        [
+          {
+            "node": "Build Get Formaciones Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Formacion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Formacion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Toggle Formacion Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Get Trabajadores Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Trabajador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Remove Trabajador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Action Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Formaciones Query": {
+      "main": [
+        [
+          {
+            "node": "Get Formaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Formaciones": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Formacion": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Formacion": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toggle Formacion Status": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Trabajadores Query": {
+      "main": [
+        [
+          {
+            "node": "Get Trabajadores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Trabajadores": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Trabajador": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Trabajador": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid Action Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "ca2aa39d-ab90-4f22-a711-06d43c79af54",
+  "activeVersionId": "ca2aa39d-ab90-4f22-a711-06d43c79af54",
+  "versionCounter": 20,
+  "triggerCount": 1,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-04-20T08:43:55.636Z",
+      "createdAt": "2026-04-20T08:43:55.636Z",
+      "role": "workflow:owner",
+      "workflowId": "R5yHppLWfre3MYim",
+      "projectId": "sBWXsirJNs9eVf7I",
+      "project": {
+        "updatedAt": "2026-04-07T12:45:46.647Z",
+        "createdAt": "2026-03-17T14:36:55.666Z",
+        "id": "sBWXsirJNs9eVf7I",
+        "name": "Adriano Casado Villarreal <adriano.casado@sgtech.tech>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "71e73ad8-a6d1-4bbe-9a4d-70b3c90181b6"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "FormacionPostTrabajdoresFix",
+    "description": ""
+  }
+}
