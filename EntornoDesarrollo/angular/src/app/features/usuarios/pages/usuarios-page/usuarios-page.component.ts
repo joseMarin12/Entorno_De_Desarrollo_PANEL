@@ -3,9 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { UsuariosService } from '../../../../services/usuarios.service';
 import { ToastService } from '../../../../services/toast.service';
-import { ComercialesApiService } from '../../../../services/comerciales-api.service';
 import { Usuario } from '../../../../models/usuarios.model';
-import { Comercial } from '../../../../models/comercial.model';
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { UsuariosStatsRowComponent } from '../../components/stats-row/usuarios-stats-row.component';
 import { UsuariosToolbarComponent, UsuariosFilterType } from '../../components/toolbar/usuarios-toolbar.component';
@@ -34,9 +32,7 @@ import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/conf
 export class UsuariosPageComponent implements OnInit {
     svc = inject(UsuariosService);
     toast = inject(ToastService);
-    comercialesSvc = inject(ComercialesApiService);
     ConfirmMode = ConfirmMode;
-    private readonly _comercialesEmails = signal<string[]>([]);
 
     // ── Filtros ──────────────────────────────────────
     searchQuery = '';
@@ -54,7 +50,6 @@ export class UsuariosPageComponent implements OnInit {
     // ── Ciclo de vida ─────────────────────────────────
     ngOnInit(): void {
         this.loadPage();
-        this.loadComercialesEmails();
     }
 
     private loadPage(): void {
@@ -71,15 +66,6 @@ export class UsuariosPageComponent implements OnInit {
         this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters);
     }
 
-    private loadComercialesEmails(): void {
-        this.comercialesSvc.findAll('', '', 1, 1000).subscribe({
-            next: (page) => {
-                const emails = (page.data || []).map((c: Comercial) => c.email.toLowerCase());
-                this._comercialesEmails.set(emails);
-            }
-        });
-    }
-
     get selectedUsuario(): Usuario | null {
         if (this.selectedId == null) {
             return null;
@@ -89,9 +75,7 @@ export class UsuariosPageComponent implements OnInit {
 
     // ── Validación de Emails ──────────────────────────
     readonly emailUsuarios = computed(() => {
-        const fromUsers = this.svc.usuarios().map(u => u.email.toLowerCase());
-        const fromComerciales = this._comercialesEmails();
-        return Array.from(new Set([...fromUsers, ...fromComerciales]));
+        return this.svc.usuarios().map(u => u.email.toLowerCase());
     });
 
     // ── Handlers ──────────────────────────────────────

@@ -14,5 +14,5 @@ export interface Empresa {
   contactos: number;
   activo: boolean;
   id_tipo_empresa: number;
-  id_comercial: number | null;
+  id_comerciales: number | null;
 }
