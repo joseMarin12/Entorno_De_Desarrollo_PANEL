@@ -76,7 +76,63 @@ elseif ($args[0] -eq "pull") {
 
     Pop-Location
 }
+elseif ($args[0] -eq "publish") {
+    Write-Host "Publicando workflows en lote en n8n..." -ForegroundColor Cyan
+    Push-Location $ScriptDir
+
+    $TempPublishDir = "/home/node/temp_publish"
+
+    # 1. Exportar todos los workflows como JSON para poder leer isArchived.
+    docker exec $ContainerName rm -rf $TempPublishDir
+    docker exec $ContainerName mkdir -p $TempPublishDir
+    docker exec $ContainerName n8n export:workflow --all --separate --pretty --output=$TempPublishDir/ | Out-Null
+
+    # 2. Traer los JSONs al host para inspeccionarlos.
+    $TempLocalDir = Join-Path $env:TEMP "n8n_publish_check"
+    if (Test-Path $TempLocalDir) { Remove-Item -Recurse -Force $TempLocalDir }
+    New-Item -ItemType Directory -Path $TempLocalDir | Out-Null
+    docker cp "${ContainerName}:${TempPublishDir}/." "$TempLocalDir/"
+
+    $allFiles = Get-ChildItem -Path $TempLocalDir -Filter "*.json" -File
+
+    if (-not $allFiles -or $allFiles.Count -eq 0) {
+        Write-Host "No se encontraron workflows para publicar." -ForegroundColor Yellow
+        Pop-Location
+        exit 0
+    }
+
+    $ok = 0
+    $fail = 0
+    $skipped = 0
+
+    foreach ($file in $allFiles) {
+        $content = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
+        if (-not $content) { continue }
+
+        # Saltar workflows archivados.
+        if ($content.isArchived -eq $true) {
+            Write-Host "Saltando '$($content.name)' (archivado)" -ForegroundColor DarkGray
+            $skipped++
+            continue
+        }
+
+        Write-Host "Publicando '$($content.name)' (ID=$($content.id)) ..." -ForegroundColor DarkCyan
+        docker exec $ContainerName n8n publish:workflow --id=$($content.id) | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            $ok++
+        } else {
+            $fail++
+            Write-Host "No se pudo publicar '$($content.name)' (ID=$($content.id))" -ForegroundColor Red
+        }
+    }
+
+    # Limpiar temporales.
+    Remove-Item -Recurse -Force $TempLocalDir -ErrorAction SilentlyContinue
+
+    Write-Host "Resultado: $ok publicado(s), $skipped archivado(s) omitido(s), $fail con error." -ForegroundColor Green
+    Pop-Location
+}
 else {
-    Write-Host "Uso: .\sync.ps1 push o pull"
+    Write-Host "Uso: .\sync.ps1 push | pull | publish"
     Write-Host "Opcional: define N8N_PROJECT_ID para importar en un proyecto concreto."
 }

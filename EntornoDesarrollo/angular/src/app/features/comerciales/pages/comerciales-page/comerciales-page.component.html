@@ -18,7 +18,7 @@
 
     <!-- Estadísticas -->
     <app-stats-row
-      [total]="total()"
+      [total]="totalRecords()"
       [activos]="totalActivos()"
       [inactivos]="totalInactivos()"
     />
@@ -30,14 +30,15 @@
     />
 
     <!-- Tabla -->
-    <app-comerciales-table
-      [comerciales]="paginatedComerciales"
-      [currentPage]="currentPage"
+    <app-table
+      [columns]="columns"
+      [rows]="paginatedComerciales()"
+      [currentPage]="currentPage()"
       [pageSize]="PAGE_SIZE"
-      [totalFiltered]="filtered.length"
-      (editClick)="onEditClick($event)"
-      (bajaClick)="onBajaClick($event)"
-      (pageChange)="currentPage = $event"
+      [totalFiltered]="totalRecords()"
+      entityLabel="comerciales"
+      (pageChange)="onPageChange($event)"
+      (actionClick)="onTableAction($event)"
     />
 
 </div>

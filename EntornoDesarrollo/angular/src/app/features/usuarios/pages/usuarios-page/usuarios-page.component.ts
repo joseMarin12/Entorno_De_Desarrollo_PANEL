@@ -1,9 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { UsuariosService } from '../../../../services/usuarios.service';
 import { ToastService } from '../../../../services/toast.service';
+import { ComercialesApiService } from '../../../../services/comerciales-api.service';
 import { Usuario } from '../../../../models/usuarios.model';
+import { Comercial } from '../../../../models/comercial.model';
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { UsuariosStatsRowComponent } from '../../components/stats-row/usuarios-stats-row.component';
 import { UsuariosToolbarComponent, UsuariosFilterType } from '../../components/toolbar/usuarios-toolbar.component';
@@ -12,8 +14,6 @@ import { UsuariosModalAddComponent } from '../../components/modal-add/modal-add.
 import { UsuariosModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
-import { ComercialesApiService } from '../../../../services/comerciales-api.service';
-import { computed, signal } from '@angular/core';
 
 @Component({
     selector: 'app-usuarios-page',
@@ -33,11 +33,10 @@ import { computed, signal } from '@angular/core';
 })
 export class UsuariosPageComponent implements OnInit {
     svc = inject(UsuariosService);
-    comercialesSvc = inject(ComercialesApiService);
     toast = inject(ToastService);
+    comercialesSvc = inject(ComercialesApiService);
     ConfirmMode = ConfirmMode;
-
-    private _comercialesEmails = signal<string[]>([]);
+    private readonly _comercialesEmails = signal<string[]>([]);
 
     // ── Filtros ──────────────────────────────────────
     searchQuery = '';
@@ -59,31 +58,37 @@ export class UsuariosPageComponent implements OnInit {
     }
 
     private loadPage(): void {
+        let status: boolean | '' = '';
+        if (this.activeFilter === 'activos') {
+            status = true;
+        } else if (this.activeFilter === 'inactivos') {
+            status = false;
+        }
         const filters = {
             searchText: this.searchQuery,
-            status: this.activeFilter === 'activos' ? true : this.activeFilter === 'inactivos' ? false : ''
+            status,
         };
         this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters);
     }
 
     private loadComercialesEmails(): void {
-        this.comercialesSvc.findAll().subscribe({
-            next: (list) => {
-                const emails = (list || []).map(c => c.email.toLowerCase());
+        this.comercialesSvc.findAll('', '', 1, 1000).subscribe({
+            next: (page) => {
+                const emails = (page.data || []).map((c: Comercial) => c.email.toLowerCase());
                 this._comercialesEmails.set(emails);
             }
         });
     }
 
     get selectedUsuario(): Usuario | null {
-        return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
+        if (this.selectedId == null) {
+            return null;
+        }
+        return this.svc.getById(this.selectedId) ?? null;
     }
 
     // ── Validación de Emails ──────────────────────────
     readonly emailUsuarios = computed(() => {
-        // En paginación servidor, solo tenemos los emails de la página actual en this.svc.usuarios()
-        // Para una validación completa, idealmente el backend debería proveer esto o cargar todos los emails una vez.
-        // Por ahora mantenemos la lógica con lo que tenemos.
         const fromUsers = this.svc.usuarios().map(u => u.email.toLowerCase());
         const fromComerciales = this._comercialesEmails();
         return Array.from(new Set([...fromUsers, ...fromComerciales]));

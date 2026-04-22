@@ -5,7 +5,7 @@ import { Empresa } from '../../../../models/empresa.model';
 import { ComercialesApiService } from '../../../../services/comerciales-api.service';
 import { EmpresasApiService } from '../../../../services/empresas-api.service';
 import { Comercial, comercialFullName } from '../../../../models/comercial.model';
-import { first, firstValueFrom } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { TipoEmpresa } from '../../../../models/tipo-empresa.model';
 
 @Component({
@@ -37,13 +37,13 @@ export class ModalAddComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     await Promise.allSettled([
       firstValueFrom(this.comercialesApi.findAll('', 'activo'))
-        .then(comerciales => this._comerciales.set(comerciales))
+        .then(response => this._comerciales.set(response.data ?? []))
         .catch(() => console.warn('No se pudieron cargar los comerciales')),
 
       firstValueFrom(this.empresasApi.findTipos())
-        .then(tipos => { 
+        .then(tipos => {
           console.log('Tipos de empresa cargados:', tipos);
-          this._tipos.set(tipos); 
+          this._tipos.set(tipos);
         })
         .catch((err) => console.error('No se pudieron cargar los tipos:', err)),
     ]);
