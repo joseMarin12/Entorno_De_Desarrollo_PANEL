@@ -86,7 +86,6 @@ export class EmpresasPageComponent implements OnInit {
   private loadAll(searchText = '', status = ''): void {
     this.api.findAll(searchText, status).subscribe({
       next: (list) => { 
-        console.log('Resouesta API:', list);
         this._empresas.set(list ?? []); 
       },
       error: () => this.toast.show('error', '✗ No se pudo cargar las empresas. Inténtalo de nuevo.'),

@@ -59,7 +59,7 @@
 
         <div class="form-group">
           <label class="form-label">Comercial</label>
-          <select class="form-input" [(ngModel)]="form.id_comercial">
+          <select class="form-input" [(ngModel)]="form.id_comerciales">
             <option [ngValue]="null">Sin comercial asignado</option>
             @for (c of comerciales(); track c.id) {
               <option [ngValue]="c.id">{{ fullName(c) }}</option>
