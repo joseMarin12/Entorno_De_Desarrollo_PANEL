@@ -15,7 +15,7 @@ export class UsuariosModalEditComponent implements OnChanges {
   @Output() save = new EventEmitter<Usuario>();
   @Output() close = new EventEmitter<void>();
 
-  form = { nombre: '', apellido1: '', email: '', password: '', role_id: 1 as number | string, enabled: true };
+  form = { nombre: '', apellido1: '', email: '', password: '', roleid: 1 as number | string, enabled: true };
   errors: Record<string, string> = {};
 
   ngOnChanges(): void {
@@ -25,7 +25,7 @@ export class UsuariosModalEditComponent implements OnChanges {
         apellido1: this.usuario.apellido1,
         email: this.usuario.email,
         enabled: this.usuario.enabled,
-        role_id: this.usuario.role_id || 1,
+        roleid: this.usuario.roleid || 1,
         password: '' // Se deja vacío por defecto en edición
       };
       this.errors = {};
