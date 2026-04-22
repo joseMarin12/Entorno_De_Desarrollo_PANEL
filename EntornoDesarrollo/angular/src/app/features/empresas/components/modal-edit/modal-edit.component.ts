@@ -6,7 +6,7 @@ import { EmpresasApiService } from '../../../../services/empresas-api.service';
 import { ComercialesApiService } from '../../../../services/comerciales-api.service';
 import { Comercial, comercialFullName } from '../../../../models/comercial.model';
 import { TipoEmpresa } from '../../../../models/tipo-empresa.model';
-import { firstValueFrom } from 'rxjs';
+import { forkJoin, of, catchError, map } from 'rxjs';
 
 @Component({
   selector: 'app-modal-edit',
@@ -28,37 +28,48 @@ export class ModalEditComponent implements OnChanges, OnInit {
   readonly comerciales = this._comerciales.asReadonly();
   readonly tipos = this._tipos.asReadonly();
 
-  form = { nombre: '', razonSocial: '', cif: '', id_tipo_empresa: null as number | null, direcciones: 0, contactos: 0, id_comercial: null as number | null, activo: true };
+  form = { nombre: '', razonSocial: '', cif: '', id_tipo_empresa: null as number | null, direcciones: 0, contactos: 0, id_comerciales: null as number | null, activo: true };
   errors: Record<string, string> = {};
 
-  async ngOnInit(): Promise<void> {
-    await Promise.allSettled([
-      firstValueFrom(this.comercialesApi.findAll('', 'activo'))
-        .then(response => this._comerciales.set(response.data ?? []))
-        .catch(() => console.warn('No se pudieron cargar los comerciales')),
+  private fillForm(): void {
+    if (!this.empresa) return;
+    this.form = {
+      nombre:          this.empresa.nombre,
+      razonSocial:     this.empresa.razonSocial,
+      cif:             this.empresa.cif,
+      id_tipo_empresa: this.empresa.id_tipo_empresa ?? null,
+      direcciones:     this.empresa.direcciones,
+      contactos:       this.empresa.contactos,
+      id_comerciales:    this.empresa.id_comerciales ?? null,
+      activo:          this.empresa.activo,
+    };
+      this.errors = {};
+  }
 
-      firstValueFrom(this.empresasApi.findTipos())
-        .then(tipos => {
-          this._tipos.set(tipos);
-        })
-        .catch((err) => console.error('Error al cargar tipos:', err)),  // ← cambia warn por error con el err
-  ]);
+  ngOnInit(): void {
+      forkJoin({
+        tipos: this.empresasApi.findTipos().pipe(
+          catchError((err) => {
+            console.error('Error al cargar tipos:', err);
+            return of([]);
+          })
+        ),
+        comerciales: this.comercialesApi.findAll('', 'true').pipe(
+          map(response => response.data ?? []),
+          catchError((err) => {
+            console.error('Error al cargar comerciales:', err);
+            return of([]);
+          })
+        )
+      }).subscribe(({ tipos, comerciales }) => {
+      this._tipos.set(tipos);
+      this._comerciales.set(comerciales);
+      this.fillForm();
+    });
   }
 
   ngOnChanges(): void {
-    if (this.empresa) {
-      this.form = {
-        nombre:          this.empresa.nombre,
-        razonSocial:     this.empresa.razonSocial,
-        cif:             this.empresa.cif,
-        id_tipo_empresa: this.empresa.id_tipo_empresa,
-        direcciones:     this.empresa.direcciones,
-        contactos:       this.empresa.contactos,
-        id_comercial:    this.empresa.id_comercial,
-        activo:          this.empresa.activo,
-       };
-      this.errors = {};
-    }
+    this.fillForm();
   }
 
   get subtitle(): string {
