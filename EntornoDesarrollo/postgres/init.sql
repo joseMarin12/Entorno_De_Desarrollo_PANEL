@@ -212,20 +212,47 @@ CREATE TABLE estado_formacion (
     nombre VARCHAR(45) NOT NULL
 );
 
+INSERT INTO estado_formacion (nombre) VALUES
+    ('Activo'),
+    ('Inactivo'),
+    ('Planificada'),
+    ('En curso'),
+    ('Finalizada'),
+    ('Cancelada');
+
 CREATE TABLE area_formacion (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL
 );
+
+INSERT INTO area_formacion (nombre) VALUES
+    ('Técnica'),
+    ('Habilidades blandas'),
+    ('Seguridad'),
+    ('Idiomas'),
+    ('Gestión y liderazgo'),
+    ('Otros');
 
 CREATE TABLE modalidad_formacion (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(45) NOT NULL
 );
 
+INSERT INTO modalidad_formacion (nombre) VALUES
+    ('Presencial'),
+    ('Online'),
+    ('Semipresencial'),
+    ('A distancia');
+
 CREATE TABLE ejecucion_formacion (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(45)
 );
+
+INSERT INTO ejecucion_formacion (nombre) VALUES
+    ('Interna'),
+    ('Externa'),
+    ('Mixta');
 
 CREATE TABLE formacion (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
