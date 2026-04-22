@@ -1,701 +1,693 @@
 {
-  "updatedAt": "2026-04-20T09:21:26.418Z",
-  "createdAt": "2026-04-09T13:26:23.893Z",
-  "id": "r8k7krUdPWJ3TxuU",
-  "name": "Usuarios",
-  "description": null,
-  "active": true,
-  "isArchived": false,
-  "nodes": [
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "usuarios",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        -416,
-        288
-      ],
-      "id": "7f0b8ab2-08b0-4625-84ab-ffc38d7a8c5f",
-      "name": "Webhook",
-      "webhookId": "005bf58d-b519-4d05-83d1-d6d321a7620c"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
+    "updatedAt":  "2026-04-20T09:21:26.418Z",
+    "createdAt":  "2026-04-09T13:26:23.893Z",
+    "id":  "r8k7krUdPWJ3TxuU",
+    "name":  "Usuarios",
+    "description":  null,
+    "active":  true,
+    "isArchived":  false,
+    "nodes":  [
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "getUser",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
+                      "parameters":  {
+                                         "httpMethod":  "POST",
+                                         "path":  "usuarios",
+                                         "responseMode":  "responseNode",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2.1,
+                      "position":  [
+                                       -416,
+                                       288
+                                   ],
+                      "id":  "7f0b8ab2-08b0-4625-84ab-ffc38d7a8c5f",
+                      "name":  "Webhook",
+                      "webhookId":  "005bf58d-b519-4d05-83d1-d6d321a7620c"
+                  },
+                  {
+                      "parameters":  {
+                                         "rules":  {
+                                                       "values":  [
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "getUser",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "d829c749-62d4-4582-b21b-722c26995b9c"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "getUser"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "id":  "430758cd-c9f3-4db0-9f62-1041d7716995",
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "createUser",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals",
+                                                                                                                                     "name":  "filter.operator.equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "createUser"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "id":  "a0bdc430-5ab2-4fc6-90f2-16388a8ce15b",
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "updateUser",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals",
+                                                                                                                                     "name":  "filter.operator.equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "updateUser"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "id":  "4695df15-83dc-41fd-9c7a-0756c0bba6b9",
+                                                                                                                    "leftValue":  "=",
+                                                                                                                    "rightValue":  "invalidAction",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals",
+                                                                                                                                     "name":  "filter.operator.equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "Invalid Action"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "id":  "0ba751d7-1643-4e86-a140-bf5de269275b",
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "Toogle status usuarios",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals",
+                                                                                                                                     "name":  "filter.operator.equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "ToogleStatusUsuarios"
+                                                                      }
+                                                                  ]
+                                                   },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.switch",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       -160,
+                                       224
+                                   ],
+                      "id":  "4955f0df-57ef-4324-bcda-059ff6d99307",
+                      "name":  "Switch"
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "json",
+                                         "responseBody":  "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item =\u003e item.json) }) }}",
+                                         "options":  {
+                                                         "responseCode":  200
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1.5,
+                      "position":  [
+                                       736,
+                                       400
+                                   ],
+                      "id":  "00974fe2-ce7b-4261-8b6f-f2525435719b",
+                      "name":  "Respond to Webhook1"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "{{ $json.query }}",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ $json.params }}"
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       240,
+                                       0
+                                   ],
+                      "id":  "ff602a9a-10e4-460b-97c6-a0d4e382c579",
+                      "name":  "getUser",
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "AUTOPOSTGRESCRED01",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "schema":  {
+                                                        "__rl":  true,
+                                                        "mode":  "list",
+                                                        "value":  "public"
+                                                    },
+                                         "table":  {
+                                                       "__rl":  true,
+                                                       "value":  "user",
+                                                       "mode":  "list",
+                                                       "cachedResultName":  "user"
+                                                   },
+                                         "columns":  {
+                                                         "mappingMode":  "defineBelow",
+                                                         "value":  {
+                                                                       "enabled":  "={{ $json.body.enabled }}",
+                                                                       "name":  "={{ $json.body.name }}",
+                                                                       "surname":  "={{ $json.body.surname }}",
+                                                                       "email":  "={{ $json.body.email }}",
+                                                                       "roleId":  "={{ $json.body.role_id ?? $json.body.roleId ?? $json.body.roleid }}",
+                                                                       "password":  "={{ $json.body.password }}"
+                                                                   },
+                                                         "matchingColumns":  [
+                                                                                 "id"
+                                                                             ],
+                                                         "schema":  [
+                                                                        {
+                                                                            "id":  "id",
+                                                                            "displayName":  "id",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  true,
+                                                                            "display":  true,
+                                                                            "type":  "number",
+                                                                            "canBeUsedToMatch":  true,
+                                                                            "removed":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "name",
+                                                                            "displayName":  "name",
+                                                                            "required":  true,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "surname",
+                                                                            "displayName":  "surname",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "email",
+                                                                            "displayName":  "email",
+                                                                            "required":  true,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "roleId",
+                                                                            "displayName":  "roleId",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "number",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "enabled",
+                                                                            "displayName":  "enabled",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "boolean",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "password",
+                                                                            "displayName":  "password",
+                                                                            "required":  true,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        }
+                                                                    ],
+                                                         "attemptToConvertTypes":  false,
+                                                         "convertFieldsToString":  false
+                                                     },
+                                         "options":  {
+                                                         "outputColumns":  [
+                                                                               "id",
+                                                                               "name",
+                                                                               "surname",
+                                                                               "email",
+                                                                               "roleId",
+                                                                               "enabled"
+                                                                           ]
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       240,
+                                       176
+                                   ],
+                      "id":  "6e26cbd7-53c9-4c97-bd52-fe3373ba4bff",
+                      "name":  "createUser",
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "AUTOPOSTGRESCRED01",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "update",
+                                         "schema":  {
+                                                        "__rl":  true,
+                                                        "mode":  "list",
+                                                        "value":  "public"
+                                                    },
+                                         "table":  {
+                                                       "__rl":  true,
+                                                       "value":  "user",
+                                                       "mode":  "list",
+                                                       "cachedResultName":  "user"
+                                                   },
+                                         "columns":  {
+                                                         "mappingMode":  "defineBelow",
+                                                         "value":  {
+                                                                       "enabled":  "={{ $json.body.enabled }}",
+                                                                       "id":  "={{ $json.body.id }}",
+                                                                       "name":  "={{ $json.body.name }}",
+                                                                       "surname":  "={{ $json.body.surname }}",
+                                                                       "email":  "={{ $json.body.email }}",
+                                                                       "roleId":  "={{ $json.body.role_id ?? $json.body.roleId ?? $json.body.roleid }}",
+                                                                       "password":  "={{ $json.body.password }}"
+                                                                   },
+                                                         "matchingColumns":  [
+                                                                                 "id"
+                                                                             ],
+                                                         "schema":  [
+                                                                        {
+                                                                            "id":  "id",
+                                                                            "displayName":  "id",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  true,
+                                                                            "display":  true,
+                                                                            "type":  "number",
+                                                                            "canBeUsedToMatch":  true,
+                                                                            "removed":  false
+                                                                        },
+                                                                        {
+                                                                            "id":  "name",
+                                                                            "displayName":  "name",
+                                                                            "required":  true,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "surname",
+                                                                            "displayName":  "surname",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "email",
+                                                                            "displayName":  "email",
+                                                                            "required":  true,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "roleId",
+                                                                            "displayName":  "roleId",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "number",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "enabled",
+                                                                            "displayName":  "enabled",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "boolean",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "password",
+                                                                            "displayName":  "password",
+                                                                            "required":  true,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        }
+                                                                    ],
+                                                         "attemptToConvertTypes":  false,
+                                                         "convertFieldsToString":  false
+                                                     },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       240,
+                                       368
+                                   ],
+                      "id":  "773505ee-47b8-4fc8-be11-f5fa3bcaa5a0",
+                      "name":  "updateUser",
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "AUTOPOSTGRESCRED01",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const filters = $input.item.json.body.filters || {};\nconst page = parseInt($input.item.json.body.page) || 1;\n\nconst limit = 7;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `\nSELECT \n  id, name, surname, email, \"roleId\" AS role_id, password, enabled, NULL::timestamp AS created_at,\n  COUNT(*) OVER() as total_count\nFROM \"user\"\nWHERE 1=1\n`;\n\nif (filters.searchText \u0026\u0026 typeof filters.searchText === \u0027string\u0027 \u0026\u0026 filters.searchText.trim() !== \u0027\u0027) {\n  conditions.push(`(\n    CONCAT(name, \u0027 \u0027, surname) ILIKE $${paramIndex}\n    OR email ILIKE $${paramIndex}\n  )`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.status !== undefined \u0026\u0026 filters.status !== null \u0026\u0026 filters.status !== \u0027\u0027) {\n  conditions.push(`enabled = $${paramIndex}`);\n  params.push(filters.status);\n  paramIndex++;\n}\n\nif ((filters.role_id !== undefined \u0026\u0026 filters.role_id !== null \u0026\u0026 filters.role_id !== \u0027\u0027) || (filters.roleId !== undefined \u0026\u0026 filters.roleId !== null \u0026\u0026 filters.roleId !== \u0027\u0027) || (filters.roleid !== undefined \u0026\u0026 filters.roleid !== null \u0026\u0026 filters.roleid !== \u0027\u0027)) {\n  conditions.push(`\"roleId\" = $${paramIndex}`);\n  params.push(filters.role_id ?? filters.roleId ?? filters.roleid);\n  paramIndex++;\n}\n\nif (conditions.length \u003e 0) {\n  query += \u0027 AND \u0027 + conditions.join(\u0027 AND \u0027);\n}\n\nquery += ` ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      limit\n    }\n  }\n];"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       0,
+                                       0
+                                   ],
+                      "id":  "76e7876c-8952-4472-b06d-08096cc8355a",
+                      "name":  "Filter"
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "bd9b5aaa-14bb-443a-b40e-a6de4ccd1639",
+                                                                                     "name":  "exito",
+                                                                                     "value":  false,
+                                                                                     "type":  "boolean"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "49390cfd-f444-4b8e-b839-8cc49adf3845",
+                                                                                     "name":  "error",
+                                                                                     "value":  "InvalidAction",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       240,
+                                       720
+                                   ],
+                      "id":  "16470b6e-be71-4632-8125-97ca634075f4",
+                      "name":  "Invalid Action"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "UPDATE \"user\"\nSET enabled = NOT enabled\nWHERE id = $1\nRETURNING id, name, surname, enabled, NULL::timestamp AS created_at;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ $json.body.id }}"
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       240,
+                                       528
+                                   ],
+                      "id":  "87dddd0e-96fb-42b2-b38f-aef8a946e691",
+                      "name":  "Toogle status Usuario",
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "AUTOPOSTGRESCRED01",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "json",
+                                         "responseBody":  "={{$json}}",
+                                         "options":  {
+                                                         "responseCode":  400
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1.5,
+                      "position":  [
+                                       496,
+                                       720
+                                   ],
+                      "id":  "cbd692f2-a6db-43cf-ab2c-ff7b2e4c8dea",
+                      "name":  "Responde Error"
+                  }
+              ],
+    "connections":  {
+                        "Webhook":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Switch",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    },
+                        "Switch":  {
+                                       "main":  [
+                                                    [
+                                                        {
+                                                            "node":  "Filter",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ],
+                                                    [
+                                                        {
+                                                            "node":  "createUser",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ],
+                                                    [
+                                                        {
+                                                            "node":  "updateUser",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ],
+                                                    [
+                                                        {
+                                                            "node":  "Invalid Action",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ],
+                                                    [
+                                                        {
+                                                            "node":  "Toogle status Usuario",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ]
+                                                ]
+                                   },
+                        "getUser":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Respond to Webhook1",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    },
+                        "createUser":  {
+                                           "main":  [
+                                                        [
+                                                            {
+                                                                "node":  "Respond to Webhook1",
+                                                                "type":  "main",
+                                                                "index":  0
+                                                            }
+                                                        ]
+                                                    ]
+                                       },
+                        "updateUser":  {
+                                           "main":  [
+                                                        [
+                                                            {
+                                                                "node":  "Respond to Webhook1",
+                                                                "type":  "main",
+                                                                "index":  0
+                                                            }
+                                                        ]
+                                                    ]
+                                       },
+                        "Filter":  {
+                                       "main":  [
+                                                    [
+                                                        {
+                                                            "node":  "getUser",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ]
+                                                ]
+                                   },
+                        "Invalid Action":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "Responde Error",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           },
+                        "Toogle status Usuario":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "Respond to Webhook1",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  }
                     },
-                    "id": "d829c749-62d4-4582-b21b-722c26995b9c"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "getUser"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "binaryMode":  "separate"
+                 },
+    "staticData":  null,
+    "meta":  {
+                 "templateCredsSetupCompleted":  true
+             },
+    "pinData":  {
+
                 },
-                "conditions": [
-                  {
-                    "id": "430758cd-c9f3-4db0-9f62-1041d7716995",
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "createUser",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "createUser"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "a0bdc430-5ab2-4fc6-90f2-16388a8ce15b",
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "updateUser",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "updateUser"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "4695df15-83dc-41fd-9c7a-0756c0bba6b9",
-                    "leftValue": "=",
-                    "rightValue": "invalidAction",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Invalid Action"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "0ba751d7-1643-4e86-a140-bf5de269275b",
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "Toogle status usuarios",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "ToogleStatusUsuarios"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        -160,
-        224
-      ],
-      "id": "4955f0df-57ef-4324-bcda-059ff6d99307",
-      "name": "Switch"
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item => item.json) }) }}",
-        "options": {
-          "responseCode": 200
-        }
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        736,
-        400
-      ],
-      "id": "00974fe2-ce7b-4261-8b6f-f2525435719b",
-      "name": "Respond to Webhook1"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "{{ $json.query }}",
-        "options": {
-          "queryReplacement": "={{ $json.params }}"
-        }
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        240,
-        0
-      ],
-      "id": "ff602a9a-10e4-460b-97c6-a0d4e382c579",
-      "name": "getUser",
-      "credentials": {
-        "postgres": {
-          "id": "sU0uiQIGFK8WFqZe",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "schema": {
-          "__rl": true,
-          "mode": "list",
-          "value": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "users",
-          "mode": "list",
-          "cachedResultName": "users"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "enabled": "={{ $json.body.enabled }}",
-            "created_at": "= {{ new Date().toISOString() }}",
-            "name": "={{ $json.body.name }}",
-            "surname": "={{ $json.body.surname }}",
-            "email": "={{ $json.body.email }}",
-            "role_id": "={{ $json.body.role_id }}",
-            "password": "={{ $json.body.password }}"
-          },
-          "matchingColumns": [
-            "id"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "name",
-              "displayName": "name",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "surname",
-              "displayName": "surname",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "email",
-              "displayName": "email",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "role_id",
-              "displayName": "role_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "enabled",
-              "displayName": "enabled",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "boolean",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "password",
-              "displayName": "password",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {
-          "outputColumns": [
-            "id",
-            "name",
-            "surname",
-            "email",
-            "role_id",
-            "enabled"
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        240,
-        176
-      ],
-      "id": "6e26cbd7-53c9-4c97-bd52-fe3373ba4bff",
-      "name": "createUser",
-      "credentials": {
-        "postgres": {
-          "id": "sU0uiQIGFK8WFqZe",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "schema": {
-          "__rl": true,
-          "mode": "list",
-          "value": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "users",
-          "mode": "list",
-          "cachedResultName": "users"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "enabled": "={{ $json.body.enabled }}",
-            "id": "={{ $json.body.id }}",
-            "name": "={{ $json.body.name }}",
-            "surname": "={{ $json.body.surname }}",
-            "email": "={{ $json.body.email }}",
-            "role_id": "={{ $json.body.role_id }}",
-            "password": "={{ $json.body.password }}",
-            "created_at": "={{ new Date().toISOString() }}"
-          },
-          "matchingColumns": [
-            "id"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "name",
-              "displayName": "name",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "surname",
-              "displayName": "surname",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "email",
-              "displayName": "email",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "role_id",
-              "displayName": "role_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "enabled",
-              "displayName": "enabled",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "boolean",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "password",
-              "displayName": "password",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        240,
-        368
-      ],
-      "id": "773505ee-47b8-4fc8-be11-f5fa3bcaa5a0",
-      "name": "updateUser",
-      "credentials": {
-        "postgres": {
-          "id": "sU0uiQIGFK8WFqZe",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = parseInt($input.item.json.body.page) || 1;\n\nconst limit = 7;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `\nSELECT \n  id, name, surname, email, role_id, password, enabled, created_at,\n  COUNT(*) OVER() as total_count\nFROM users\nWHERE 1=1\n`;\n\n// Búsqueda por texto\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(\n    CONCAT(name, ' ', surname) ILIKE $${paramIndex}\n    OR email ILIKE $${paramIndex}\n  )`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\n// Filtro por estado (enabled)\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  conditions.push(`enabled = $${paramIndex}`);\n  params.push(filters.status);\n  paramIndex++;\n}\n\n// Filtro por role_id\nif (filters.role_id !== undefined && filters.role_id !== null && filters.role_id !== '') {\n  conditions.push(`role_id = $${paramIndex}`);\n  params.push(filters.role_id);\n  paramIndex++;\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\n// 👇 IMPORTANTE: paginación + orden\nquery += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      limit\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        0,
-        0
-      ],
-      "id": "76e7876c-8952-4472-b06d-08096cc8355a",
-      "name": "Filter"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "bd9b5aaa-14bb-443a-b40e-a6de4ccd1639",
-              "name": "exito",
-              "value": false,
-              "type": "boolean"
-            },
-            {
-              "id": "49390cfd-f444-4b8e-b839-8cc49adf3845",
-              "name": "error",
-              "value": "InvalidAction",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        240,
-        720
-      ],
-      "id": "16470b6e-be71-4632-8125-97ca634075f4",
-      "name": "Invalid Action"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE users\nSET enabled = NOT enabled\nWHERE id = $1\nRETURNING id, name, surname, enabled, created_at;",
-        "options": {
-          "queryReplacement": "={{ $json.body.id }}"
-        }
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        240,
-        528
-      ],
-      "id": "87dddd0e-96fb-42b2-b38f-aef8a946e691",
-      "name": "Toogle status Usuario",
-      "credentials": {
-        "postgres": {
-          "id": "sU0uiQIGFK8WFqZe",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{$json}}",
-        "options": {
-          "responseCode": 400
-        }
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        496,
-        720
-      ],
-      "id": "cbd692f2-a6db-43cf-ab2c-ff7b2e4c8dea",
-      "name": "Responde Error"
-    }
-  ],
-  "connections": {
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch": {
-      "main": [
-        [
-          {
-            "node": "Filter",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "createUser",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "updateUser",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Invalid Action",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Toogle status Usuario",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "getUser": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "createUser": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "updateUser": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter": {
-      "main": [
-        [
-          {
-            "node": "getUser",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Invalid Action": {
-      "main": [
-        [
-          {
-            "node": "Responde Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Toogle status Usuario": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "settings": {
-    "executionOrder": "v1",
-    "binaryMode": "separate"
-  },
-  "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
-  "pinData": {},
-  "versionId": "743b7f53-f296-4db8-ae4c-1d9f5ebf67c0",
-  "activeVersionId": "743b7f53-f296-4db8-ae4c-1d9f5ebf67c0",
-  "versionCounter": 323,
-  "triggerCount": 1,
-  "tags": [],
-  "shared": [
-    {
-      "updatedAt": "2026-04-09T13:26:23.893Z",
-      "createdAt": "2026-04-09T13:26:23.893Z",
-      "role": "workflow:owner",
-      "workflowId": "r8k7krUdPWJ3TxuU",
-      "projectId": "AYW1lTt7Ia1FOUZn",
-      "project": {
-        "updatedAt": "2026-04-09T13:25:54.856Z",
-        "createdAt": "2026-04-09T08:00:43.905Z",
-        "id": "AYW1lTt7Ia1FOUZn",
-        "name": "Daniel Pedrero <daniel.pedrero@sgtech.tech>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "creatorId": "44e103cf-5e95-4210-b3c8-2e03962b9f36"
-      }
-    }
-  ],
-  "versionMetadata": {
-    "name": "Version 743b7f53",
-    "description": ""
-  }
+    "versionId":  "743b7f53-f296-4db8-ae4c-1d9f5ebf67c0",
+    "activeVersionId":  "743b7f53-f296-4db8-ae4c-1d9f5ebf67c0",
+    "versionCounter":  323,
+    "triggerCount":  1,
+    "tags":  [
+
+             ],
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-04-09T13:26:23.893Z",
+                       "createdAt":  "2026-04-09T13:26:23.893Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "r8k7krUdPWJ3TxuU",
+                       "projectId":  "AYW1lTt7Ia1FOUZn",
+                       "project":  {
+                                       "updatedAt":  "2026-04-09T13:25:54.856Z",
+                                       "createdAt":  "2026-04-09T08:00:43.905Z",
+                                       "id":  "AYW1lTt7Ia1FOUZn",
+                                       "name":  "Daniel Pedrero \u003cdaniel.pedrero@sgtech.tech\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "44e103cf-5e95-4210-b3c8-2e03962b9f36"
+                                   }
+                   }
+               ],
+    "versionMetadata":  {
+                            "name":  "Version 743b7f53",
+                            "description":  ""
+                        }
 }

@@ -1,138 +1,200 @@
-# Configuración
+param([string]$Action)
+
 $ContainerName = "n8n"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ExportDir = Join-Path $ScriptDir "workflows"
+$CredentialTemplatePath = Join-Path $ScriptDir "credentials\postgres.auto.json"
 $TempExportDir = "/home/node/temp_export"
 $TempImportDir = "/home/node/temp_import"
 $ProjectId = $env:N8N_PROJECT_ID
 
-# Crear carpeta local si no existe
+function Publish-And-ActivateRepoWorkflows {
+    $workflowFiles = Get-ChildItem -Path $ExportDir -Filter "*.json" -File
+
+    foreach ($workflowFile in $workflowFiles) {
+        try {
+            $workflowJson = Get-Content -LiteralPath $workflowFile.FullName -Raw | ConvertFrom-Json
+            if (-not $workflowJson.id) { continue }
+            if ($workflowJson.isArchived -eq $true) { continue }
+
+            docker exec $ContainerName n8n publish:workflow --id=$($workflowJson.id) | Out-Null
+            docker exec $ContainerName n8n update:workflow --id=$($workflowJson.id) --active=true | Out-Null
+            Write-Host "  Activo: $($workflowJson.name) [$($workflowJson.id)]" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "  Error activando $($workflowFile.Name): $_" -ForegroundColor Red
+        }
+    }
+}
+
 if (-not (Test-Path $ExportDir)) {
     New-Item -ItemType Directory -Path $ExportDir | Out-Null
 }
 
-# Desactivar conversion de rutas para Docker en Windows
 $env:COMPOSE_CONVERT_WINDOWS_PATHS = 0
 
-if ($args[0] -eq "push") {
-    Write-Host "Exportando flujos desde Docker..." -ForegroundColor Cyan
+if ($Action -eq "push") {
+    Write-Host "Exportando workflows desde n8n..." -ForegroundColor Cyan
     Push-Location $ScriptDir
 
-    # 1. Preparar contenedor (limpieza profunda)
     docker exec $ContainerName rm -rf $TempExportDir
     docker exec $ContainerName mkdir -p $TempExportDir
-    
-    # 2. Exportar solo workflows publicados/activos (excluye archivados)
     docker exec $ContainerName n8n export:workflow --all --published --separate --pretty --output=$TempExportDir/
-    
-    # 3. Traer archivos a la carpeta local workflows
     docker cp "${ContainerName}:${TempExportDir}/." "$ExportDir/"
 
-    # 4. Renombrar cada archivo usando el campo 'name' del JSON.
-    # Si el nombre ya existe, se sobreescribe (se considera una actualizacion del mismo flujo).
-    Get-ChildItem -Path $ExportDir -Filter "*.json" -File | ForEach-Object {
-        $jsonText = Get-Content -LiteralPath $_.FullName | Out-String
-        $content = $jsonText | ConvertFrom-Json -ErrorAction SilentlyContinue
-        if ($content -and $content.name) {
-            $safeName = $content.name -replace '[\\/:*?"<>|]', '_'
-            $newPath = Join-Path $ExportDir "$safeName.json"
-
-            if ($_.FullName -ne $newPath) {
-                Move-Item -LiteralPath $_.FullName -Destination $newPath -Force
-            }
-        }
-    }
-    
-    $jsonFiles = Get-ChildItem -Path $ExportDir -Filter "*.json" -File -ErrorAction SilentlyContinue
-
-    if ($jsonFiles) {
-        Write-Host "Hecho: $($jsonFiles.Count) workflow(s) exportados en '$ExportDir'." -ForegroundColor Green
-        Write-Host "Recuerda hacer git add/commit/push manualmente cuando estes listo." -ForegroundColor Yellow
-    } else {
-        Write-Host "Error: No se generaron archivos JSON. Revisa los logs de n8n." -ForegroundColor Red
-    }
-
+    Write-Host "OK: workflows exportados" -ForegroundColor Green
     Pop-Location
 }
-elseif ($args[0] -eq "pull") {
-    Write-Host "Bajando de Git..." -ForegroundColor Cyan
+elseif ($Action -eq "pull") {
+    Write-Host "Bajando cambios de Git..." -ForegroundColor Cyan
     Push-Location $ScriptDir
 
     git pull
-    
-    Write-Host "Importando a n8n..." -ForegroundColor Yellow
+
+    # Crea automaticamente la credencial Postgres si no existe ninguna.
+    $credSql = 'SELECT id FROM credentials_entity WHERE type = ''postgres'' LIMIT 1;'
+    $credResult = docker exec postgres_db psql -U admin -d n8n -At -c $credSql 2>$null
+    $postgresCredId = ""
+    if ($credResult) {
+        $postgresCredId = $credResult.Trim()
+    }
+
+    if (-not $postgresCredId -and (Test-Path $CredentialTemplatePath)) {
+        Write-Host "No hay credencial Postgres. Importando plantilla automatica..." -ForegroundColor Yellow
+
+        $targetProjectId = $ProjectId
+        if ([string]::IsNullOrWhiteSpace($targetProjectId)) {
+            $projectSql = "SELECT id FROM project ORDER BY id LIMIT 1;"
+            $projectResult = docker exec postgres_db psql -U admin -d n8n -At -c $projectSql 2>$null
+            if ($projectResult) {
+                $targetProjectId = $projectResult.Trim()
+            }
+        }
+
+        docker cp "$CredentialTemplatePath" "${ContainerName}:/home/node/temp_import_credentials.json" | Out-Null
+        if ([string]::IsNullOrWhiteSpace($targetProjectId)) {
+            docker exec $ContainerName n8n import:credentials --input=/home/node/temp_import_credentials.json | Out-Null
+        }
+        else {
+            docker exec $ContainerName n8n import:credentials --input=/home/node/temp_import_credentials.json --projectId=$targetProjectId | Out-Null
+        }
+
+        $credResult = docker exec postgres_db psql -U admin -d n8n -At -c $credSql 2>$null
+        if ($credResult) {
+            $postgresCredId = $credResult.Trim()
+        }
+    }
+
+    Write-Host "Importando workflows en n8n..." -ForegroundColor Yellow
     docker exec $ContainerName rm -rf $TempImportDir
     docker exec $ContainerName mkdir -p $TempImportDir
     docker cp "$ExportDir/." "${ContainerName}:${TempImportDir}/"
 
-    # Si cada developer usa proyecto distinto, define N8N_PROJECT_ID antes de ejecutar.
     if ([string]::IsNullOrWhiteSpace($ProjectId)) {
-        docker exec $ContainerName n8n import:workflow --separate --input=$TempImportDir/
-        Write-Host "Hecho: n8n actualizado con los flujos del repo (proyecto por defecto)." -ForegroundColor Green
-    } else {
-        docker exec $ContainerName n8n import:workflow --separate --input=$TempImportDir/ --projectId=$ProjectId
-        Write-Host "Hecho: n8n actualizado con los flujos del repo en projectId=$ProjectId." -ForegroundColor Green
+        docker exec $ContainerName n8n import:workflow --separate --input=$TempImportDir/ --overwrite
+    }
+    else {
+        docker exec $ContainerName n8n import:workflow --separate --input=$TempImportDir/ --projectId=$ProjectId --overwrite
+    }
+
+    Write-Host "Sincronizando IDs de credenciales postgres..." -ForegroundColor Yellow
+    $credResult = docker exec postgres_db psql -U admin -d n8n -At -c $credSql 2>$null
+    $postgresCredId = ""
+    if ($credResult) {
+        $postgresCredId = $credResult.Trim()
+    }
+
+    if ($postgresCredId) {
+        $workflows = Get-ChildItem -Path $ExportDir -Filter "*.json" -File
+        $changedCount = 0
+
+        foreach ($workflow in $workflows) {
+            try {
+                $json = Get-Content -LiteralPath $workflow.FullName -Raw | ConvertFrom-Json
+                $changed = $false
+
+                if ($json.nodes) {
+                    foreach ($node in $json.nodes) {
+                        if ($node.credentials -and $node.credentials.postgres -and $node.credentials.postgres.id) {
+                            if ($node.credentials.postgres.id -ne $postgresCredId) {
+                                $node.credentials.postgres.id = $postgresCredId
+                                $changed = $true
+                            }
+                        }
+                    }
+                }
+
+                if ($changed) {
+                    $jsonText = $json | ConvertTo-Json -Depth 100
+                    [System.IO.File]::WriteAllText($workflow.FullName, $jsonText, (New-Object System.Text.UTF8Encoding($false)))
+                    $changedCount++
+                    Write-Host "  OK: $($workflow.Name)" -ForegroundColor Green
+                }
+            }
+            catch {
+                Write-Host "  Error procesando $($workflow.Name): $_" -ForegroundColor Red
+            }
+        }
+
+        if ($changedCount -gt 0) {
+            Write-Host "Reimportando workflows con credenciales corregidas..." -ForegroundColor Yellow
+            docker exec $ContainerName rm -rf $TempImportDir
+            docker exec $ContainerName mkdir -p $TempImportDir
+            docker cp "$ExportDir/." "${ContainerName}:${TempImportDir}/"
+
+            if ([string]::IsNullOrWhiteSpace($ProjectId)) {
+                docker exec $ContainerName n8n import:workflow --separate --input=$TempImportDir/ --overwrite
+            }
+            else {
+                docker exec $ContainerName n8n import:workflow --separate --input=$TempImportDir/ --projectId=$ProjectId --overwrite
+            }
+
+            Write-Host "OK: credenciales sincronizadas" -ForegroundColor Green
+        }
+        else {
+            Write-Host "No hubo cambios de credenciales" -ForegroundColor Cyan
+        }
+
+        Write-Host "Publicando y activando workflows del repo..." -ForegroundColor Yellow
+        Publish-And-ActivateRepoWorkflows
+    }
+    else {
+        Write-Host "Aviso: no se encontro credencial postgres en n8n" -ForegroundColor Yellow
     }
 
     Pop-Location
 }
-elseif ($args[0] -eq "publish") {
-    Write-Host "Publicando workflows en lote en n8n..." -ForegroundColor Cyan
+elseif ($Action -eq "publish") {
+    Write-Host "Publicando workflows..." -ForegroundColor Cyan
     Push-Location $ScriptDir
 
     $TempPublishDir = "/home/node/temp_publish"
+    $TempLocalDir = Join-Path $env:TEMP "n8n_publish_check"
 
-    # 1. Exportar todos los workflows como JSON para poder leer isArchived.
     docker exec $ContainerName rm -rf $TempPublishDir
     docker exec $ContainerName mkdir -p $TempPublishDir
     docker exec $ContainerName n8n export:workflow --all --separate --pretty --output=$TempPublishDir/ | Out-Null
 
-    # 2. Traer los JSONs al host para inspeccionarlos.
-    $TempLocalDir = Join-Path $env:TEMP "n8n_publish_check"
-    if (Test-Path $TempLocalDir) { Remove-Item -Recurse -Force $TempLocalDir }
+    if (Test-Path $TempLocalDir) {
+        Remove-Item -Recurse -Force $TempLocalDir
+    }
     New-Item -ItemType Directory -Path $TempLocalDir | Out-Null
     docker cp "${ContainerName}:${TempPublishDir}/." "$TempLocalDir/"
 
     $allFiles = Get-ChildItem -Path $TempLocalDir -Filter "*.json" -File
 
-    if (-not $allFiles -or $allFiles.Count -eq 0) {
-        Write-Host "No se encontraron workflows para publicar." -ForegroundColor Yellow
-        Pop-Location
-        exit 0
-    }
-
-    $ok = 0
-    $fail = 0
-    $skipped = 0
-
     foreach ($file in $allFiles) {
         $content = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
         if (-not $content) { continue }
+        if ($content.isArchived -eq $true) { continue }
 
-        # Saltar workflows archivados.
-        if ($content.isArchived -eq $true) {
-            Write-Host "Saltando '$($content.name)' (archivado)" -ForegroundColor DarkGray
-            $skipped++
-            continue
-        }
-
-        Write-Host "Publicando '$($content.name)' (ID=$($content.id)) ..." -ForegroundColor DarkCyan
         docker exec $ContainerName n8n publish:workflow --id=$($content.id) | Out-Null
-        if ($LASTEXITCODE -eq 0) {
-            $ok++
-        } else {
-            $fail++
-            Write-Host "No se pudo publicar '$($content.name)' (ID=$($content.id))" -ForegroundColor Red
-        }
     }
 
-    # Limpiar temporales.
     Remove-Item -Recurse -Force $TempLocalDir -ErrorAction SilentlyContinue
-
-    Write-Host "Resultado: $ok publicado(s), $skipped archivado(s) omitido(s), $fail con error." -ForegroundColor Green
+    Write-Host "OK: publish completado" -ForegroundColor Green
     Pop-Location
 }
 else {
-    Write-Host "Uso: .\sync.ps1 push | pull | publish"
-    Write-Host "Opcional: define N8N_PROJECT_ID para importar en un proyecto concreto."
+    Write-Host "Uso: .\sync.ps1 -Action push|pull|publish" -ForegroundColor Yellow
 }

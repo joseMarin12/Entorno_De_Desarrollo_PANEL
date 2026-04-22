@@ -5,6 +5,18 @@ CREATE TABLE role (
     name VARCHAR(45)
 );
 
+INSERT INTO role (id, name)
+VALUES
+    (1, 'Administrador'),
+    (2, 'Usuario')
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
+
+SELECT setval(
+    pg_get_serial_sequence('role', 'id'),
+    (SELECT COALESCE(MAX(id), 1) FROM role),
+    true
+);
+
 CREATE TABLE permission (
     id SERIAL PRIMARY KEY,
     name VARCHAR(16)
@@ -15,10 +27,10 @@ CREATE TABLE "user" (
     name VARCHAR(45),
     surname VARCHAR(128),
     email VARCHAR(128),
-    roleId INT,
+    "roleId" INT,
     enabled BOOLEAN,
     password VARCHAR(32),
-    FOREIGN KEY (roleId) REFERENCES role(id)
+    FOREIGN KEY ("roleId") REFERENCES role(id)
 );
 
 CREATE TABLE localization (
