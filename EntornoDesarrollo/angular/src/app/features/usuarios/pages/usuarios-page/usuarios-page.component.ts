@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { UsuariosService } from '../../../../services/usuarios.service';
@@ -53,15 +53,24 @@ export class UsuariosPageComponent implements OnInit {
     }
 
     private loadPage(): void {
+        let status: boolean | '' = '';
+        if (this.activeFilter === 'activos') {
+            status = true;
+        } else if (this.activeFilter === 'inactivos') {
+            status = false;
+        }
         const filters = {
             searchText: this.searchQuery,
-            status: this.activeFilter === 'activos' ? true : this.activeFilter === 'inactivos' ? false : ''
+            status,
         };
         this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters);
     }
 
     get selectedUsuario(): Usuario | null {
-        return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
+        if (this.selectedId == null) {
+            return null;
+        }
+        return this.svc.getById(this.selectedId) ?? null;
     }
 
     // ── Validación de Emails ──────────────────────────

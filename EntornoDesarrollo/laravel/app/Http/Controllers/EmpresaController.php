@@ -5,14 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
-class ComercialController extends Controller
+class EmpresaController extends Controller
 {
     private string $n8nUrl;
 
     public function __construct()
     {
         // URL del webhook de n8n (ajustar según entorno)
-        $this->n8nUrl = env('N8N_WEBHOOK_COMERCIALES', 'http://n8n:5678/webhook/gestion-comerciales');
+        $this->n8nUrl = env('N8N_WEBHOOK_EMPRESAS_URL', 'http://n8n:5678/webhook/gestion-empresas');
     }
 
     /**

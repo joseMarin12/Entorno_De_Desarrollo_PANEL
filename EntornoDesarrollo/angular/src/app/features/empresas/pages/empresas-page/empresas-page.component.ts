@@ -1,7 +1,6 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToastService } from '../../../../services/toast.service';
-import { EmpresasService } from '../../../../services/empresas.service';
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { EmpresasTableComponent } from '../../components/empresas-table/empresas-table.component';
 import { Empresa } from '../../../../models/empresa.model';
@@ -10,6 +9,7 @@ import { EmpToolbarComponent, EmpFilterType, EmpFilterTipoType } from '../../com
 import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
 import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
+import { EmpresasApiService } from '../../../../services/empresas-api.service';
 
 @Component({
   selector: 'app-empresas-page',
@@ -26,9 +26,15 @@ import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/conf
   templateUrl: './empresas-page.component.html',
 })
 export class EmpresasPageComponent implements OnInit {
-  svc = inject(EmpresasService);
+  api = inject(EmpresasApiService);
   toast = inject(ToastService);
   ConfirmMode = ConfirmMode;
+
+  private readonly _empresas = signal<Empresa[]>([]);
+  readonly empresas = this._empresas.asReadonly();
+  readonly total = computed(() => this._empresas().length);
+  readonly totalActivos = computed(() => this._empresas().filter(e => e.activo).length);
+  readonly totalInactivos = computed(() => this._empresas().filter(e => !e.activo).length);
 
   // ── Filtros ──────────────────────────────────────
   searchQuery  = '';
@@ -45,22 +51,24 @@ export class EmpresasPageComponent implements OnInit {
 
   // ── Ciclo de vida ─────────────────────────────────
   ngOnInit(): void {
-    this.svc.loadAll();
+    this.loadAll();
   }
 
   // ── Computed ──────────────────────────────────────
   get filtered(): Empresa[] {
-    return this.svc.empresas().filter(e => {
-      const matchFilter =
-        this.activeFilter === ''   ? true :
-        this.activeFilter === 'activa' ? e.activo : !e.activo;
+    return this.empresas().filter(e => {
+      let matchFilter = true;
+      if (this.activeFilter === 'activa') {
+        matchFilter = e.activo;
+      } else if (this.activeFilter === 'baja') {
+        matchFilter = !e.activo;
+      }
 
-      const matchType = 
-        this.typeFilter === '' ? true : e.tipo === this.typeFilter;
+      const matchType = this.typeFilter === '' ? true : e.tipo === this.typeFilter;
 
       const q = this.searchQuery.toLowerCase().trim();
       const matchSearch = !q
-        || this.svc.fullName(e).toLowerCase().includes(q)
+        || this.fullName(e).toLowerCase().includes(q)
       return matchFilter && matchSearch && matchType;
     });
   }
@@ -71,7 +79,18 @@ export class EmpresasPageComponent implements OnInit {
   }
 
   get selectedEmpresa(): Empresa | null {
-    return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
+    if (this.selectedId === null) return null;
+    return this.getById(this.selectedId) ?? null;
+  }
+
+  private loadAll(searchText = '', status = ''): void {
+    this.api.findAll(searchText, status).subscribe({
+      next: (list) => { 
+        console.log('Resouesta API:', list);
+        this._empresas.set(list ?? []); 
+      },
+      error: () => this.toast.show('error', '✗ No se pudo cargar las empresas. Inténtalo de nuevo.'),
+    });
   }
 
   // ── Handlers ──────────────────────────────────────
@@ -94,14 +113,15 @@ export class EmpresasPageComponent implements OnInit {
     this.showAdd = true;
   }
 
-  async onSaveAdd(data: Omit<Empresa, 'id'>): Promise<void> {
-    try {
-      await this.svc.add(data);
-      this.showAdd = false;
-      this.toast.show('success', `✓ Empresa <strong>${data.nombre}</strong> añadida correctamente`);
-    } catch (error) {
-      this.toast.show('error', `✗ No se pudo añadir la empresa. Inténtalo de nuevo.`);
-    }
+  onSaveAdd(data: Omit<Empresa, 'id'>): void {
+    this.api.create({ ...data, id: null }).subscribe({
+      next: (created) => {
+        this._empresas.update(list => [created, ...list]);
+        this.showAdd = false;
+        this.toast.show('success', `✓ Empresa <strong>${data.nombre}</strong> añadida correctamente`);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo añadir la empresa. Inténtalo de nuevo.'),
+    });
   }
 
   onEditClick(id: number): void {
@@ -109,39 +129,47 @@ export class EmpresasPageComponent implements OnInit {
     this.showEdit = true;
   }
 
-  async onSaveEdit(data: Empresa): Promise<void> {
-    try {
-      await this.svc.update(data.id, data);
-      this.showEdit = false;
-      this.selectedId = null;
-      this.toast.show('info', `✎ Empresa <strong>${data.nombre}</strong> actualizada correctamente`);
-    } catch (error) {
-      this.toast.show('error', `✗ No se pudo actualizar la empresa. Inténtalo de nuevo.`);
-    }
+  onSaveEdit(data: Empresa): void {
+    this.api.update(data.id!, data).subscribe({
+      next: (updated) => {
+        this._empresas.update(list => list.map(e => e.id === data.id ? updated : e));
+        this.showEdit = false;
+        this.selectedId = null;
+        this.toast.show('info', `✎ Empresa <strong>${data.nombre} ${data.razonSocial}</strong> actualizada correctamente`);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo actualizar la empresa. Inténtalo de nuevo.'),
+    });
   }
-
-
 
   onBajaClick(id: number): void {
     this.selectedId = id;
     this.showBaja = true;
   }
 
-  async onConfirmBaja(): Promise<void> {
+  onConfirmBaja(): void {
     if (this.selectedId == null) return;
-    const e = this.svc.getById(this.selectedId)!;
+    const e = this.getById(this.selectedId)!;
     const wasActive = e.activo;
-    try {
-      await this.svc.toggleActivo(this.selectedId);
-      this.showBaja = false;
-      this.selectedId = null;
-      if (wasActive) {
-        this.toast.show('warning', `⊘ Empresa <strong>${this.svc.fullName(e)}</strong> dada de baja`);
-      } else {
-        this.toast.show('success', `↺ Empresa <strong>${this.svc.fullName(e)}</strong> reactivada`);
-      }
-    } catch (error) {
-      this.toast.show('error', `✗ No se pudo actualizar el estado de la empresa. Inténtalo de nuevo.`);
-    }
+    this.api.toggleStatus(this.selectedId).subscribe({
+      next: (updated) => {
+        this._empresas.update(list => list.map(item => item.id === this.selectedId ? updated : item));
+        this.showBaja = false;
+        this.selectedId = null;
+        if (wasActive) {
+          this.toast.show('warning', `⊘ Empresa <strong>${this.fullName(e)}</strong> dada de baja`);
+        } else {
+          this.toast.show('success', `↺ Empresa <strong>${this.fullName(e)}</strong> reactivada`);
+        }
+      },
+      error: () => this.toast.show('error', '✗ No se pudo cambiar el estado de la empresa. Inténtalo de nuevo.'),
+    });
+  }
+
+  getById(id: number): Empresa | undefined {
+    return this._empresas().find(e => e.id === id);
+  }
+
+  fullName(e: Empresa): string {
+    return [e.nombre, e.razonSocial].filter(Boolean).join(' ');
   }
 }

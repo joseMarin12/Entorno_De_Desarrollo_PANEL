@@ -28,8 +28,15 @@
 
         <div class="form-group">
           <label class="form-label">Tipo <span class="req">*</span></label>
-          <input class="form-input" [class.error]="errors['tipo']" type="text" [(ngModel)]="form.tipo">
-          @if (errors['tipo']) { <span class="form-hint error-msg">{{ errors['tipo'] }}</span> }
+          <select class="form-input" [class.error]="errors['id_tipo_empresa']" [(ngModel)]="form.id_tipo_empresa">
+            <option [ngValue]="null" disabled>Seleccionar tipo</option>
+            @for (tipo of tipos(); track tipo.id) {
+               <option [ngValue]="tipo.id">{{ tipo.nombre }}</option> 
+            }
+          </select>
+          @if (errors['id_tipo_empresa']) { 
+            <span class="form-hint error-msg">{{ errors['id_tipo_empresa'] }}</span> 
+          }
         </div>
 
         <div class="form-group">
@@ -48,6 +55,16 @@
           <label class="form-label">Contactos</label>
           <input class="form-input" type="number" [(ngModel)]="form.contactos" disabled>
           <span class="form-hint">Se actualiza automáticamente al añadir contactos</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Comercial</label>
+          <select class="form-input" [(ngModel)]="form.id_comercial">
+            <option [ngValue]="null">Sin comercial asignado</option>
+            @for (c of comerciales(); track c.id) {
+              <option [ngValue]="c.id">{{ fullName(c) }}</option>
+            }
+          </select>
         </div>
 
         <div class="form-group full">

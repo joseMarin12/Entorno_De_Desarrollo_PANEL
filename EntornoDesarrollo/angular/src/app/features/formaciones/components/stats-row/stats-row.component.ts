@@ -1,51 +1,14 @@
-import { Component, inject } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormacionesService } from '../../../../services/formaciones.service';
 
 @Component({
   selector: 'app-stats-row',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-icon purple">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-            <path d="M17 20h5v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2h5"/><circle cx="12" cy="8" r="4"/>
-          </svg>
-        </div>
-        <div>
-          <div class="stat-num">{{ svc.total() }}</div>
-          <div class="stat-label">Total formaciones</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon blue">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-        </div>
-        <div>
-          <div class="stat-num">{{ svc.totalActivos() }}</div>
-          <div class="stat-label">Activos</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon teal">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
-          </svg>
-        </div>
-        <div>
-          <div class="stat-num">{{ svc.totalInactivos() }}</div>
-          <div class="stat-label">Dados de baja</div>
-        </div>
-      </div>
-    </div>
-  `,
+  templateUrl: './stats-row.component.html'
 })
 export class StatsRowComponent {
-  svc = inject(FormacionesService);
+  @Input() total: number = 0;
+  @Input() activas: number = 0;      // Fíjate en este nombre
+  @Input() inactivas: number = 0;    // Y en este
 }

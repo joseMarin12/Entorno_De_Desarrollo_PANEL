@@ -1,9 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { SeleccionadoresService } from '../../../../services/seleccionadores.service';
+import { SeleccionadoresApiService } from '../../../../services/seleccionadores-api.service';
 import { ToastService } from '../../../../services/toast.service';
-import { Seleccionador } from '../../../../models/seleccionador.model';
+import { Seleccionador, getColorFor, getInitials } from '../../../../models/seleccionador.model';
 
 import { SelStatsRowComponent } from '../../components/stats-row/sel-stats-row.component';
 import { SelToolbarComponent, SelFilterType, SelFilterTipoType } from '../../components/toolbar/sel-toolbar.component';
@@ -11,8 +11,10 @@ import { SelModalFormComponent } from '../../components/modal-form/sel-modal-for
 import { SelModalDetailComponent } from '../../components/modal-detail/sel-modal-detail.component';
 
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
-import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
+import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 import { ColumnDef, TableComponent } from '../../../../shared/table/table.component';
+
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-seleccionadores-page',
@@ -26,21 +28,47 @@ import { ColumnDef, TableComponent } from '../../../../shared/table/table.compon
     SelModalDetailComponent,
     TopbarComponent,
     ConfirmationModalComponent
-],
+  ],
   templateUrl: './seleccionadores-page.component.html',
 })
-export class SeleccionadoresPageComponent {
-  svc   = inject(SeleccionadoresService);
+export class SeleccionadoresPageComponent implements OnInit {
+  api   = inject(SeleccionadoresApiService);
   toast = inject(ToastService);
 
+  // ── Estado Local (Migrado desde el servicio) ─────────────────
+  private readonly _seleccionadores = signal<Seleccionador[]>([]);
+  private readonly _empresas = signal<{id: number, nombre: string}[]>([]);
+
+  readonly empresasDisponibles = this._empresas.asReadonly();
+  
+  // Intercepta los seleccionadores y mapea su empresa si el backend omitió el anidado
+  readonly seleccionadores = computed(() => {
+    const empresas = this._empresas();
+    return this._seleccionadores().map(s => {
+      if (s.tipo === 'externo' && s.id_empresa && !s.empresa) {
+        const emp = empresas.find(e => e.id === s.id_empresa);
+        if (emp) {
+          return { ...s, empresa: { id: emp.id, nombre: emp.nombre || (emp as any).nombre_empresa } };
+        }
+      }
+      return s;
+    });
+  });
+
+  readonly total           = computed(() => this.seleccionadores().length);
+  readonly activos         = computed(() => this.seleccionadores().filter(s => s && s.activo).length);
+  readonly inactivos       = computed(() => this.seleccionadores().filter(s => s && !s.activo).length);
+  readonly externos        = computed(() => this.seleccionadores().filter(s => s && s.tipo === 'externo').length);
+
+  // ── Configuración Tabla ─────────────────────────────────────
   tableColumns: ColumnDef[] = [
     {
       header: 'Nombre',
       type: 'avatar-name',
-      nameFields: ['nombre', 'ap1', 'ap2'],
+      nameFields: ['nombre', 'primer_apellido', 'segundo_apellido'],
       activeField: 'activo',
-      colorFn: (id) => this.svc.colorFor(id),
-      initialsFn: (row) => this.svc.initials(row)
+      colorFn: (id) => getColorFor(id),
+      initialsFn: (row) => getInitials(row)
     },
     {
       header: 'Tipo',
@@ -56,7 +84,7 @@ export class SeleccionadoresPageComponent {
       type: 'relation-chip',
       skipField: 'tipo',
       skipValue: 'interno',
-      relationField: 'empresaVinculada',
+      relationField: 'empresa',
       relationNameField: 'nombre',
       emptyLabel: 'Sin empresa'
     },
@@ -108,27 +136,39 @@ export class SeleccionadoresPageComponent {
   showDetail  = false;
   confirmMode = ConfirmMode.DESACTIVAR;
   selectedId: number | null = null;
-  ConfirmMode = ConfirmMode; // Exponer enum a la plantilla
+  ConfirmMode = ConfirmMode;
 
+  ngOnInit(): void {
+    this.loadData();
+  }
 
-  // ── Computed ──────────────────────────────────────────
+  private loadData(searchText = '', status = ''): void {
+    forkJoin({
+      seleccionadores: this.api.findAll(searchText, status),
+      empresas: this.api.getEmpresas()
+    }).subscribe({
+      next: ({ seleccionadores, empresas }) => {
+        this._empresas.set(empresas ?? []);
+        this._seleccionadores.set(seleccionadores ?? []);
+      },
+      error: () => this.toast.show('error', '✗ No se pudieron cargar los datos.')
+    });
+  }
+
+  // ── Computed Filtros ──────────────────────────────────────────
   get filtered(): Seleccionador[] {
+    const data = this.seleccionadores();
+    if (!Array.isArray(data)) return [];
+
     const q = this.searchQuery.toLowerCase().trim();
-    return this.svc.seleccionadores().filter(s => {
-      // Filtro de estado (Activo/Inactivo)
+    return data.filter(s => {
+      if (!s) return false;
       let matchFilter = true;
-      if (this.activeFilter === 'activo') {
-        matchFilter = s.activo;
-      } else if (this.activeFilter === 'baja') {
-        matchFilter = !s.activo;
-      }
+      if (this.activeFilter === 'activo') matchFilter = s.activo;
+      else if (this.activeFilter === 'baja') matchFilter = !s.activo;
 
-      // Filtro de tipo (Interno/Externo)
-      const matchType =
-        this.typeFilter === '' ? true : s.tipo === this.typeFilter;
-
-      // Filtro de búsqueda por texto
-      const text = `${s.nombre} ${s.ap1} ${s.ap2} ${s.email}`.toLowerCase();
+      const matchType = this.typeFilter === '' ? true : s.tipo === this.typeFilter;
+      const text = `${s.nombre} ${s.primer_apellido} ${s.segundo_apellido} ${s.email}`.toLowerCase();
       const matchSearch = !q || text.includes(q);
 
       return matchFilter && matchType && matchSearch;
@@ -138,6 +178,19 @@ export class SeleccionadoresPageComponent {
   get paginated(): Seleccionador[] {
     const start = (this.currentPage - 1) * this.PAGE_SIZE;
     return this.filtered.slice(start, start + this.PAGE_SIZE);
+  }
+
+  getById(id: number): Seleccionador | undefined {
+    return this.seleccionadores().find(s => s.id === id);
+  }
+
+  // ── Correos Registrados (Para validación única) ───────────────
+  get existingEmailsForEdit(): string[] {
+    const list = this.seleccionadores();
+    if (!this.selectedId) {
+      return list.filter(s => s && s.email).map(s => s.email!.toLowerCase());
+    }
+    return list.filter(s => s && s.id !== this.selectedId && s.email).map(s => s.email!.toLowerCase());
   }
 
   // ── Handlers ─────────────────────────────────────────
@@ -158,50 +211,56 @@ export class SeleccionadoresPageComponent {
 
   onTableAction(event: { type: string; id: number }): void {
     switch (event.type) {
-      case 'detail':
-        this.onDetailClick(event.id);
-        break;
-      case 'edit':
-        this.onEditClick(event.id);
-        break;
-      case 'baja':
-        this.onBajaClick(event.id);
-        break;
-      case 'activar':
-        this.onActivarClick(event.id);
-        break;
-      default:
-        break;
+      case 'detail': this.onDetailClick(event.id); break;
+      case 'edit': this.onEditClick(event.id); break;
+      case 'baja': this.onBajaClick(event.id); break;
+      case 'activar': this.onActivarClick(event.id); break;
     }
   }
 
   openAdd(): void {
     this.selectedId = null;
+    this.selectedSeleccionador = null;
     this.showForm = true;
   }
 
   onDetailClick(id: number): void {
     this.selectedId = id;
-    this.selectedSeleccionador = this.svc.getById(id) ?? null;
+    this.selectedSeleccionador = this.getById(id) ?? null;
     this.showDetail = true;
   }
 
   onEditClick(id: number): void {
     this.selectedId = id;
-    this.selectedSeleccionador = this.svc.getById(id) ?? null;
+    this.selectedSeleccionador = this.getById(id) ?? null;
     this.showForm = true;
   }
 
   onSaveForm(data: Omit<Seleccionador, 'id'>): void {
-    if (this.selectedId) {
-      this.svc.update(this.selectedId, data);
-      const name = `${data.nombre} ${data.ap1}`;
-      this.toast.show('info', `✎ Seleccionador <strong>${name}</strong> actualizado`);
+    if (this.selectedId != null) {
+      this.api.update(this.selectedId, data).subscribe({
+        next: (updated) => {
+          this._seleccionadores.update(list => list.map(s => s.id === this.selectedId ? updated : s));
+          const name = `${data.nombre} ${data.primer_apellido}`;
+          this.toast.show('info', `✎ Seleccionador <strong>${name}</strong> actualizado`);
+          this.closeForm();
+        },
+        error: () => this.toast.show('error', '✗ Error al actualizar seleccionador')
+      });
     } else {
-      this.svc.add(data);
-      const name = `${data.nombre} ${data.ap1}`;
-      this.toast.show('success', `✓ Seleccionador <strong>${name}</strong> añadido`);
+      this.api.create(data).subscribe({
+        next: (created) => {
+          this._seleccionadores.update(list => [created, ...list]);
+          const name = `${data.nombre} ${data.primer_apellido}`;
+          this.toast.show('success', `✓ Seleccionador <strong>${name}</strong> añadido`);
+          this.closeForm();
+        },
+        error: () => this.toast.show('error', '✗ Error al crear seleccionador')
+      });
     }
+  }
+
+  private closeForm() {
     this.showForm = false;
     this.selectedId = null;
     this.selectedSeleccionador = null;
@@ -210,31 +269,37 @@ export class SeleccionadoresPageComponent {
   onBajaClick(id: number): void {
     this.selectedId = id;
     this.confirmMode = ConfirmMode.DESACTIVAR;
-    const seleccionador = this.svc.getById(this.selectedId);
-    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.ap1}` : null);
+    const seleccionador = this.getById(this.selectedId);
+    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.primer_apellido}` : null);
     this.showConfirm = true;
   }
 
   onActivarClick(id: number): void {
     this.selectedId = id;
     this.confirmMode = ConfirmMode.ACTIVAR;
-    const seleccionador = this.svc.getById(this.selectedId);
-    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.ap1}` : null);
+    const seleccionador = this.getById(this.selectedId);
+    this.selectedSeleccionadorNombre.set(seleccionador ? `${seleccionador.nombre} ${seleccionador.primer_apellido}` : null);
     this.showConfirm = true;
   }
 
   onConfirm(): void {
     if (this.selectedId == null) return;
-    const s = this.svc.getById(this.selectedId)!;
-    const name = `${s.nombre} ${s.ap1}`;
-    this.svc.toggleActivo(this.selectedId);
-    this.showConfirm = false;
-
-    if (this.confirmMode === ConfirmMode.DESACTIVAR) {
-      this.toast.show('warning', `⊘ Seleccionador <strong>${name}</strong> dado de baja`);
-    } else {
-      this.toast.show('success', `↺ Seleccionador <strong>${name}</strong> reactivado`);
-    }
-    this.selectedId = null;
+    const s = this.getById(this.selectedId)!;
+    const name = `${s.nombre} ${s.primer_apellido}`;
+    const wasActive = s.activo;
+    
+    this.api.toggleStatus(this.selectedId).subscribe({
+      next: (updated) => {
+        this._seleccionadores.update(list => list.map(item => item.id === this.selectedId ? updated : item));
+        this.showConfirm = false;
+        this.selectedId = null;
+        if (wasActive) {
+          this.toast.show('warning', `⊘ Seleccionador <strong>${name}</strong> dado de baja`);
+        } else {
+          this.toast.show('success', `↺ Seleccionador <strong>${name}</strong> reactivado`);
+        }
+      },
+      error: () => this.toast.show('error', '✗ Error al cambiar el estado')
+    });
   }
 }

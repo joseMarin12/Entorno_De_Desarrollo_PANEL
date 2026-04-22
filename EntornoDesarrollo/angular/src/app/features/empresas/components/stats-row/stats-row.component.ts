@@ -1,6 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EmpresasService } from '../../../../services/empresas.service';
 
 @Component({
   selector: 'app-stats-row',
@@ -9,5 +8,7 @@ import { EmpresasService } from '../../../../services/empresas.service';
   templateUrl: './stats-row.component.html'
 })
 export class StatsRowComponent {
-  svc = inject(EmpresasService);
+  total = input(0);
+  activos = input(0);
+  inactivos = input(0);
 }
