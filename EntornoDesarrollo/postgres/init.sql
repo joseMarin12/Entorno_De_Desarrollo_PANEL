@@ -167,21 +167,7 @@ CREATE TABLE asignacion (
     FOREIGN KEY (id_comercial) REFERENCES comercial(id)
 );
 
-CREATE TABLE headhunting (
-    id SERIAL PRIMARY KEY,
-    id_empresa INT,
-    id_seleccion INT,
-    nombre VARCHAR(64),
-    primer_apellido VARCHAR(64),
-    segundo_apellido VARCHAR(64),
-    telefono VARCHAR(12),
-    email VARCHAR(64),
-    fecha_ini DATE,
-    salario INT,
-    fee INT,
-    FOREIGN KEY (id_empresa) REFERENCES empresa(id),
-    FOREIGN KEY (id_seleccion) REFERENCES seleccion(id)
-);
+
 
 CREATE TABLE estado_formacion (
     id SERIAL PRIMARY KEY,

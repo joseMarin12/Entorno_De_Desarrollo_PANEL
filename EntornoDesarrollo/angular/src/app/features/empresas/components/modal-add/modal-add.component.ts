@@ -37,7 +37,7 @@ export class ModalAddComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     await Promise.allSettled([
       firstValueFrom(this.comercialesApi.findAll('', 'activo'))
-        .then(comerciales => this._comerciales.set(comerciales))
+        .then(page => this._comerciales.set(page.data))
         .catch(() => console.warn('No se pudieron cargar los comerciales')),
 
       firstValueFrom(this.empresasApi.findTipos())

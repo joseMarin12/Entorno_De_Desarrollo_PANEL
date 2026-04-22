@@ -61,18 +61,6 @@ export class UsuariosPageComponent implements OnInit {
         this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters);
     }
 
-<<<<<<< HEAD
-    private loadComercialesEmails(): void {
-        this.comercialesSvc.findAll('', '', 1, 1000).subscribe({
-            next: (page) => {
-                const emails = (page.data || []).map(c => c.email.toLowerCase());
-                this._comercialesEmails.set(emails);
-            }
-        });
-    }
-
-=======
->>>>>>> f754fb3 (fix: Usuarios correos)
     get selectedUsuario(): Usuario | null {
         return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
     }
