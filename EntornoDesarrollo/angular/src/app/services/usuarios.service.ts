@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { Observable, tap, map, catchError, throwError } from 'rxjs';
 import { Usuario } from '../models/usuarios.model';
 import { BaseCrud } from './base.service';
 import { environment } from '../../environments/environment';
@@ -19,141 +19,135 @@ export class UsuariosService extends BaseCrud<Usuario> {
   readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
   readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
 
-  async loadAll(page = 1, limit = 10, filters: any = {}): Promise<void> {
+  loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {
     this.loading.set(true);
     this.error.set(null);
-    try {
-      const res = await firstValueFrom(
-        this._findAll({
-          action: 'getUser',
-          page,
-          limit,
-          filters,
-        })
-      );
-
-      const rawData = res || [];
-      const mapped = rawData.map((item: any) => this.mapSingleFromBackend(item));
-
-      if (rawData.length > 0) {
-        const firstRow = rawData[0] as any;
-        const total = Number(firstRow.total_count || mapped.length);
-        this.totalRecords.set(total);
-      } else {
-        this.totalRecords.set(0);
-      }
-
-      this._usuarios.set(mapped);
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'Error al cargar los usuarios');
-    } finally {
-      this.loading.set(false);
-    }
+    return this._findAll({
+      action: 'getUser',
+      page,
+      limit,
+      filters,
+    }).pipe(
+      map(rawData => ({
+        mapped: rawData.map((item: any) => this.mapSingleFromBackend(item)),
+        rawData
+      })),
+      tap(({ mapped, rawData }) => {
+        if (rawData.length > 0) {
+          const firstRow = rawData[0] as any;
+          const total = Number(firstRow.total_count || mapped.length);
+          this.totalRecords.set(total);
+        } else {
+          this.totalRecords.set(0);
+        }
+        this._usuarios.set(mapped);
+      }),
+      map(({ mapped }) => mapped),
+      catchError(e => {
+        const msg = e?.message ?? 'Error al cargar los usuarios';
+        this.error.set(msg);
+        return throwError(() => new Error(msg));
+      }),
+      tap({ finalize: () => this.loading.set(false) })
+    );
   }
 
-  async add(data: Omit<Usuario, 'id'>): Promise<void> {
+  add(data: Omit<Usuario, 'id'>): Observable<Usuario> {
     this.loading.set(true);
     this.error.set(null);
-    try {
-      const payload = {
-        action: 'createUser',
-        name: data.nombre,
-        surname: data.apellido1,
-        email: data.email,
-        enabled: data.enabled ?? true,
-        password: data.password || 'password123',
-        roleid: Number(data.roleid || 1)
-      };
+    const payload = {
+      action: 'createUser',
+      name: data.nombre,
+      surname: data.apellido1,
+      email: data.email,
+      enabled: data.enabled ?? true,
+      password: data.password || 'password123',
+      roleid: Number(data.roleid || 1)
+    };
 
-      const res = await firstValueFrom(this._create(payload));
-      const newUser = this.applyRobustMerge(res, {
+    return this._create(payload).pipe(
+      map(res => this.applyRobustMerge(res, {
         ...data,
-        id: res?.id ? Number(res.id) : Date.now(),
+        id: (res as any)?.id ? Number((res as any).id) : Date.now(),
         roleid: payload.roleid,
         password: payload.password
-      });
-
-      this._usuarios.update(list => [newUser, ...list]);
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'Error al crear el usuario');
-      throw e;
-    } finally {
-      this.loading.set(false);
-    }
+      })),
+      tap(newUser => {
+        this._usuarios.update(list => [newUser, ...list]);
+      }),
+      catchError(e => {
+        const msg = e?.message ?? 'Error al crear el usuario';
+        this.error.set(msg);
+        return throwError(() => new Error(msg));
+      }),
+      tap({ finalize: () => this.loading.set(false) })
+    );
   }
 
-  async update(id: number, data: Omit<Usuario, 'id'>): Promise<void> {
+  update(id: number, data: Omit<Usuario, 'id'>): Observable<Usuario> {
     this.loading.set(true);
     this.error.set(null);
-    try {
-      const existing = this.getById(id);
-      const payload: any = {
-        action: 'updateUser',
-        id,
-        name: data.nombre,
-        surname: data.apellido1,
-        email: data.email,
-        enabled: data.enabled,
-        roleid: Number(data.roleid || 1)
-      };
+    const existing = this.getById(id);
+    const payload: any = {
+      action: 'updateUser',
+      id,
+      name: data.nombre,
+      surname: data.apellido1,
+      email: data.email,
+      enabled: data.enabled,
+      roleid: Number(data.roleid || 1)
+    };
 
-      if (data.password?.trim()) {
-        payload.password = data.password;
-      } else if (existing?.password) {
-        payload.password = existing.password;
-      }
-
-      const res = await firstValueFrom(this._update(payload));
-      
-      this._usuarios.update(list => {
-        return list.map(u => {
-          if (u.id === id) {
-             return this.applyRobustMerge(res, {
-               ...u,
-               ...data,
-               password: payload.password || u.password
-             });
-          }
-          return u;
-        });
-      });
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'Error al actualizar el usuario');
-      throw e;
-    } finally {
-      this.loading.set(false);
+    if (data.password?.trim()) {
+      payload.password = data.password;
+    } else if (existing?.password) {
+      payload.password = existing.password;
     }
+
+    return this._update(payload).pipe(
+      map(res => this.applyRobustMerge(res, {
+        ...existing!,
+        ...data,
+        password: payload.password || existing?.password
+      })),
+      tap(updatedUser => {
+        this._usuarios.update(list => list.map(u => u.id === id ? updatedUser : u));
+      }),
+      catchError(e => {
+        const msg = e?.message ?? 'Error al actualizar el usuario';
+        this.error.set(msg);
+        return throwError(() => new Error(msg));
+      }),
+      tap({ finalize: () => this.loading.set(false) })
+    );
   }
 
-  async toggleActivo(id: number): Promise<void> {
+  toggleActivo(id: number): Observable<Usuario> {
     this.loading.set(true);
     this.error.set(null);
-    try {
-      const u = this.getById(id);
-      const newState = u ? !u.enabled : true;
+    const u = this.getById(id);
+    const newState = u ? !u.enabled : true;
 
-      const payload = {
-        action: 'Toogle status usuarios',
-        id,
-        enabled: newState,
-        activo: newState,
-        enabled_int: newState ? 1 : 0
-      };
+    const payload = {
+      action: 'Toogle status usuarios',
+      id,
+      enabled: newState,
+      activo: newState,
+      enabled_int: newState ? 1 : 0
+    };
 
-      const res = await firstValueFrom(this._toggleStatus(payload));
-      
-      this._usuarios.update(list => 
-        list.map(user => user.id === id 
-          ? this.applyRobustMerge(res, { ...user, enabled: newState }) 
-          : user
-        )
-      );
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'Error al cambiar el estado del usuario');
-      throw e;
-    } finally {
-      this.loading.set(false);
-    }
+    return this._toggleStatus(payload).pipe(
+      map(res => this.applyRobustMerge(res, { ...u!, enabled: newState })),
+      tap(updatedUser => {
+        this._usuarios.update(list => list.map(user => user.id === id ? updatedUser : user));
+      }),
+      catchError(e => {
+        const msg = e?.message ?? 'Error al cambiar el estado del usuario';
+        this.error.set(msg);
+        return throwError(() => new Error(msg));
+      }),
+      tap({ finalize: () => this.loading.set(false) })
+    );
   }
 
   private applyRobustMerge(backendRes: any, localData: Usuario): Usuario {
