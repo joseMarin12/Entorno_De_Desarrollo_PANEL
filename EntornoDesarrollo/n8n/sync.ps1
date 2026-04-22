@@ -155,8 +155,7 @@ elseif ($Action -eq "pull") {
             Write-Host "No hubo cambios de credenciales" -ForegroundColor Cyan
         }
 
-        Write-Host "Publicando y activando workflows del repo..." -ForegroundColor Yellow
-        Publish-And-ActivateRepoWorkflows
+        Write-Host "Importacion completada sin publicacion automatica." -ForegroundColor Cyan
     }
     else {
         Write-Host "Aviso: no se encontro credencial postgres en n8n" -ForegroundColor Yellow
@@ -165,34 +164,59 @@ elseif ($Action -eq "pull") {
     Pop-Location
 }
 elseif ($Action -eq "publish") {
-    Write-Host "Publicando workflows..." -ForegroundColor Cyan
+    Write-Host "Republicando workflows (unpublish + publish)..." -ForegroundColor Cyan
     Push-Location $ScriptDir
 
-    $TempPublishDir = "/home/node/temp_publish"
-    $TempLocalDir = Join-Path $env:TEMP "n8n_publish_check"
-
-    docker exec $ContainerName rm -rf $TempPublishDir
-    docker exec $ContainerName mkdir -p $TempPublishDir
-    docker exec $ContainerName n8n export:workflow --all --separate --pretty --output=$TempPublishDir/ | Out-Null
-
-    if (Test-Path $TempLocalDir) {
-        Remove-Item -Recurse -Force $TempLocalDir
-    }
-    New-Item -ItemType Directory -Path $TempLocalDir | Out-Null
-    docker cp "${ContainerName}:${TempPublishDir}/." "$TempLocalDir/"
-
-    $allFiles = Get-ChildItem -Path $TempLocalDir -Filter "*.json" -File
-
-    foreach ($file in $allFiles) {
-        $content = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
-        if (-not $content) { continue }
-        if ($content.isArchived -eq $true) { continue }
-
-        docker exec $ContainerName n8n publish:workflow --id=$($content.id) | Out-Null
+    # Obtener todos los workflows registrados en n8n (formato: "id|nombre")
+    $n8nList = docker exec $ContainerName n8n list:workflow 2>$null
+    $n8nIdByName = @{}
+    foreach ($line in $n8nList) {
+        if ($line -match '^([^\|]+)\|(.+)$') {
+            $n8nIdByName[$Matches[2].Trim()] = $Matches[1].Trim()
+        }
     }
 
-    Remove-Item -Recurse -Force $TempLocalDir -ErrorAction SilentlyContinue
-    Write-Host "OK: publish completado" -ForegroundColor Green
+    $workflowFiles = Get-ChildItem -Path $ExportDir -Filter "*.json" -File
+    $okCount = 0
+    $errorCount = 0
+
+    foreach ($workflowFile in $workflowFiles) {
+        try {
+            $workflowJson = Get-Content -LiteralPath $workflowFile.FullName -Raw | ConvertFrom-Json
+            if ($workflowJson.isArchived -eq $true) { continue }
+
+            $resolvedId = $workflowJson.id
+
+            # Si no tiene id en el JSON local, buscar por nombre en n8n
+            if (-not $resolvedId -and $workflowJson.name) {
+                $resolvedId = $n8nIdByName[$workflowJson.name]
+                if ($resolvedId) {
+                    Write-Host "  Resolviendo id por nombre para '$($workflowJson.name)': $resolvedId" -ForegroundColor Yellow
+                    # Actualizar el JSON local con el id correcto
+                    $workflowJson | Add-Member -MemberType NoteProperty -Name "id" -Value $resolvedId -Force
+                    $jsonText = $workflowJson | ConvertTo-Json -Depth 100
+                    [System.IO.File]::WriteAllText($workflowFile.FullName, $jsonText, (New-Object System.Text.UTF8Encoding($false)))
+                }
+            }
+
+            if (-not $resolvedId) {
+                Write-Host "  Omitido (sin id): $($workflowFile.Name)" -ForegroundColor DarkYellow
+                continue
+            }
+
+            docker exec $ContainerName n8n unpublish:workflow --id=$resolvedId | Out-Null
+            docker exec $ContainerName n8n publish:workflow --id=$resolvedId | Out-Null
+
+            $okCount++
+            Write-Host "  Republicado: $($workflowJson.name) [$resolvedId]" -ForegroundColor Green
+        }
+        catch {
+            $errorCount++
+            Write-Host "  Error republicando $($workflowFile.Name): $_" -ForegroundColor Red
+        }
+    }
+
+    Write-Host "OK: republicacion completada. Exitos=$okCount Errores=$errorCount" -ForegroundColor Green
     Pop-Location
 }
 else {

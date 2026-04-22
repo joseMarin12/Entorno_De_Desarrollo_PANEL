@@ -168,7 +168,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item => item.json) }) }}",
+        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item =\u003e item.json) }) }}",
         "options": {
           "responseCode": 200
         }
@@ -200,7 +200,7 @@
       "name": "getUser",
       "credentials": {
         "postgres": {
-          "id": "0PqKc6BkC38ueyxO",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account 2"
         }
       }
@@ -322,7 +322,7 @@
       "name": "createUser",
       "credentials": {
         "postgres": {
-          "id": "Kih4P6xJ67gZaubs",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -437,14 +437,14 @@
       "name": "updateUser",
       "credentials": {
         "postgres": {
-          "id": "Kih4P6xJ67gZaubs",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = parseInt($input.item.json.body.page) || 1;\n\nconst limit = 7;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `\nSELECT \n  id, name, surname, email, roleid, password, enabled,\n  COUNT(*) OVER() as total_count\nFROM \"user\"\nWHERE 1=1\n`;\n\n// Búsqueda por texto\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(\n    CONCAT(name, ' ', surname) ILIKE $${paramIndex}\n    OR email ILIKE $${paramIndex}\n  )`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\n// Filtro por estado (enabled)\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  conditions.push(`enabled = $${paramIndex}`);\n  params.push(filters.status);\n  paramIndex++;\n}\n\n// Filtro por role_id\nif (filters.roleid !== undefined && filters.roleid !== null && filters.roleid !== '') {\n  conditions.push(`roleid = $${paramIndex}`);\n  params.push(filters.roleid);\n  paramIndex++;\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\n// 👇 IMPORTANTE: paginación + orden\nquery += ` ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      limit\n    }\n  }\n];"
+        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = parseInt($input.item.json.body.page) || 1;\n\nconst limit = 7;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `\nSELECT \n  id, name, surname, email, roleid, password, enabled,\n  COUNT(*) OVER() as total_count\nFROM \"user\"\nWHERE 1=1\n`;\n\n// BÃºsqueda por texto\nif (filters.searchText \u0026\u0026 typeof filters.searchText === \u0027string\u0027 \u0026\u0026 filters.searchText.trim() !== \u0027\u0027) {\n  conditions.push(`(\n    CONCAT(name, \u0027 \u0027, surname) ILIKE $${paramIndex}\n    OR email ILIKE $${paramIndex}\n  )`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\n// Filtro por estado (enabled)\nif (filters.status !== undefined \u0026\u0026 filters.status !== null \u0026\u0026 filters.status !== \u0027\u0027) {\n  conditions.push(`enabled = $${paramIndex}`);\n  params.push(filters.status);\n  paramIndex++;\n}\n\n// Filtro por role_id\nif (filters.roleid !== undefined \u0026\u0026 filters.roleid !== null \u0026\u0026 filters.roleid !== \u0027\u0027) {\n  conditions.push(`roleid = $${paramIndex}`);\n  params.push(filters.roleid);\n  paramIndex++;\n}\n\nif (conditions.length \u003e 0) {\n  query += \u0027 AND \u0027 + conditions.join(\u0027 AND \u0027);\n}\n\n// ðŸ‘‡ IMPORTANTE: paginaciÃ³n + orden\nquery += ` ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      limit\n    }\n  }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -502,7 +502,7 @@
       "name": "Toogle status Usuario",
       "credentials": {
         "postgres": {
-          "id": "Kih4P6xJ67gZaubs",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -668,7 +668,7 @@
         "updatedAt": "2026-04-22T09:42:42.949Z",
         "createdAt": "2026-04-22T09:42:05.392Z",
         "id": "scuB9Y3NwfAwv0vk",
-        "name": "p v <daniel.pedrero@sgtech.tech>",
+        "name": "p v \u003cdaniel.pedrero@sgtech.tech\u003e",
         "type": "personal",
         "icon": null,
         "description": null,

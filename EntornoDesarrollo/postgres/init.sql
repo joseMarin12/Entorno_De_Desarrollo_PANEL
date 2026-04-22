@@ -6,7 +6,7 @@ CREATE TABLE role (
     name VARCHAR(45) NOT NULL
 );
 
-INSERT INTO role (id, name)
+INSERT INTO role (id, name) OVERRIDING SYSTEM VALUE
 VALUES
     (1, 'Administrador'),
     (2, 'Usuario')

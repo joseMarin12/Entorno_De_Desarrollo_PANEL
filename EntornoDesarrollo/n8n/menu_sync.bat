@@ -10,7 +10,7 @@ echo =========================================
 echo.
 echo [1] PUSH: Exportar de n8n
 echo [2] PULL: Bajar de Git e importar a n8n (auto-repara credenciales)
-echo [3] PUBLISH: Publicar todos los workflows en n8n
+echo [3] PUBLISH: (NO FUNCIONA) Republicar workflows en n8n
 echo [4] FIX CREDENTIALS: Reparar IDs de credenciales localmente
 echo [0] Salir
 echo.

@@ -1,564 +1,571 @@
 {
-  "name": "Comerciales",
-  "nodes": [
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
+    "name":  "Comerciales",
+    "nodes":  [
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "getAll",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "rule-get-comerciales"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Get Comerciales"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
+                      "parameters":  {
+                                         "rules":  {
+                                                       "values":  [
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "getAll",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "rule-get-comerciales"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "Get Comerciales"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "create",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "rule-create-comercial"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "Create Comercial"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "update",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "rule-update-comercial"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "Update Comercial"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "toggleStatus",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "rule-toggle-status"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "Toggle Status"
+                                                                      }
+                                                                  ]
+                                                   },
+                                         "options":  {
+                                                         "fallbackOutput":  "extra",
+                                                         "renameFallbackOutput":  "Invalid Action"
+                                                     }
+                                     },
+                      "id":  "e87d22bc-a45d-47a5-a57e-e884aee8f6d6",
+                      "name":  "Route by Action",
+                      "type":  "n8n-nodes-base.switch",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       -320,
+                                       480
+                                   ]
+                  },
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "create",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "rule-create-comercial"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Create Comercial"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
+                      "parameters":  {
+                                         "jsCode":  "const filters = $input.item.json.body.filters || {};\nconst conditions = [];\nconst params = []; // Ahora enviaremos este array directo, sin usar join(\u0027,\u0027)\nlet paramIndex = 1;\n\nlet query = \u0027SELECT id, nombre, primer_apellido, segundo_apellido, telefono, email, activo, created_at, updated_at FROM comerciales WHERE 1=1\u0027;\n\n// BÃƒÂºsqueda por texto (Validamos string)\nif (filters.searchText \u0026\u0026 typeof filters.searchText === \u0027string\u0027 \u0026\u0026 filters.searchText.trim() !== \u0027\u0027) {\n  conditions.push(`(CONCAT(nombre, \u0027 \u0027, primer_apellido, \u0027 \u0027, COALESCE(segundo_apellido,\u0027\u0027)) ILIKE $${paramIndex} OR email ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\n// Filtro de estado (Validamos q no sea null, undefined, ni vacÃƒÂ­o)\nif (filters.status !== undefined \u0026\u0026 filters.status !== null \u0026\u0026 filters.status !== \u0027\u0027) {\n  conditions.push(`activo = $${paramIndex}`);\n  params.push(filters.status);\n  paramIndex++;\n}\n\nif (conditions.length \u003e 0) {\n  query += \u0027 AND \u0027 + conditions.join(\u0027 AND \u0027);\n}\n\nquery += \u0027 ORDER BY created_at DESC\u0027;\n\n// Retornamos el Array de params tal cual, es mÃƒÂ¡s seguro que usar join(\u0027,\u0027)\nreturn [{ json: { query: query, params: params } }];\n"
+                                     },
+                      "id":  "555948d1-5a29-42fe-85ad-ca64d9aeef7a",
+                      "name":  "Build Get Comerciales Query",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       -96,
+                                       144
+                                   ]
+                  },
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "update",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "rule-update-comercial"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Update Comercial"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "{{ $json.query }}",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ $json.params }}"
+                                                     }
+                                     },
+                      "id":  "265c0b2d-717a-41a9-aa15-c689d711006e",
+                      "name":  "Get Comerciales",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       128,
+                                       144
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "AUTOPOSTGRESCRED01",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "toggleStatus",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "rule-toggle-status"
+                      "parameters":  {
+                                         "schema":  {
+                                                        "__rl":  true,
+                                                        "mode":  "list",
+                                                        "value":  "public"
+                                                    },
+                                         "table":  {
+                                                       "__rl":  true,
+                                                       "mode":  "name",
+                                                       "value":  "comerciales"
+                                                   },
+                                         "columns":  {
+                                                         "mappingMode":  "defineBelow",
+                                                         "value":  {
+                                                                       "nombre":  "={{ $json.body.comercialData.nombre }}",
+                                                                       "primer_apellido":  "={{ $json.body.comercialData.primer_apellido }}",
+                                                                       "segundo_apellido":  "={{ $json.body.comercialData.segundo_apellido }}",
+                                                                       "telefono":  "={{ $json.body.comercialData.telefono }}",
+                                                                       "email":  "={{ $json.body.comercialData.email }}",
+                                                                       "activo":  "={{ $json.body.comercialData.activo }}"
+                                                                   },
+                                                         "matchingColumns":  [
+                                                                                 "id"
+                                                                             ],
+                                                         "schema":  [
+                                                                        {
+                                                                            "id":  "id",
+                                                                            "displayName":  "id",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  true,
+                                                                            "display":  true,
+                                                                            "type":  "number",
+                                                                            "canBeUsedToMatch":  true,
+                                                                            "removed":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "nombre",
+                                                                            "displayName":  "nombre",
+                                                                            "required":  true,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "primer_apellido",
+                                                                            "displayName":  "primer_apellido",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "segundo_apellido",
+                                                                            "displayName":  "segundo_apellido",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "telefono",
+                                                                            "displayName":  "telefono",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "email",
+                                                                            "displayName":  "email",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "activo",
+                                                                            "displayName":  "activo",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "boolean",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "created_at",
+                                                                            "displayName":  "created_at",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "dateTime",
+                                                                            "canBeUsedToMatch":  true,
+                                                                            "removed":  false
+                                                                        },
+                                                                        {
+                                                                            "id":  "updated_at",
+                                                                            "displayName":  "updated_at",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "dateTime",
+                                                                            "canBeUsedToMatch":  true,
+                                                                            "removed":  false
+                                                                        }
+                                                                    ],
+                                                         "attemptToConvertTypes":  false,
+                                                         "convertFieldsToString":  false
+                                                     },
+                                         "options":  {
+                                                         "outputColumns":  [
+                                                                               "id",
+                                                                               "nombre",
+                                                                               "primer_apellido",
+                                                                               "segundo_apellido",
+                                                                               "telefono",
+                                                                               "email",
+                                                                               "activo",
+                                                                               "created_at"
+                                                                           ]
+                                                     }
+                                     },
+                      "id":  "96511e45-c679-4408-8dea-e77dffcc5823",
+                      "name":  "Create Comercial",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       96,
+                                       336
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "AUTOPOSTGRESCRED01",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "UPDATE comerciales SET nombre = $1, primer_apellido = $2, segundo_apellido = $3, telefono = $4, email = $5, activo = $6, updated_at = NOW() WHERE id = $7 RETURNING id, nombre, primer_apellido, segundo_apellido, telefono, email, activo, updated_at",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ $json.body.comercialData.nombre }},{{ $json.body.comercialData.primer_apellido }},{{ $json.body.comercialData.segundo_apellido }},{{ $json.body.comercialData.telefono }},{{ $json.body.comercialData.email }},{{ $json.body.comercialData.activo }},{{ $json.body.comercialId }}"
+                                                     }
+                                     },
+                      "id":  "74938e9c-e2a4-4fbb-a100-d4df2fefa127",
+                      "name":  "Update Comercial",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       128,
+                                       528
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "AUTOPOSTGRESCRED01",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "UPDATE comerciales SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING id, nombre, primer_apellido, activo, updated_at",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ $json.body.comercialId }}"
+                                                     }
+                                     },
+                      "id":  "5027ce1a-0f95-419d-a1a9-07d7f413caef",
+                      "name":  "Toggle Comercial Status",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       128,
+                                       720
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "AUTOPOSTGRESCRED01",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "1",
+                                                                                     "name":  "success",
+                                                                                     "value":  false,
+                                                                                     "type":  "boolean"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "2",
+                                                                                     "name":  "error",
+                                                                                     "value":  "Invalid action. Supported actions: getComerciales, createComercial, updateComercial, toggleComercialStatus",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "771a9aaf-49de-40e5-8450-8ec156fb4ea9",
+                      "name":  "Invalid Action Response",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       -96,
+                                       912
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "json",
+                                         "responseBody":  "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item =\u003e item.json) }) }}\n\n",
+                                         "options":  {
+                                                         "responseCode":  200
+                                                     }
+                                     },
+                      "id":  "0d831287-5bec-4fab-9d12-b41b51e15d1c",
+                      "name":  "Respond Success",
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1.5,
+                      "position":  [
+                                       352,
+                                       432
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "json",
+                                         "responseBody":  "={{ $json }}",
+                                         "options":  {
+                                                         "responseCode":  400
+                                                     }
+                                     },
+                      "id":  "71fd9513-5e5d-4b87-aadf-a4e6e627c1d1",
+                      "name":  "Respond Error",
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1.5,
+                      "position":  [
+                                       128,
+                                       912
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "content":  "## API de GestiÃƒÂ³n de Comerciales\n\n**Endpoint:** POST /webhook/gestion-comerciales\n\n**Acciones:**\n- getComerciales: Obtiene los comerciales\n- createComercial: CreaciÃƒÂ³n de comercial\n- updateComercial: Actualizar comercial mediante ID\n- toggleComercialStatus: Dar de baja o reactivar comercial mediante ID",
+                                         "height":  300,
+                                         "width":  360,
+                                         "color":  4
+                                     },
+                      "id":  "04643db6-e8bd-46dd-9033-3a742f8c9b98",
+                      "name":  "Sticky Note",
+                      "type":  "n8n-nodes-base.stickyNote",
+                      "typeVersion":  1,
+                      "position":  [
+                                       -704,
+                                       704
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "httpMethod":  "POST",
+                                         "path":  "gestion-comerciales",
+                                         "responseMode":  "responseNode",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "f83aed11-1a23-48e6-a046-232232dc6ae0",
+                      "name":  "API de GestiÃƒÂ³n de Comerciales",
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2.1,
+                      "position":  [
+                                       -544,
+                                       528
+                                   ],
+                      "webhookId":  "comerciales-webhook-uuid-0001"
                   }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Toggle Status"
-            }
-          ]
-        },
-        "options": {
-          "fallbackOutput": "extra",
-          "renameFallbackOutput": "Invalid Action"
-        }
-      },
-      "id": "e87d22bc-a45d-47a5-a57e-e884aee8f6d6",
-      "name": "Route by Action",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        -320,
-        480
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst conditions = [];\nconst params = []; // Ahora enviaremos este array directo, sin usar join(',')\nlet paramIndex = 1;\n\nlet query = 'SELECT id, nombre, primer_apellido, segundo_apellido, telefono, email, activo, created_at, updated_at FROM comerciales WHERE 1=1';\n\n// Búsqueda por texto (Validamos string)\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(CONCAT(nombre, ' ', primer_apellido, ' ', COALESCE(segundo_apellido,'')) ILIKE $${paramIndex} OR email ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\n// Filtro de estado (Validamos q no sea null, undefined, ni vacío)\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  conditions.push(`activo = $${paramIndex}`);\n  params.push(filters.status);\n  paramIndex++;\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\nquery += ' ORDER BY created_at DESC';\n\n// Retornamos el Array de params tal cual, es más seguro que usar join(',')\nreturn [{ json: { query: query, params: params } }];\n"
-      },
-      "id": "555948d1-5a29-42fe-85ad-ca64d9aeef7a",
-      "name": "Build Get Comerciales Query",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -96,
-        144
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "{{ $json.query }}",
-        "options": {
-          "queryReplacement": "={{ $json.params }}"
-        }
-      },
-      "id": "265c0b2d-717a-41a9-aa15-c689d711006e",
-      "name": "Get Comerciales",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        128,
-        144
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "vy4robgpSgTKBK8g",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "schema": {
-          "__rl": true,
-          "mode": "list",
-          "value": "public"
-        },
-        "table": {
-          "__rl": true,
-          "mode": "name",
-          "value": "comerciales"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "nombre": "={{ $json.body.comercialData.nombre }}",
-            "primer_apellido": "={{ $json.body.comercialData.primer_apellido }}",
-            "segundo_apellido": "={{ $json.body.comercialData.segundo_apellido }}",
-            "telefono": "={{ $json.body.comercialData.telefono }}",
-            "email": "={{ $json.body.comercialData.email }}",
-            "activo": "={{ $json.body.comercialData.activo }}"
-          },
-          "matchingColumns": [
-            "id"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "nombre",
-              "displayName": "nombre",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "primer_apellido",
-              "displayName": "primer_apellido",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "segundo_apellido",
-              "displayName": "segundo_apellido",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "telefono",
-              "displayName": "telefono",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "email",
-              "displayName": "email",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "activo",
-              "displayName": "activo",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "boolean",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "updated_at",
-              "displayName": "updated_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": true,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {
-          "outputColumns": [
-            "id",
-            "nombre",
-            "primer_apellido",
-            "segundo_apellido",
-            "telefono",
-            "email",
-            "activo",
-            "created_at"
-          ]
-        }
-      },
-      "id": "96511e45-c679-4408-8dea-e77dffcc5823",
-      "name": "Create Comercial",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        96,
-        336
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "vy4robgpSgTKBK8g",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE comerciales SET nombre = $1, primer_apellido = $2, segundo_apellido = $3, telefono = $4, email = $5, activo = $6, updated_at = NOW() WHERE id = $7 RETURNING id, nombre, primer_apellido, segundo_apellido, telefono, email, activo, updated_at",
-        "options": {
-          "queryReplacement": "={{ $json.body.comercialData.nombre }},{{ $json.body.comercialData.primer_apellido }},{{ $json.body.comercialData.segundo_apellido }},{{ $json.body.comercialData.telefono }},{{ $json.body.comercialData.email }},{{ $json.body.comercialData.activo }},{{ $json.body.comercialId }}"
-        }
-      },
-      "id": "74938e9c-e2a4-4fbb-a100-d4df2fefa127",
-      "name": "Update Comercial",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        128,
-        528
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "vy4robgpSgTKBK8g",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE comerciales SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING id, nombre, primer_apellido, activo, updated_at",
-        "options": {
-          "queryReplacement": "={{ $json.body.comercialId }}"
-        }
-      },
-      "id": "5027ce1a-0f95-419d-a1a9-07d7f413caef",
-      "name": "Toggle Comercial Status",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        128,
-        720
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "vy4robgpSgTKBK8g",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "1",
-              "name": "success",
-              "value": false,
-              "type": "boolean"
-            },
-            {
-              "id": "2",
-              "name": "error",
-              "value": "Invalid action. Supported actions: getComerciales, createComercial, updateComercial, toggleComercialStatus",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "771a9aaf-49de-40e5-8450-8ec156fb4ea9",
-      "name": "Invalid Action Response",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -96,
-        912
-      ]
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item => item.json) }) }}\n\n",
-        "options": {
-          "responseCode": 200
-        }
-      },
-      "id": "0d831287-5bec-4fab-9d12-b41b51e15d1c",
-      "name": "Respond Success",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        352,
-        432
-      ]
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ $json }}",
-        "options": {
-          "responseCode": 400
-        }
-      },
-      "id": "71fd9513-5e5d-4b87-aadf-a4e6e627c1d1",
-      "name": "Respond Error",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        128,
-        912
-      ]
-    },
-    {
-      "parameters": {
-        "content": "## API de Gestión de Comerciales\n\n**Endpoint:** POST /webhook/gestion-comerciales\n\n**Acciones:**\n- getComerciales: Obtiene los comerciales\n- createComercial: Creación de comercial\n- updateComercial: Actualizar comercial mediante ID\n- toggleComercialStatus: Dar de baja o reactivar comercial mediante ID",
-        "height": 300,
-        "width": 360,
-        "color": 4
-      },
-      "id": "04643db6-e8bd-46dd-9033-3a742f8c9b98",
-      "name": "Sticky Note",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -704,
-        704
-      ]
-    },
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "gestion-comerciales",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "id": "f83aed11-1a23-48e6-a046-232232dc6ae0",
-      "name": "API de Gestión de Comerciales",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        -544,
-        528
-      ],
-      "webhookId": "comerciales-webhook-uuid-0001"
-    }
-  ],
-  "connections": {
-    "Route by Action": {
-      "main": [
-        [
-          {
-            "node": "Build Get Comerciales Query",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Create Comercial",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Update Comercial",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Toggle Comercial Status",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Invalid Action Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Build Get Comerciales Query": {
-      "main": [
-        [
-          {
-            "node": "Get Comerciales",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Comerciales": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create Comercial": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update Comercial": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Toggle Comercial Status": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Invalid Action Response": {
-      "main": [
-        [
-          {
-            "node": "Respond Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "API de Gestión de Comerciales": {
-      "main": [
-        [
-          {
-            "node": "Route by Action",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "pinData": {},
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "5f95417e87f0499436e8babcd737795bbe128cae7bd1cd6d1ba51cf46b9e918e"
-  }
+              ],
+    "connections":  {
+                        "Route by Action":  {
+                                                "main":  [
+                                                             [
+                                                                 {
+                                                                     "node":  "Build Get Comerciales Query",
+                                                                     "type":  "main",
+                                                                     "index":  0
+                                                                 }
+                                                             ],
+                                                             [
+                                                                 {
+                                                                     "node":  "Create Comercial",
+                                                                     "type":  "main",
+                                                                     "index":  0
+                                                                 }
+                                                             ],
+                                                             [
+                                                                 {
+                                                                     "node":  "Update Comercial",
+                                                                     "type":  "main",
+                                                                     "index":  0
+                                                                 }
+                                                             ],
+                                                             [
+                                                                 {
+                                                                     "node":  "Toggle Comercial Status",
+                                                                     "type":  "main",
+                                                                     "index":  0
+                                                                 }
+                                                             ],
+                                                             [
+                                                                 {
+                                                                     "node":  "Invalid Action Response",
+                                                                     "type":  "main",
+                                                                     "index":  0
+                                                                 }
+                                                             ]
+                                                         ]
+                                            },
+                        "Build Get Comerciales Query":  {
+                                                            "main":  [
+                                                                         [
+                                                                             {
+                                                                                 "node":  "Get Comerciales",
+                                                                                 "type":  "main",
+                                                                                 "index":  0
+                                                                             }
+                                                                         ]
+                                                                     ]
+                                                        },
+                        "Get Comerciales":  {
+                                                "main":  [
+                                                             [
+                                                                 {
+                                                                     "node":  "Respond Success",
+                                                                     "type":  "main",
+                                                                     "index":  0
+                                                                 }
+                                                             ]
+                                                         ]
+                                            },
+                        "Create Comercial":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Respond Success",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Update Comercial":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Respond Success",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Toggle Comercial Status":  {
+                                                        "main":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "Respond Success",
+                                                                             "type":  "main",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                                    },
+                        "Invalid Action Response":  {
+                                                        "main":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "Respond Error",
+                                                                             "type":  "main",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                                    },
+                        "API de GestiÃƒÂ³n de Comerciales":  {
+                                                                 "main":  [
+                                                                              [
+                                                                                  {
+                                                                                      "node":  "Route by Action",
+                                                                                      "type":  "main",
+                                                                                      "index":  0
+                                                                                  }
+                                                                              ]
+                                                                          ]
+                                                             }
+                    },
+    "pinData":  {
+
+                },
+    "meta":  {
+                 "templateCredsSetupCompleted":  true,
+                 "instanceId":  "5f95417e87f0499436e8babcd737795bbe128cae7bd1cd6d1ba51cf46b9e918e"
+             },
+    "id":  "MoIflx5NSV6CUXnI"
 }
