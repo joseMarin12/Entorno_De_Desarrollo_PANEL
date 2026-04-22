@@ -68,13 +68,21 @@ CREATE TABLE empresa (
     id_tipo_empresa INT,
     id_comerciales INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_tipo_empresa) REFERENCES tipo_empresa(id) ON DELETE SET NULL,
     FOREIGN KEY (id_comerciales) REFERENCES comerciales(id) ON DELETE SET NULL
 );
 
+CREATE TABLE pais (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    pais VARCHAR(45) NOT NULL
+);
+
 CREATE TABLE provincia (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    provincia VARCHAR(30) NOT NULL
+    id_pais INT,
+    provincia VARCHAR(30) NOT NULL,
+    FOREIGN KEY (id_pais) REFERENCES pais(id) ON DELETE CASCADE
 );
 
 CREATE TABLE localidad (
@@ -139,7 +147,7 @@ CREATE TABLE trabajador (
     direccion VARCHAR(128),
     nacionalidad VARCHAR(45),
     fecha_nacimiento DATE,
-    id_seleccionador INT,
+    id_seleccionadores INT,
     activo BOOLEAN DEFAULT TRUE,
     fecha_ini DATE,
     fecha_fin DATE,
@@ -147,7 +155,7 @@ CREATE TABLE trabajador (
     id_localidad INT,
     freelance BOOLEAN DEFAULT FALSE,
     id_provincia INT,
-    FOREIGN KEY (id_seleccionador) REFERENCES seleccionadores(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_seleccionadores) REFERENCES seleccionadores(id) ON DELETE SET NULL,
     FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE SET NULL,
     FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE SET NULL
 );
@@ -229,10 +237,13 @@ CREATE TABLE formacion (
     coste DOUBLE PRECISION,
     bonificacion DOUBLE PRECISION,
     total DOUBLE PRECISION,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_estado) REFERENCES estado_formacion(id) ON DELETE SET NULL,
     FOREIGN KEY (id_area) REFERENCES area_formacion(id) ON DELETE SET NULL,
     FOREIGN KEY (id_responsable) REFERENCES "user"(id) ON DELETE SET NULL,
-    FOREIGN KEY (id_modalidad) REFERENCES modality_formacion(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_modalidad) REFERENCES modalidad_formacion(id) ON DELETE SET NULL,
     FOREIGN KEY (id_ejecucion) REFERENCES ejecucion_formacion(id) ON DELETE SET NULL
 );
 
@@ -276,7 +287,7 @@ CREATE TABLE documento_firma_historial (
 
 -- Indices
 
-CREATE INDEX idx_trabajador_seleccionador ON trabajador(id_seleccionador);
+CREATE INDEX idx_trabajador_seleccionadores ON trabajador(id_seleccionadores);
 CREATE INDEX idx_trabajador_localidad ON trabajador(id_localidad);
 CREATE INDEX idx_asignacion_empresa ON asignacion(id_empresa);
 CREATE INDEX idx_asignacion_trabajador ON asignacion(id_trabajador);
