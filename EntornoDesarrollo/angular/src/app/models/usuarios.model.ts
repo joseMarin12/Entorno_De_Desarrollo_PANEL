@@ -5,5 +5,5 @@ export interface Usuario {
   email: string;
   enabled: boolean;
   password?: string;
-  role_id?: number | string;
+  roleid?: number | string;
 }

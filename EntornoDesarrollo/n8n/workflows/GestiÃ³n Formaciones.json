@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-20T14:25:46.725Z",
+  "updatedAt": "2026-04-22T10:09:05.939Z",
   "createdAt": "2026-04-20T08:43:55.636Z",
   "id": "R5yHppLWfre3MYim",
   "name": "Gestión Formaciones",
@@ -245,8 +245,8 @@
       "name": "Get Formaciones",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
-          "name": "Postgres account"
+          "id": "0PqKc6BkC38ueyxO",
+          "name": "Postgres account 2"
         }
       }
     },
@@ -268,8 +268,8 @@
       "name": "Insert Formacion",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
-          "name": "Postgres account"
+          "id": "0PqKc6BkC38ueyxO",
+          "name": "Postgres account 2"
         }
       }
     },
@@ -291,7 +291,7 @@
       "name": "Update Formacion",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "Kih4P6xJ67gZaubs",
           "name": "Postgres account"
         }
       }
@@ -314,7 +314,7 @@
       "name": "Toggle Formacion Status",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "Kih4P6xJ67gZaubs",
           "name": "Postgres account"
         }
       }
@@ -350,7 +350,7 @@
       "name": "Get Trabajadores",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "Kih4P6xJ67gZaubs",
           "name": "Postgres account"
         }
       }
@@ -373,7 +373,7 @@
       "name": "Add Trabajador",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "Kih4P6xJ67gZaubs",
           "name": "Postgres account"
         }
       }
@@ -396,7 +396,7 @@
       "name": "Remove Trabajador",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "Kih4P6xJ67gZaubs",
           "name": "Postgres account"
         }
       }
@@ -655,32 +655,32 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "8a0cf846-5c0b-4d0a-8f1e-24848f2b8061",
-  "activeVersionId": "8a0cf846-5c0b-4d0a-8f1e-24848f2b8061",
-  "versionCounter": 36,
+  "versionId": "644bf54a-6686-4089-a699-0fd94956c33f",
+  "activeVersionId": "644bf54a-6686-4089-a699-0fd94956c33f",
+  "versionCounter": 46,
   "triggerCount": 1,
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-04-20T08:43:55.636Z",
-      "createdAt": "2026-04-20T08:43:55.636Z",
+      "updatedAt": "2026-04-22T09:43:05.809Z",
+      "createdAt": "2026-04-22T09:43:05.809Z",
       "role": "workflow:owner",
       "workflowId": "R5yHppLWfre3MYim",
-      "projectId": "sBWXsirJNs9eVf7I",
+      "projectId": "scuB9Y3NwfAwv0vk",
       "project": {
-        "updatedAt": "2026-04-07T12:45:46.647Z",
-        "createdAt": "2026-03-17T14:36:55.666Z",
-        "id": "sBWXsirJNs9eVf7I",
-        "name": "Adriano Casado Villarreal <adriano.casado@sgtech.tech>",
+        "updatedAt": "2026-04-22T09:42:42.949Z",
+        "createdAt": "2026-04-22T09:42:05.392Z",
+        "id": "scuB9Y3NwfAwv0vk",
+        "name": "p v <daniel.pedrero@sgtech.tech>",
         "type": "personal",
         "icon": null,
         "description": null,
-        "creatorId": "71e73ad8-a6d1-4bbe-9a4d-70b3c90181b6"
+        "creatorId": "06b871d4-11e0-4b54-8aa7-b150c2e36810"
       }
     }
   ],
   "versionMetadata": {
-    "name": "FormacionesFinal",
+    "name": "Version 644bf54a",
     "description": ""
   }
 }

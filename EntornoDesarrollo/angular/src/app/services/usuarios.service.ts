@@ -62,14 +62,14 @@ export class UsuariosService extends BaseCrud<Usuario> {
         email: data.email,
         enabled: data.enabled ?? true,
         password: data.password || 'password123',
-        role_id: Number(data.role_id || 1)
+        roleid: Number(data.roleid || 1)
       };
 
       const res = await firstValueFrom(this._create(payload));
       const newUser = this.applyRobustMerge(res, {
         ...data,
         id: res?.id ? Number(res.id) : Date.now(),
-        role_id: payload.role_id,
+        roleid: payload.roleid,
         password: payload.password
       });
 
@@ -94,7 +94,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
         surname: data.apellido1,
         email: data.email,
         enabled: data.enabled,
-        role_id: Number(data.role_id || 1)
+        roleid: Number(data.roleid || 1)
       };
 
       if (data.password?.trim()) {
@@ -161,7 +161,12 @@ export class UsuariosService extends BaseCrud<Usuario> {
     const isReal = backendRes && (backendRes.id || backendRes.nombre || backendRes.name || backendRes.email);
     
     if (isReal) {
-      return { ...localData, ...mapped };
+      // Preserve password from localData if backend didn't return it
+      const merged = { ...localData, ...mapped };
+      if (!mapped.password && localData.password) {
+        merged.password = localData.password;
+      }
+      return merged;
     }
     return localData;
   }
@@ -180,7 +185,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
       email: d.email || d.user_email || '',
       enabled: d.enabled === true || d.enabled === 1 || d.enabled === '1' || d.status === 'active' || d.activo === true,
       password: d.password || d.pass || d.contraseña || '',
-      role_id: Number(d.role_id || d.ID_ROL || d.id_rol || 1)
+      roleid: Number(d.roleid || d.role_id || d.ID_ROL || d.id_rol || 1)
     };
   }
 
