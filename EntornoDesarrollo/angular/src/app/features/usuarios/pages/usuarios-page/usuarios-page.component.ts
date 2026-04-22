@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { UsuariosService } from '../../../../services/usuarios.service';
@@ -12,8 +12,6 @@ import { UsuariosModalAddComponent } from '../../components/modal-add/modal-add.
 import { UsuariosModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
-import { ComercialesApiService } from '../../../../services/comerciales-api.service';
-import { computed, signal } from '@angular/core';
 
 @Component({
     selector: 'app-usuarios-page',
@@ -33,11 +31,8 @@ import { computed, signal } from '@angular/core';
 })
 export class UsuariosPageComponent implements OnInit {
     svc = inject(UsuariosService);
-    comercialesSvc = inject(ComercialesApiService);
     toast = inject(ToastService);
     ConfirmMode = ConfirmMode;
-
-    private _comercialesEmails = signal<string[]>([]);
 
     // ── Filtros ──────────────────────────────────────
     searchQuery = '';
@@ -55,7 +50,6 @@ export class UsuariosPageComponent implements OnInit {
     // ── Ciclo de vida ─────────────────────────────────
     ngOnInit(): void {
         this.loadPage();
-        this.loadComercialesEmails();
     }
 
     private loadPage(): void {
@@ -66,27 +60,13 @@ export class UsuariosPageComponent implements OnInit {
         this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters);
     }
 
-    private loadComercialesEmails(): void {
-        this.comercialesSvc.findAll().subscribe({
-            next: (list) => {
-                const emails = (list || []).map(c => c.email.toLowerCase());
-                this._comercialesEmails.set(emails);
-            }
-        });
-    }
-
     get selectedUsuario(): Usuario | null {
         return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
     }
 
     // ── Validación de Emails ──────────────────────────
     readonly emailUsuarios = computed(() => {
-        // En paginación servidor, solo tenemos los emails de la página actual en this.svc.usuarios()
-        // Para una validación completa, idealmente el backend debería proveer esto o cargar todos los emails una vez.
-        // Por ahora mantenemos la lógica con lo que tenemos.
-        const fromUsers = this.svc.usuarios().map(u => u.email.toLowerCase());
-        const fromComerciales = this._comercialesEmails();
-        return Array.from(new Set([...fromUsers, ...fromComerciales]));
+        return this.svc.usuarios().map(u => u.email.toLowerCase());
     });
 
     // ── Handlers ──────────────────────────────────────
