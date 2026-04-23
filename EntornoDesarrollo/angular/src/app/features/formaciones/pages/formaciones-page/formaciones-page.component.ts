@@ -9,10 +9,9 @@ import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
 import { ToolbarComponent, FilterType } from '../../components/toolbar/toolbar.component';
 import { FormacionesTableComponent } from '../../components/formaciones-table/formaciones-table.component';
-import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
-import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
-import { ModalBajaComponent } from '../../components/modal-baja/modal-baja.component';
+import { ModalFormacionComponent } from '../../components/modal-formacion/modal-formacion.component';
 import { ModalParticipantesComponent } from '../../components/modal-participantes/modal-participantes.component';
+import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-formaciones-page',
@@ -23,26 +22,25 @@ import { ModalParticipantesComponent } from '../../components/modal-participante
     StatsRowComponent,
     ToolbarComponent,
     FormacionesTableComponent,
-    ModalAddComponent,
-    ModalEditComponent,
-    ModalBajaComponent,
+    ModalFormacionComponent,
     ModalParticipantesComponent,
+    ConfirmationModalComponent,
   ],
   templateUrl: './formaciones-page.component.html',
 })
 export class FormacionesPageComponent implements OnInit {
   svc = inject(FormacionesService);
   toast = inject(ToastService);
+  ConfirmMode = ConfirmMode;
 
   // ── Filtros (Signals para que computed() los detecte) ─────────────────────
-  readonly searchQuery  = signal('');
+  readonly searchQuery = signal('');
   readonly activeFilter = signal<FilterType>('todos');
-  readonly currentPage  = signal(1);
-  readonly PAGE_SIZE    = 10;
+  readonly currentPage = signal(1);
+  readonly PAGE_SIZE = 10;
 
-  // ── Estado modales ────────────────────────────────────────────────────────
-  showAdd = false;
-  showEdit = false;
+  // ── Estado modales ────────────────────────────────
+  showForm = false; // Unificado para añadir/editar
   showBaja = false;
   showParticipantes = false;
   readonly selectedId = signal<number | null>(null);
@@ -55,13 +53,13 @@ export class FormacionesPageComponent implements OnInit {
   // ── Computed (memoizados: solo recalculan si cambia alguna dependencia) ───
   readonly filtered = computed(() => {
     const formaciones = this.svc.formaciones();
-    const filter  = this.activeFilter();
-    const q       = this.searchQuery().toLowerCase().trim();
+    const filter = this.activeFilter();
+    const q = this.searchQuery().toLowerCase().trim();
 
     return formaciones.filter(c => {
       const matchFilter =
-        filter === 'todos'   ? true :
-        filter === 'activos' ? c.activo === true : c.activo === false;
+        filter === 'todos' ? true :
+          filter === 'activos' ? c.activo === true : c.activo === false;
 
       const matchSearch = !q
         || this.svc.title(c).toLowerCase().includes(q)
@@ -93,33 +91,36 @@ export class FormacionesPageComponent implements OnInit {
   }
 
   openAdd(): void {
-    this.showAdd = true;
-  }
-
-  onSaveAdd(data: Omit<Formacion, 'id'>): void {
-    this.svc.add(data).subscribe({
-      next: () => {
-        this.showAdd = false;
-        this.toast.show('success', `✓ Formación <strong>${data.curso}</strong> añadida correctamente`);
-      },
-      error: () => this.toast.show('error', `✗ No se pudo añadir la formación. Inténtalo de nuevo.`),
-    });
+    this.selectedId = null;
+    this.showForm = true;
   }
 
   onEditClick(id: number): void {
-    this.selectedId.set(id);
-    this.showEdit = true;
+    this.selectedId = id;
+    this.showForm = true;
   }
 
-  onSaveEdit(data: Formacion): void {
-    this.svc.update(data.id, data).subscribe({
-      next: () => {
-        this.showEdit = false;
-        this.selectedId.set(null);
-        this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
-      },
-      error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
-    });
+  onSaveForm(data: any): void {
+    if (this.selectedId) {
+      // Editar
+      this.svc.update(this.selectedId, data).subscribe({
+        next: () => {
+          this.showForm = false;
+          this.selectedId = null;
+          this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
+        },
+        error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
+      });
+    } else {
+      // Añadir
+      this.svc.add(data).subscribe({
+        next: () => {
+          this.showForm = false;
+          this.toast.show('success', `✓ Formación <strong>${data.curso}</strong> añadida correctamente`);
+        },
+        error: () => this.toast.show('error', `✗ No se pudo añadir la formación. Inténtalo de nuevo.`),
+      });
+    }
   }
 
   onBajaClick(id: number): void {
