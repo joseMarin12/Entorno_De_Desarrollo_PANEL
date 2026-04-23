@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Usuario } from '../../../../models/usuarios.model';
+import { Usuario, Role } from '../../../../models/usuarios.model';
 
 @Component({
   selector: 'app-usuarios-modal-form',
@@ -12,6 +12,7 @@ import { Usuario } from '../../../../models/usuarios.model';
 export class UsuariosModalFormComponent implements OnChanges {
   @Input() usuario: Usuario | null = null;
   @Input() emailUsuarios: string[] = [];
+  @Input() roles: Role[] = [];
   @Output() save = new EventEmitter<Partial<Usuario>>();
   @Output() close = new EventEmitter<void>();
 

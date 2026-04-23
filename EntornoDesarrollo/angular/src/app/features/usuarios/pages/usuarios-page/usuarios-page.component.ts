@@ -46,6 +46,7 @@ export class UsuariosPageComponent implements OnInit {
 
     // ── Ciclo de vida ─────────────────────────────────
     ngOnInit(): void {
+        this.svc.loadRoles();
         this.loadPage();
     }
 

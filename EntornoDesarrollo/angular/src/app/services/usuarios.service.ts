@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Observable, tap, map, catchError, throwError } from 'rxjs';
-import { Usuario } from '../models/usuarios.model';
+import { Usuario, Role } from '../models/usuarios.model';
 import { BaseCrud } from './base.service';
 import { environment } from '../../environments/environment';
 
@@ -18,6 +18,25 @@ export class UsuariosService extends BaseCrud<Usuario> {
   readonly total    = this.totalRecords.asReadonly();
   readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
   readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
+
+  private _roles = signal<Role[]>([]);
+  readonly roles = this._roles.asReadonly();
+
+  loadRoles(): void {
+    const payload = { action: 'getRole' };
+    this.http.post<{data: any[]}>(this.API_URL, payload).pipe(
+      map(res => {
+        if (!res || !res.data) return [];
+        return res.data.map(r => {
+          const json = r.json || r;
+          return { id: Number(json.id), name: json.name };
+        });
+      })
+    ).subscribe({
+      next: (roles) => this._roles.set(roles),
+      error: (e) => console.error('Error loading roles', e)
+    });
+  }
 
   loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {
     this.loading.set(true);

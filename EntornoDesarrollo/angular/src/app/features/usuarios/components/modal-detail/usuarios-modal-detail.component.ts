@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Usuario } from '../../../../models/usuarios.model';
+import { Usuario, Role } from '../../../../models/usuarios.model';
 import { UsuariosService } from '../../../../services/usuarios.service';
 
 @Component({
@@ -32,6 +32,7 @@ import { UsuariosService } from '../../../../services/usuarios.service';
 })
 export class UsuariosModalDetailComponent {
   @Input({ required: true }) usuario!: Usuario;
+  @Input() roles: Role[] = [];
   @Output() close = new EventEmitter<void>();
   @Output() edit = new EventEmitter<number>();
 
@@ -39,5 +40,10 @@ export class UsuariosModalDetailComponent {
 
   get statusLabel(): string {
     return this.usuario.enabled ? 'Activo' : 'Inactivo';
+  }
+
+  get roleName(): string {
+    const role = this.roles.find(r => r.id === Number(this.usuario.roleid));
+    return role ? role.name : String(this.usuario.roleid || '—');
   }
 }
