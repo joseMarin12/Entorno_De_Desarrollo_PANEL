@@ -10,7 +10,7 @@ import { UsuariosTableComponent } from '../../components/usuarios-table/usuarios
 import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
 import { UsuariosModalFormComponent } from '../../components/modal-form/modal-form.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
     selector: 'app-usuarios-page',
@@ -81,9 +81,8 @@ export class UsuariosPageComponent implements OnInit {
     }
 
     private loadComercialesEmails(): void {
-        this.svc.http.get<any>(`${environment.apiUrl}/comerciales`).subscribe({
-            next: (res) => {
-                const emails = (res.data || []).map((c: any) => c.email).filter(Boolean);
+        this.svc.loadComercialesEmails().subscribe({
+            next: (emails) => {
                 this.emailUsuarios.set(emails);
             }
         });

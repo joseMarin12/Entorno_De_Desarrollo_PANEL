@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class UsuariosService extends BaseCrud<Usuario> {
 
-  protected override readonly API_URL = `${environment.apiUrl}/usuarios`;
+  public override readonly API_URL = `${environment.apiUrl}/usuarios`;
 
   private _usuarios = signal<Usuario[]>([]);
   readonly loading  = signal(false);
@@ -36,6 +36,12 @@ export class UsuariosService extends BaseCrud<Usuario> {
       },
       error: (e) => console.error('Error loading roles', e)
     });
+  }
+
+  loadComercialesEmails(): Observable<string[]> {
+    return this.http.get<any>(`${environment.apiUrl}/comerciales`).pipe(
+      map(res => (res.data || []).map((c: any) => c.email).filter(Boolean))
+    );
   }
 
   loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {

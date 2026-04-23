@@ -42,7 +42,7 @@
 <!-- Modales -->
 @if (showForm) {
   <app-usuarios-modal-form
-    [usuario]="selectedUsuario()"
+    [usuario]="selectedUsuario() || null"
     [emailUsuarios]="emailUsuarios()"
     [roles]="svc.roles()"
     (save)="onSaveForm($event)"
