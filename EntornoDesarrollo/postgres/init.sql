@@ -67,6 +67,7 @@ CREATE TABLE empresa (
     cif VARCHAR(9) UNIQUE,
     id_tipo_empresa INT,
     id_comerciales INT,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_tipo_empresa) REFERENCES tipo_empresa(id) ON DELETE SET NULL,
@@ -292,3 +293,13 @@ CREATE INDEX idx_trabajador_localidad ON trabajador(id_localidad);
 CREATE INDEX idx_asignacion_empresa ON asignacion(id_empresa);
 CREATE INDEX idx_asignacion_trabajador ON asignacion(id_trabajador);
 CREATE INDEX idx_empresa_tipo ON empresa(id_tipo_empresa);
+
+
+-- Inserts necesarios
+
+INSERT INTO tipo_empresa (tipo_empresa)
+VALUES 
+    ('Tecnológica'),
+    ('Consultoría'),
+    ('Logística'),
+    ('Marketing');
