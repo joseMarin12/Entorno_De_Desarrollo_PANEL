@@ -1,4 +1,4 @@
-﻿<app-topbar pageTitle="Formaciones" />
+<app-topbar pageTitle="Formaciones" />
 
 <div class="page-content">
 
@@ -32,16 +32,16 @@
 
 <!-- Modales -->
 @if (showForm) {
-<app-modal-formacion [formacion]="selectedformacion!" (save)="onSaveForm($event)"
-  (close)="showForm = false; selectedId = null" />
+<app-modal-formacion [formacion]="selectedformacion()!" (save)="onSaveForm($event)"
+  (close)="showForm = false; selectedId.set(null)" />
 }
 
-@if (showBaja && selectedformacion) {
-<app-confirmation-modal [name]="selectedformacion.curso"
-  [title]="selectedformacion.activo ? '¿Dar de baja formación?' : '¿Reactivar formación?'"
-  [description]="selectedformacion.activo ? 'La formación pasará a estado inactivo.' : 'La formación volverá a estar disponible.'"
-  [mode]="selectedformacion.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR" (confirm)="onConfirmBaja()"
-  (closed)="showBaja = false; selectedId = null" />
+@if (showBaja && selectedformacion()) {
+<app-confirmation-modal [name]="selectedformacion()!.curso"
+  [title]="selectedformacion()!.activo ? '¿Dar de baja formación?' : '¿Reactivar formación?'"
+  [description]="selectedformacion()!.activo ? 'La formación pasará a estado inactivo.' : 'La formación volverá a estar disponible.'"
+  [mode]="selectedformacion()!.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR" (confirm)="onConfirmBaja()"
+  (closed)="showBaja = false; selectedId.set(null)" />
 }
 
 @if (showParticipantes && selectedformacion()) {

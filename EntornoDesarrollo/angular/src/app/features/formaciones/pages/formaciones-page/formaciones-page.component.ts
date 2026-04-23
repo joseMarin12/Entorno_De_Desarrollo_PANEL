@@ -91,22 +91,23 @@ export class FormacionesPageComponent implements OnInit {
   }
 
   openAdd(): void {
-    this.selectedId = null;
+    this.selectedId.set(null);
     this.showForm = true;
   }
 
   onEditClick(id: number): void {
-    this.selectedId = id;
+    this.selectedId.set(id);
     this.showForm = true;
   }
 
   onSaveForm(data: any): void {
-    if (this.selectedId) {
+    const id = this.selectedId();
+    if (id) {
       // Editar
-      this.svc.update(this.selectedId, data).subscribe({
+      this.svc.update(id, data).subscribe({
         next: () => {
           this.showForm = false;
-          this.selectedId = null;
+          this.selectedId.set(null);
           this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
         },
         error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
