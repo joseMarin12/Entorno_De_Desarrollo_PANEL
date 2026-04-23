@@ -1,6 +1,7 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { Usuario } from '../models/usuarios.model';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap, map, catchError, throwError } from 'rxjs';
+import { Usuario, Role } from '../models/usuarios.model';
 import { BaseCrud } from './base.service';
 import { environment } from '../../environments/environment';
 
@@ -19,141 +20,158 @@ export class UsuariosService extends BaseCrud<Usuario> {
   readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
   readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
 
-  async loadAll(page = 1, limit = 10, filters: any = {}): Promise<void> {
-    this.loading.set(true);
-    this.error.set(null);
-    try {
-      const res = await firstValueFrom(
-        this._findAll({
-          action: 'getUser',
-          page,
-          limit,
-          filters,
-        })
-      );
+  private _roles = signal<Role[]>([]);
+  readonly roles = this._roles.asReadonly();
 
-      const rawData = res || [];
-      const mapped = rawData.map((item: any) => this.mapSingleFromBackend(item));
-
-      if (rawData.length > 0) {
-        const firstRow = rawData[0] as any;
-        const total = Number(firstRow.total_count || mapped.length);
-        this.totalRecords.set(total);
-      } else {
-        this.totalRecords.set(0);
-      }
-
-      this._usuarios.set(mapped);
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'Error al cargar los usuarios');
-    } finally {
-      this.loading.set(false);
-    }
+  loadRoles(): void {
+    const payload = { action: 'getRole' };
+    this.http.post<{data: any[]}>(this.API_URL, payload).subscribe({
+      next: (res) => {
+        if (!res || !res.data) return;
+        const roles = res.data.map(r => {
+          const json = r.json || r;
+          return { id: Number(json.id), name: json.name };
+        });
+        this._roles.set(roles);
+      },
+      error: (e) => console.error('Error loading roles', e)
+    });
   }
 
-  async add(data: Omit<Usuario, 'id'>): Promise<void> {
+  loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {
     this.loading.set(true);
     this.error.set(null);
-    try {
-      const payload = {
-        action: 'createUser',
-        name: data.nombre,
-        surname: data.apellido1,
-        email: data.email,
-        enabled: data.enabled ?? true,
-        password: data.password || 'password123',
-        roleid: Number(data.roleid || 1)
-      };
+    return this._findAll({
+      action: 'getUser',
+      page,
+      limit,
+      filters,
+    }).pipe(
+      map(rawData => ({
+        mapped: rawData.map((item: any) => this.mapSingleFromBackend(item)),
+        rawData
+      })),
+      tap(({ mapped, rawData }) => {
+        if (rawData.length > 0) {
+          const firstRow = rawData[0] as any;
+          const total = Number(firstRow.total_count || mapped.length);
+          this.totalRecords.set(total);
+        } else {
+          this.totalRecords.set(0);
+        }
+        this._usuarios.set(mapped);
+      }),
+      map(({ mapped }) => mapped),
+      catchError(e => {
+        const msg = e?.message ?? 'Error al cargar los usuarios';
+        this.error.set(msg);
+        return throwError(() => new Error(msg));
+      }),
+      tap({ finalize: () => this.loading.set(false) })
+    );
+  }
 
-      const res = await firstValueFrom(this._create(payload));
-      const newUser = this.applyRobustMerge(res, {
+  add(data: Omit<Usuario, 'id'>): Observable<Usuario> {
+    this.loading.set(true);
+    this.error.set(null);
+    const payload = {
+      action: 'createUser',
+      name: data.nombre,
+      surname: data.apellido1,
+      email: data.email,
+      enabled: data.enabled ?? true,
+      password: data.password || 'password123',
+      roleid: Number(data.roleid || 1)
+    };
+
+    return this._create(payload).pipe(
+      map(res => this.applyRobustMerge(res, {
         ...data,
-        id: res?.id ? Number(res.id) : Date.now(),
+        id: (res as any)?.id ? Number((res as any).id) : Date.now(),
         roleid: payload.roleid,
         password: payload.password
-      });
-
-      this._usuarios.update(list => [newUser, ...list]);
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'Error al crear el usuario');
-      throw e;
-    } finally {
-      this.loading.set(false);
-    }
+      })),
+      tap(newUser => {
+        this._usuarios.update(list => [newUser, ...list]);
+      }),
+      catchError(e => {
+        const msg = e?.message ?? 'Error al crear el usuario';
+        this.error.set(msg);
+        return throwError(() => new Error(msg));
+      }),
+      tap({ finalize: () => this.loading.set(false) })
+    );
   }
 
-  async update(id: number, data: Omit<Usuario, 'id'>): Promise<void> {
+  update(id: number, data: Omit<Usuario, 'id'>): Observable<Usuario> {
     this.loading.set(true);
     this.error.set(null);
-    try {
-      const existing = this.getById(id);
-      const payload: any = {
-        action: 'updateUser',
-        id,
-        name: data.nombre,
-        surname: data.apellido1,
-        email: data.email,
-        enabled: data.enabled,
-        roleid: Number(data.roleid || 1)
-      };
+    const existing = this.getById(id);
+    const payload: any = {
+      action: 'updateUser',
+      id,
+      name: data.nombre,
+      surname: data.apellido1,
+      email: data.email,
+      enabled: data.enabled,
+      roleid: Number(data.roleid || 1)
+    };
 
-      if (data.password?.trim()) {
-        payload.password = data.password;
-      } else if (existing?.password) {
-        payload.password = existing.password;
-      }
-
-      const res = await firstValueFrom(this._update(payload));
-      
-      this._usuarios.update(list => {
-        return list.map(u => {
-          if (u.id === id) {
-             return this.applyRobustMerge(res, {
-               ...u,
-               ...data,
-               password: payload.password || u.password
-             });
-          }
-          return u;
-        });
-      });
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'Error al actualizar el usuario');
-      throw e;
-    } finally {
-      this.loading.set(false);
+    if (data.password?.trim()) {
+      payload.password = data.password;
+    } else if (existing?.password) {
+      payload.password = existing.password;
     }
+
+    return this._update(payload).pipe(
+      map(res => this.applyRobustMerge(res, {
+        ...existing!,
+        ...data,
+        password: payload.password || existing?.password
+      })),
+      tap(updatedUser => {
+        this._usuarios.update(list => list.map(u => u.id === id ? updatedUser : u));
+      }),
+      catchError(e => {
+        const msg = e?.message ?? 'Error al actualizar el usuario';
+        this.error.set(msg);
+        return throwError(() => new Error(msg));
+      }),
+      tap({ finalize: () => this.loading.set(false) })
+    );
   }
 
-  async toggleActivo(id: number): Promise<void> {
+  toggleActivo(id: number): Observable<Usuario> {
     this.loading.set(true);
     this.error.set(null);
-    try {
-      const u = this.getById(id);
-      const newState = u ? !u.enabled : true;
-
-      const payload = {
-        action: 'Toogle status usuarios',
-        id,
-        enabled: newState,
-        activo: newState,
-        enabled_int: newState ? 1 : 0
-      };
-
-      const res = await firstValueFrom(this._toggleStatus(payload));
-      
-      this._usuarios.update(list => 
-        list.map(user => user.id === id 
-          ? this.applyRobustMerge(res, { ...user, enabled: newState }) 
-          : user
-        )
-      );
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'Error al cambiar el estado del usuario');
-      throw e;
-    } finally {
-      this.loading.set(false);
+    const u = this.getById(id);
+    if (!u) {
+      this.error.set('Usuario no encontrado');
+      return throwError(() => new Error('Usuario no encontrado'));
     }
+
+    const newState = !u.enabled;
+
+    const payload = {
+      action: 'Toogle status usuarios', // Mantiene el typo 'Toogle' para coincidir con el Switch de n8n
+      id,
+      enabled: newState,
+      activo: newState,
+      enabled_int: newState ? 1 : 0
+    };
+
+    return this._toggleStatus(payload).pipe(
+      map(res => this.applyRobustMerge(res, { ...u, enabled: newState })),
+      tap(updatedUser => {
+        this._usuarios.update(list => list.map(user => user.id === id ? updatedUser : user));
+      }),
+      catchError(e => {
+        const msg = e?.message ?? 'Error al cambiar el estado del usuario';
+        this.error.set(msg);
+        return throwError(() => new Error(msg));
+      }),
+      tap({ finalize: () => this.loading.set(false) })
+    );
   }
 
   private applyRobustMerge(backendRes: any, localData: Usuario): Usuario {
@@ -161,9 +179,24 @@ export class UsuariosService extends BaseCrud<Usuario> {
     const isReal = backendRes && (backendRes.id || backendRes.nombre || backendRes.name || backendRes.email);
     
     if (isReal) {
+      // Creamos un objeto con solo los campos que el backend ha devuelto realmente
+      // para evitar que los valores por defecto de mapSingleFromBackend (como '' o 1)
+      // sobreescriban datos válidos en localData (especialmente en el toggle de estado).
+      const cleanedMapped: any = {};
+      const raw = (backendRes.json && typeof backendRes.json === 'object') ? backendRes.json : backendRes;
+
+      if (raw.id || raw.ID || raw.id_usuario) cleanedMapped.id = mapped.id;
+      if (raw.name || raw.nombre || raw.username) cleanedMapped.nombre = mapped.nombre;
+      if (raw.surname || raw.apellido1 || raw.last_name) cleanedMapped.apellido1 = mapped.apellido1;
+      if (raw.email || raw.user_email) cleanedMapped.email = mapped.email;
+      if (raw.enabled !== undefined || raw.activo !== undefined || raw.status !== undefined) cleanedMapped.enabled = mapped.enabled;
+      if (raw.password || raw.pass) cleanedMapped.password = mapped.password;
+      if (raw.roleid || raw.role_id || raw.ID_ROL || raw.id_rol) cleanedMapped.roleid = mapped.roleid;
+
+      const merged = { ...localData, ...cleanedMapped };
+      
       // Preserve password from localData if backend didn't return it
-      const merged = { ...localData, ...mapped };
-      if (!mapped.password && localData.password) {
+      if (!cleanedMapped.password && localData.password) {
         merged.password = localData.password;
       }
       return merged;
