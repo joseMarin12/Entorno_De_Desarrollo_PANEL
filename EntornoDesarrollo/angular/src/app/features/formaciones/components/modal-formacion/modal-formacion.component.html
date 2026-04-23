@@ -1,0 +1,162 @@
+<div class="modal-overlay open">
+  <div class="modal" style="max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">{{ isEdit ? 'Editar Formación' : 'Nueva Formación' }}</div>
+        <div class="modal-subtitle">
+          {{ isEdit ? 'Modifica los campos de la formación seleccionada' : 'Completa los datos para crear una nueva
+          formación' }}
+        </div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+
+        <div class="form-group full">
+          <label class="form-label">Curso <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['curso']" type="text" placeholder="Ej: Angular Avanzado"
+            [(ngModel)]="form.curso">
+          @if (errors['curso']) { <span class="form-hint error-msg">{{ errors['curso'] }}</span> }
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Denominación <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['denominacion']" type="text"
+            placeholder="Ej: Curso para el equipo IT" [(ngModel)]="form.denominacion">
+          @if (errors['denominacion']) { <span class="form-hint error-msg">{{ errors['denominacion'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <app-lookup-select [apiUrl]="svc.API_URL" action="getArea" label="Área" placeholder="Seleccionar área..."
+            [(ngModel)]="form.id_area" [hasError]="!!errors['id_area']" [required]="true">
+          </app-lookup-select>
+          @if (errors['id_area']) { <span class="form-hint error-msg">{{ errors['id_area'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <app-lookup-select [apiUrl]="svc.API_URL" action="getModalidad" label="Modalidad"
+            placeholder="Seleccionar modalidad..." [(ngModel)]="form.id_modalidad" [hasError]="!!errors['id_modalidad']"
+            [required]="true">
+          </app-lookup-select>
+          @if (errors['id_modalidad']) { <span class="form-hint error-msg">{{ errors['id_modalidad'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <app-lookup-select [apiUrl]="svc.API_URL" action="getEjecución" label="Ejecución"
+            placeholder="Seleccionar ejecución..." [(ngModel)]="form.id_ejecucion" [hasError]="!!errors['id_ejecucion']"
+            [required]="true">
+          </app-lookup-select>
+          @if (errors['id_ejecucion']) { <span class="form-hint error-msg">{{ errors['id_ejecucion'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <app-lookup-select [apiUrl]="svc.API_URL" action="getResponsable" label="Responsable" labelField="name"
+            placeholder="Seleccionar responsable..." [(ngModel)]="form.id_responsable"
+            [hasError]="!!errors['id_responsable']" [required]="true">
+          </app-lookup-select>
+          @if (errors['id_responsable']) { <span class="form-hint error-msg">{{ errors['id_responsable'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <div class="toggle-wrap" (click)="form.id_estado = (form.id_estado === 1 ? 2 : 1)">
+            <div class="toggle" [class.on]="form.id_estado === 1"></div>
+            <div class="toggle-label">
+              {{ form.id_estado === 1 ? 'Activo' : 'Inactivo' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Motivo</label>
+          <textarea class="form-input" placeholder="Motivo de la formación" [(ngModel)]="form.motivo"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Recursos</label>
+          <input class="form-input" type="text" placeholder="Ej: Licencias, Equipos" [(ngModel)]="form.recursos">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Duración (horas)</label>
+          <input class="form-input" type="number" [(ngModel)]="form.duracion">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Jornada</label>
+          <select class="form-input" [(ngModel)]="form.dentro_fuera_jornada">
+            <option value="">Seleccionar...</option>
+            <option value="dentro">Dentro de jornada</option>
+            <option value="fuera">Fuera de jornada</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha Prevista</label>
+          <input class="form-input" type="date" [(ngModel)]="form.fecha_prevista">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de Inicio</label>
+          <input class="form-input" type="date" [(ngModel)]="form.fecha_inicio">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de Fin</label>
+          <input class="form-input" type="date" [(ngModel)]="form.fecha_fin">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Horario</label>
+          <input class="form-input" type="text" placeholder="Ej: 09:00 - 14:00" [(ngModel)]="form.horario">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Eficacia</label>
+          <input class="form-input" type="text" placeholder="Observaciones de eficacia" [(ngModel)]="form.eficacia">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Año</label>
+          <input class="form-input" type="number" [(ngModel)]="form.anio">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Coste (€)</label>
+          <input class="form-input" type="number" step="0.01" [(ngModel)]="form.coste" (change)="calculateTotal()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Bonificación (€)</label>
+          <input class="form-input" type="number" step="0.01" [(ngModel)]="form.bonificacion"
+            (change)="calculateTotal()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Total (€)</label>
+          <input class="form-input" type="number" step="0.01" [value]="form.total" disabled>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-input" placeholder="Otras observaciones" [(ngModel)]="form.observaciones"></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="close.emit()">Cancelar</button>
+      <button class="btn btn-primary" (click)="submit()">
+        {{ isEdit ? 'Guardar Cambios' : 'Crear Formación' }}
+      </button>
+    </div>
+  </div>
+</div>

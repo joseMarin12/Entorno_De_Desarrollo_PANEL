@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-22T10:26:15.393Z",
+  "updatedAt": "2026-04-23T11:27:05.607Z",
   "createdAt": "2026-04-09T13:26:23.893Z",
   "id": "r8k7krUdPWJ3TxuU",
   "name": "Usuarios",
@@ -151,6 +151,31 @@
               },
               "renameOutput": true,
               "outputKey": "ToogleStatusUsuarios"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a398e4aa-8269-456e-9e1e-8fd23d826e41",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getRole",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getRole"
             }
           ]
         },
@@ -193,8 +218,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        240,
-        0
+        256,
+        -144
       ],
       "id": "ff602a9a-10e4-460b-97c6-a0d4e382c579",
       "name": "getUser",
@@ -315,8 +340,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        240,
-        176
+        256,
+        32
       ],
       "id": "6e26cbd7-53c9-4c97-bd52-fe3373ba4bff",
       "name": "createUser",
@@ -430,8 +455,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        240,
-        368
+        256,
+        192
       ],
       "id": "773505ee-47b8-4fc8-be11-f5fa3bcaa5a0",
       "name": "updateUser",
@@ -450,7 +475,7 @@
       "typeVersion": 2,
       "position": [
         0,
-        0
+        -144
       ],
       "id": "76e7876c-8952-4472-b06d-08096cc8355a",
       "name": "Filter"
@@ -495,8 +520,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        240,
-        528
+        256,
+        368
       ],
       "id": "87dddd0e-96fb-42b2-b38f-aef8a946e691",
       "name": "Toogle status Usuario",
@@ -523,6 +548,27 @@
       ],
       "id": "cbd692f2-a6db-43cf-ab2c-ff7b2e4c8dea",
       "name": "Responde Error"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select id, name from role\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        256,
+        544
+      ],
+      "id": "f2ca6849-ba7a-414e-8412-83e78f09c4a5",
+      "name": "getRole",
+      "credentials": {
+        "postgres": {
+          "id": "0PqKc6BkC38ueyxO",
+          "name": "Postgres account 2"
+        }
+      }
     }
   ],
   "connections": {
@@ -570,6 +616,13 @@
         [
           {
             "node": "Toogle status Usuario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "getRole",
             "type": "main",
             "index": 0
           }
@@ -641,6 +694,17 @@
           }
         ]
       ]
+    },
+    "getRole": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -652,9 +716,9 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "c34a70f9-2537-4bae-9d89-f29390cba2f3",
-  "activeVersionId": "c34a70f9-2537-4bae-9d89-f29390cba2f3",
-  "versionCounter": 376,
+  "versionId": "6babe063-d4ac-473f-8552-46585584d01e",
+  "activeVersionId": "6babe063-d4ac-473f-8552-46585584d01e",
+  "versionCounter": 409,
   "triggerCount": 1,
   "tags": [],
   "shared": [
@@ -677,7 +741,7 @@
     }
   ],
   "versionMetadata": {
-    "name": "Version c34a70f9",
+    "name": "Version 6babe063",
     "description": ""
   }
 }
