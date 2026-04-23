@@ -1,5 +1,11 @@
 {
+  "updatedAt": "2026-04-22T08:46:52.367Z",
+  "createdAt": "2026-04-22T08:46:52.367Z",
+  "id": "6AlGgPzgO72ZsBuO",
   "name": "Comerciales",
+  "description": null,
+  "active": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -556,9 +562,39 @@
       ]
     }
   },
-  "pinData": {},
+  "settings": null,
+  "staticData": null,
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5f95417e87f0499436e8babcd737795bbe128cae7bd1cd6d1ba51cf46b9e918e"
+  },
+  "pinData": {},
+  "versionId": "5a82185e-2384-4c58-835f-857037c346b3",
+  "activeVersionId": "5a82185e-2384-4c58-835f-857037c346b3",
+  "versionCounter": 4,
+  "triggerCount": 1,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-04-22T08:46:52.367Z",
+      "createdAt": "2026-04-22T08:46:52.367Z",
+      "role": "workflow:owner",
+      "workflowId": "6AlGgPzgO72ZsBuO",
+      "projectId": "HPNLsCxwhHCLkcBf",
+      "project": {
+        "updatedAt": "2026-04-22T08:46:19.945Z",
+        "createdAt": "2026-04-22T08:41:51.280Z",
+        "id": "HPNLsCxwhHCLkcBf",
+        "name": "Adriano Casado Villarreal <adriano.casado@sgtech.tech>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "134af668-187e-480f-8edf-2641b318bfd3"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version 5a82185e",
+    "description": ""
   }
 }
