@@ -40,12 +40,12 @@
 
         <div class="form-group full">
           <label class="form-label">Rol <span class="req">*</span></label>
-          <select class="form-input" [class.error]="errors['role_id']" [(ngModel)]="form.role_id">
+          <select class="form-input" [class.error]="errors['roleid']" [(ngModel)]="form.roleid">
             @for (role of roles; track role.id) {
               <option [value]="role.id">{{ role.name }}</option>
             }
           </select>
-          @if (errors['role_id']) { <span class="form-hint error-msg">{{ errors['role_id'] }}</span> }
+          @if (errors['roleid']) { <span class="form-hint error-msg">{{ errors['roleid'] }}</span> }
         </div>
 
         <div class="form-group full">
