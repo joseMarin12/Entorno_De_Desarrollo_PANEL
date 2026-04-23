@@ -39,12 +39,16 @@
         </div>
 
         <div class="form-group full">
-          <label class="form-label">Rol <span class="req">*</span></label>
-          <select class="form-input" [class.error]="errors['roleid']" [(ngModel)]="form.roleid">
-            @for (role of roles; track role.id) {
-              <option [value]="role.id">{{ role.name }}</option>
-            }
-          </select>
+          <app-lookup-select 
+            [apiUrl]="svc.API_URL" 
+            action="getRole" 
+            label="Rol" 
+            labelField="name"
+            placeholder="Seleccionar rol..." 
+            [(ngModel)]="form.roleid" 
+            [hasError]="!!errors['roleid']" 
+            [required]="true">
+          </app-lookup-select>
           @if (errors['roleid']) { <span class="form-hint error-msg">{{ errors['roleid'] }}</span> }
         </div>
 

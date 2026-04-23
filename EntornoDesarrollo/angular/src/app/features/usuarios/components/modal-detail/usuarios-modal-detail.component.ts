@@ -43,7 +43,7 @@ export class UsuariosModalDetailComponent {
   }
 
   get roleName(): string {
-    const role = this.roles.find(r => r.id === Number(this.usuario.role_id));
-    return role ? role.name : String(this.usuario.role_id || '—');
+    const role = this.roles.find(r => r.id === Number(this.usuario.roleid));
+    return role ? role.name : String(this.usuario.roleid || '—');
   }
 }

@@ -42,7 +42,7 @@
 <!-- Modales -->
 @if (showForm) {
   <app-usuarios-modal-form
-    [usuario]="selectedUsuario"
+    [usuario]="selectedUsuario()"
     [emailUsuarios]="emailUsuarios()"
     [roles]="svc.roles()"
     (save)="onSaveForm($event)"
@@ -50,18 +50,18 @@
   />
 }
 
-@if (showBaja && selectedUsuario) {
+@if (showBaja && selectedUsuario()) {
   <app-confirmation-modal
-    [name]="selectedUsuario ? selectedUsuario.nombre + ' ' + selectedUsuario.apellido1 : ''"
-    [mode]="selectedUsuario.enabled ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
+    [name]="selectedUsuario() ? selectedUsuario()!.nombre + ' ' + selectedUsuario()!.apellido1 : ''"
+    [mode]="selectedUsuario()!.enabled ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirmBaja()"
     (closed)="showBaja = false; selectedId = null"
   />
 }
 
-@if (showDetail && selectedUsuario) {
+@if (showDetail && selectedUsuario()) {
   <app-usuarios-modal-detail
-    [usuario]="selectedUsuario"
+    [usuario]="selectedUsuario()!"
     [roles]="svc.roles()"
     (edit)="onEditClick($event); showDetail = false"
     (close)="showDetail = false; selectedId = null"

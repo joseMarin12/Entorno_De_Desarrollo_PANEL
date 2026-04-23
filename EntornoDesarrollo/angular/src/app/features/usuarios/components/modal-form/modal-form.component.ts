@@ -1,15 +1,18 @@
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Usuario, Role } from '../../../../models/usuarios.model';
+import { UsuariosService } from '../../../../services/usuarios.service';
+import { LookupSelectComponent } from '../../../../shared/lookup-select/lookup-select.component';
 
 @Component({
   selector: 'app-usuarios-modal-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LookupSelectComponent],
   templateUrl: './modal-form.component.html',
 })
 export class UsuariosModalFormComponent implements OnChanges {
+  public svc = inject(UsuariosService);
   @Input() usuario: Usuario | null = null;
   @Input() emailUsuarios: string[] = [];
   @Input() roles: Role[] = [];
@@ -30,7 +33,7 @@ export class UsuariosModalFormComponent implements OnChanges {
         password: '' // Se deja vacío por defecto en edición
       };
     } else {
-      this.form = { nombre: '', apellido1: '', email: '', password: '', role_id: 1, enabled: true };
+      this.form = { nombre: '', apellido1: '', email: '', password: '', roleid: 1, enabled: true };
     }
     this.errors = {};
   }
@@ -74,7 +77,7 @@ export class UsuariosModalFormComponent implements OnChanges {
         this.errors['password'] = 'Campo obligatorio';
     }
 
-    if (!this.form.role_id) this.errors['role_id'] = 'Campo obligatorio';
+    if (!this.form.roleid) this.errors['roleid'] = 'Campo obligatorio';
 
     if (Object.keys(this.errors).length > 0) return;
 

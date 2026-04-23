@@ -179,9 +179,6 @@ export class UsuariosService extends BaseCrud<Usuario> {
     const isReal = backendRes && (backendRes.id || backendRes.nombre || backendRes.name || backendRes.email);
     
     if (isReal) {
-      // Creamos un objeto con solo los campos que el backend ha devuelto realmente
-      // para evitar que los valores por defecto de mapSingleFromBackend (como '' o 1)
-      // sobreescriban datos válidos en localData (especialmente en el toggle de estado).
       const cleanedMapped: any = {};
       const raw = (backendRes.json && typeof backendRes.json === 'object') ? backendRes.json : backendRes;
 
@@ -195,7 +192,6 @@ export class UsuariosService extends BaseCrud<Usuario> {
 
       const merged = { ...localData, ...cleanedMapped };
       
-      // Preserve password from localData if backend didn't return it
       if (!cleanedMapped.password && localData.password) {
         merged.password = localData.password;
       }
