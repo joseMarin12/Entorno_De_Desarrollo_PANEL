@@ -1,18 +1,19 @@
 import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Usuario } from '../../../../models/usuarios.model';
+import { Usuario, Role } from '../../../../models/usuarios.model';
 
 @Component({
-  selector: 'app-usuarios-modal-edit',
+  selector: 'app-usuarios-modal-form',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './modal-edit.component.html',
+  templateUrl: './modal-form.component.html',
 })
-export class UsuariosModalEditComponent implements OnChanges {
+export class UsuariosModalFormComponent implements OnChanges {
   @Input() usuario: Usuario | null = null;
   @Input() emailUsuarios: string[] = [];
-  @Output() save = new EventEmitter<Usuario>();
+  @Input() roles: Role[] = [];
+  @Output() save = new EventEmitter<Partial<Usuario>>();
   @Output() close = new EventEmitter<void>();
 
   form = { nombre: '', apellido1: '', email: '', password: '', role_id: 1 as number | string, enabled: true };
@@ -28,13 +29,25 @@ export class UsuariosModalEditComponent implements OnChanges {
         role_id: this.usuario.role_id || 1,
         password: '' // Se deja vacío por defecto en edición
       };
-      this.errors = {};
+    } else {
+      this.form = { nombre: '', apellido1: '', email: '', password: '', role_id: 1, enabled: true };
     }
+    this.errors = {};
+  }
+
+  get isEdit(): boolean {
+    return !!this.usuario;
+  }
+
+  get title(): string {
+    return this.isEdit ? 'Editar Usuario' : 'Añadir Usuario';
   }
 
   get subtitle(): string {
-    if (!this.usuario) return '';
-    return `Modificando datos de ${[this.usuario.nombre, this.usuario.apellido1].join(' ')}`;
+    if (this.isEdit && this.usuario) {
+      return `Modificando datos de ${[this.usuario.nombre, this.usuario.apellido1].join(' ')}`;
+    }
+    return 'Rellena los datos del nuevo usuario';
   }
 
   toggleEnabled(): void {
@@ -51,14 +64,24 @@ export class UsuariosModalEditComponent implements OnChanges {
       const emailLower = this.form.email.trim().toLowerCase();
       const currentEmailLower = this.usuario?.email?.toLowerCase();
       
-      // Si el email ha cambiado y ya existe en la lista de registrados
-      if (emailLower !== currentEmailLower && this.emailUsuarios.includes(emailLower)) {
+      // Si es nuevo o el email ha cambiado y ya existe en la lista de registrados
+      if ((!this.isEdit || emailLower !== currentEmailLower) && this.emailUsuarios.includes(emailLower)) {
         this.errors['email'] = 'Este correo ya pertenece a un usuario o comercial registrado';
       }
     }
+    
+    if (!this.isEdit && !this.form.password) {
+        this.errors['password'] = 'Campo obligatorio';
+    }
+
+    if (!this.form.role_id) this.errors['role_id'] = 'Campo obligatorio';
 
     if (Object.keys(this.errors).length > 0) return;
 
-    this.save.emit({ id: this.usuario!.id, ...this.form });
+    if (this.isEdit) {
+       this.save.emit({ id: this.usuario!.id, ...this.form });
+    } else {
+       this.save.emit({ ...this.form });
+    }
   }
 }

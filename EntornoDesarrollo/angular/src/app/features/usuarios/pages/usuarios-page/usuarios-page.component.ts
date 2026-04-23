@@ -10,9 +10,8 @@ import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { UsuariosStatsRowComponent } from '../../components/stats-row/usuarios-stats-row.component';
 import { UsuariosToolbarComponent, UsuariosFilterType } from '../../components/toolbar/usuarios-toolbar.component';
 import { UsuariosTableComponent } from '../../components/usuarios-table/usuarios-table.component';
-import { UsuariosModalAddComponent } from '../../components/modal-add/modal-add.component';
-import { UsuariosModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
+import { UsuariosModalFormComponent } from '../../components/modal-form/modal-form.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
 
 @Component({
@@ -24,8 +23,7 @@ import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/conf
     UsuariosStatsRowComponent,
     UsuariosToolbarComponent,
     UsuariosTableComponent,
-    UsuariosModalAddComponent,
-    UsuariosModalEditComponent,
+    UsuariosModalFormComponent,
     UsuariosModalDetailComponent,
     ConfirmationModalComponent
 ],
@@ -45,14 +43,14 @@ export class UsuariosPageComponent implements OnInit {
     readonly PAGE_SIZE = 10;
 
     // ── Estado modales ────────────────────────────────
-    showAdd = false;
-    showEdit = false;
+    showForm = false;
     showBaja = false;
     showDetail = false;
     selectedId: number | null = null;
 
     // ── Ciclo de vida ─────────────────────────────────
     ngOnInit(): void {
+        this.svc.loadRoles();
         this.loadPage();
         this.loadComercialesEmails();
     }
@@ -68,7 +66,7 @@ export class UsuariosPageComponent implements OnInit {
             searchText: this.searchQuery,
             status,
         };
-        this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters);
+        this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters).subscribe();
     }
 
     private loadComercialesEmails(): void {
@@ -113,16 +111,32 @@ export class UsuariosPageComponent implements OnInit {
     }
 
     openAdd(): void {
-        this.showAdd = true;
+        this.selectedId = null;
+        this.showForm = true;
     }
 
-    async onSaveAdd(data: Omit<Usuario, 'id'>): Promise<void> {
-        try {
-            await this.svc.add(data);
-            this.showAdd = false;
-            this.toast.show('success', `✓ Usuario <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
-        } catch {
-            this.toast.show('error', `✗ No se pudo añadir el usuario. Inténtalo de nuevo.`);
+    onSaveForm(data: Partial<Usuario>): void {
+        if (this.selectedId) {
+            this.svc.update(this.selectedId, data as Usuario).subscribe({
+                next: () => {
+                    this.showForm = false;
+                    this.selectedId = null;
+                    this.toast.show('info', `✎ Usuario <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
+                },
+                error: () => {
+                    this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
+                }
+            });
+        } else {
+            this.svc.add(data as Omit<Usuario, 'id'>).subscribe({
+                next: () => {
+                    this.showForm = false;
+                    this.toast.show('success', `✓ Usuario <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
+                },
+                error: () => {
+                    this.toast.show('error', `✗ No se pudo añadir el usuario. Inténtalo de nuevo.`);
+                }
+            });
         }
     }
 
@@ -133,18 +147,7 @@ export class UsuariosPageComponent implements OnInit {
 
     onEditClick(id: number): void {
         this.selectedId = id;
-        this.showEdit = true;
-    }
-
-    async onSaveEdit(data: Usuario): Promise<void> {
-        try {
-            await this.svc.update(data.id, data);
-            this.showEdit = false;
-            this.selectedId = null;
-            this.toast.show('info', `✎ Usuario <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
-        } catch {
-            this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
-        }
+        this.showForm = true;
     }
 
     onBajaClick(id: number): void {
@@ -152,21 +155,23 @@ export class UsuariosPageComponent implements OnInit {
         this.showBaja = true;
     }
 
-    async onConfirmBaja(): Promise<void> {
+    onConfirmBaja(): void {
         if (this.selectedId == null) return;
         const u = this.svc.getById(this.selectedId)!;
         const wasActive = u.enabled;
-        try {
-            await this.svc.toggleActivo(this.selectedId);
-            this.showBaja = false;
-            this.selectedId = null;
-            if (wasActive) {
-                this.toast.show('warning', `⊘ Usuario <strong>${this.svc.fullName(u)}</strong> dado de baja`);
-            } else {
-                this.toast.show('success', `↺ Usuario <strong>${this.svc.fullName(u)}</strong> reactivado`);
+        this.svc.toggleActivo(this.selectedId).subscribe({
+            next: () => {
+                this.showBaja = false;
+                this.selectedId = null;
+                if (wasActive) {
+                    this.toast.show('warning', `⊘ Usuario <strong>${this.svc.fullName(u)}</strong> dado de baja`);
+                } else {
+                    this.toast.show('success', `↺ Usuario <strong>${this.svc.fullName(u)}</strong> reactivado`);
+                }
+            },
+            error: () => {
+                this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`);
             }
-        } catch {
-            this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`);
-        }
+        });
     }
 }
