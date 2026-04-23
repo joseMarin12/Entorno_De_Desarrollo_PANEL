@@ -9,10 +9,9 @@ import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
 import { ToolbarComponent, FilterType } from '../../components/toolbar/toolbar.component';
 import { FormacionesTableComponent } from '../../components/formaciones-table/formaciones-table.component';
-import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
-import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
-import { ModalBajaComponent } from '../../components/modal-baja/modal-baja.component';
+import { ModalFormacionComponent } from '../../components/modal-formacion/modal-formacion.component';
 import { ModalParticipantesComponent } from '../../components/modal-participantes/modal-participantes.component';
+import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-formaciones-page',
@@ -23,16 +22,16 @@ import { ModalParticipantesComponent } from '../../components/modal-participante
     StatsRowComponent,
     ToolbarComponent,
     FormacionesTableComponent,
-    ModalAddComponent,
-    ModalEditComponent,
-    ModalBajaComponent,
+    ModalFormacionComponent,
     ModalParticipantesComponent,
+    ConfirmationModalComponent,
   ],
   templateUrl: './formaciones-page.component.html',
 })
 export class FormacionesPageComponent implements OnInit {
   svc = inject(FormacionesService);
   toast = inject(ToastService);
+  ConfirmMode = ConfirmMode;
 
   // ── Filtros ──────────────────────────────────────
   searchQuery = '';
@@ -41,15 +40,13 @@ export class FormacionesPageComponent implements OnInit {
   readonly PAGE_SIZE = 10;
 
   // ── Estado modales ────────────────────────────────
-  showAdd = false;
-  showEdit = false;
+  showForm = false; // Unificado para añadir/editar
   showBaja = false;
   showParticipantes = false;
   selectedId: number | null = null;
 
   // ── Ciclo de vida ─────────────────────────────────
   ngOnInit(): void {
-    // subscribe() para disparar el Observable (sin él no se ejecuta nada)
     this.svc.loadAll().subscribe();
   }
 
@@ -90,33 +87,36 @@ export class FormacionesPageComponent implements OnInit {
   }
 
   openAdd(): void {
-    this.showAdd = true;
-  }
-
-  onSaveAdd(data: Omit<Formacion, 'id'>): void {
-    this.svc.add(data).subscribe({
-      next: () => {
-        this.showAdd = false;
-        this.toast.show('success', `✓ Formación <strong>${data.curso}</strong> añadida correctamente`);
-      },
-      error: () => this.toast.show('error', `✗ No se pudo añadir la formación. Inténtalo de nuevo.`),
-    });
+    this.selectedId = null;
+    this.showForm = true;
   }
 
   onEditClick(id: number): void {
     this.selectedId = id;
-    this.showEdit = true;
+    this.showForm = true;
   }
 
-  onSaveEdit(data: Formacion): void {
-    this.svc.update(data.id, data).subscribe({
-      next: () => {
-        this.showEdit = false;
-        this.selectedId = null;
-        this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
-      },
-      error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
-    });
+  onSaveForm(data: any): void {
+    if (this.selectedId) {
+      // Editar
+      this.svc.update(this.selectedId, data).subscribe({
+        next: () => {
+          this.showForm = false;
+          this.selectedId = null;
+          this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
+        },
+        error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
+      });
+    } else {
+      // Añadir
+      this.svc.add(data).subscribe({
+        next: () => {
+          this.showForm = false;
+          this.toast.show('success', `✓ Formación <strong>${data.curso}</strong> añadida correctamente`);
+        },
+        error: () => this.toast.show('error', `✗ No se pudo añadir la formación. Inténtalo de nuevo.`),
+      });
+    }
   }
 
   onBajaClick(id: number): void {

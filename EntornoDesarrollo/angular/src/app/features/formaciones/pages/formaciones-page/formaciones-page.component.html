@@ -1,4 +1,4 @@
-﻿<app-topbar pageTitle="Formaciones" />
+<app-topbar pageTitle="Formaciones" />
 
 <div class="page-content">
 
@@ -18,7 +18,7 @@
   </div>
 
   <!-- Estadísticas -->
-  <app-stats-row />
+  <app-stats-row [total]="svc.total()" [activas]="svc.totalActivos()" [inactivas]="svc.totalInactivos()" />
 
   <!-- Toolbar: búsqueda + filtros -->
   <app-toolbar (searchChange)="onSearchChange($event)" (filterChange)="onFilterChange($event)" />
@@ -29,19 +29,21 @@
     (participantesClick)="onParticipantesClick($event)" (pageChange)="currentPage = $event" />
 
 </div>
-<!-- Modales -->
-@if (showAdd) {
-<app-modal-add (save)="onSaveAdd($event)" (close)="showAdd = false" />
-}
 
-@if (showEdit && selectedformacion) {
-<app-modal-edit [formacion]="selectedformacion" (save)="onSaveEdit($event)"
-  (close)="showEdit = false; selectedId = null" />
+<!-- Modales -->
+@if (showForm) {
+<app-modal-formacion [formacion]="selectedformacion!" (save)="onSaveForm($event)"
+  (close)="showForm = false; selectedId = null" />
 }
 
 @if (showBaja && selectedformacion) {
-<app-modal-baja [formacion]="selectedformacion" (confirm)="onConfirmBaja()"
-  (close)="showBaja = false; selectedId = null" />
+<app-confirmation-modal
+  [name]="selectedformacion.curso"
+  [title]="selectedformacion.activo ? '¿Dar de baja formación?' : '¿Reactivar formación?'"
+  [description]="selectedformacion.activo ? 'La formación pasará a estado inactivo.' : 'La formación volverá a estar disponible.'"
+  [mode]="selectedformacion.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
+  (confirm)="onConfirmBaja()"
+  (closed)="showBaja = false; selectedId = null" />
 }
 
 @if (showParticipantes && selectedformacion) {

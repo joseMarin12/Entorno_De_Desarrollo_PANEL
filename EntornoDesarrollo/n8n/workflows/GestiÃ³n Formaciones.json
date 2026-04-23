@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-20T14:25:46.725Z",
+  "updatedAt": "2026-04-23T10:18:48.930Z",
   "createdAt": "2026-04-20T08:43:55.636Z",
   "id": "R5yHppLWfre3MYim",
   "name": "Gestión Formaciones",
@@ -197,6 +197,102 @@
               },
               "renameOutput": true,
               "outputKey": "Remove Trabajador"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "09b0bb29-1f81-4e25-bebe-89bc918e3863",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getArea",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get area"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "975ea21f-634f-4978-811f-f0d9d8f5423c",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getModalidad",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get modalidad"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e64d30af-361a-49b3-be64-060ebca83b9b",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getEjecución",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "593f86a5-0c68-4d61-b5ef-cec872a160a3",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getResponsable",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
             }
           ]
         },
@@ -216,13 +312,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 15;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE f.activo = true';\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  whereClause += ` AND (f.curso ILIKE $${paramIndex} OR f.denominacion ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.id_estado !== undefined && filters.id_estado !== null && filters.id_estado !== '') {\n  whereClause += `f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\nparams.push(pageSize);\nconst limitParam = paramIndex++;\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) as total\n  FROM formacion f\n  ${whereClause}\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre as estado_nombre,\n    af.nombre as area_nombre,\n    mf.nombre as modalidad_nombre,\n    exe.nombre as ejecucion_nombre,\n    COUNT(ft.id_trabajador) as num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY f.id, ef.nombre, af.nombre, mf.nombre, exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\nSELECT paginado.*, total_count.total as total_records\nFROM paginado, total_count;\n`;\n\nreturn [{ json: { query, params, page, pageSize } }];"
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 15;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  whereClause += ` AND (f.curso ILIKE $${paramIndex} OR f.denominacion ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.id_estado !== undefined && filters.id_estado !== null && filters.id_estado !== '') {\n  whereClause += ` AND f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\n// Si queremos que por defecto traiga activos e inactivos, dejamos WHERE 1=1.\n// Si el frontend enviara un filtro de status, podramos manejarlo aqu.\n\nparams.push(pageSize);\nconst limitParam = paramIndex++;\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) as total\n  FROM formacion f\n  ${whereClause}\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre as estado_nombre,\n    af.nombre as area_nombre,\n    mf.nombre as modalidad_nombre,\n    exe.nombre as ejecucion_nombre,\n    COUNT(ft.id_trabajador) as num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY f.id, ef.nombre, af.nombre, mf.nombre, exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\nSELECT paginado.*, total_count.total as total_records\nFROM paginado, total_count;\n`;\n\nreturn [{ json: { query, params, page, pageSize } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -128,
-        48
+        -32,
+        -544
       ],
       "id": "fbf74ae7-f306-4e9c-81f6-b4446591f700",
       "name": "Build Get Formaciones Query"
@@ -238,14 +334,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        96,
-        48
+        320,
+        -528
       ],
       "id": "81f121a4-c55e-42e8-a0fa-465a7b000671",
       "name": "Get Formaciones",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -261,14 +357,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        96,
-        240
+        320,
+        -352
       ],
       "id": "26938c25-b018-42ce-9bb7-efcdc407abc3",
       "name": "Insert Formacion",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -284,14 +380,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        96,
-        432
+        320,
+        -160
       ],
       "id": "7a774ed7-109c-4853-b29c-60f1f048df85",
       "name": "Update Formacion",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -307,14 +403,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        96,
-        624
+        320,
+        32
       ],
       "id": "16b53842-f1bd-4a35-ad82-e38a0608531d",
       "name": "Toggle Formacion Status",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -326,8 +422,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -128,
-        800
+        80,
+        864
       ],
       "id": "9fa85371-0c7c-45b9-aa9d-1715d0b1ad6f",
       "name": "Build Get Trabajadores Query"
@@ -343,14 +439,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        96,
-        800
+        304,
+        864
       ],
       "id": "c2886c75-ccd9-44b6-bd94-d84d9a4ab8c2",
       "name": "Get Trabajadores",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -366,14 +462,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        96,
-        992
+        304,
+        1056
       ],
       "id": "8ac77d33-0f52-4f9a-8d93-78dd08c1e140",
       "name": "Add Trabajador",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -389,14 +485,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        96,
-        1168
+        304,
+        1232
       ],
       "id": "935b51b7-040b-434e-b77d-df7b826a2533",
       "name": "Remove Trabajador",
       "credentials": {
         "postgres": {
-          "id": "4828RckJX3Hstso7",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -424,8 +520,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -128,
-        1344
+        80,
+        1408
       ],
       "id": "e5af6836-bf2b-4bab-a6ea-b26e871a9034",
       "name": "Invalid Action Response"
@@ -441,8 +537,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        320,
-        336
+        944,
+        512
       ],
       "id": "c309396c-fb81-4c74-af17-95542f7f63c6",
       "name": "Respond Success"
@@ -458,11 +554,95 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        96,
-        1344
+        304,
+        1408
       ],
       "id": "a1bc5a54-8833-46d0-bfa8-ea68c4523e60",
       "name": "Respond Error"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select id, nombre from area_formacion",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        320,
+        192
+      ],
+      "id": "0c433135-2882-48c8-b87b-9b0c3ff23c09",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "ko5fFqsOIauxDSEd",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select id, nombre from modalidad_formacion",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        320,
+        368
+      ],
+      "id": "a2cb1ae5-0bda-40ec-869d-b61369e50b42",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "ko5fFqsOIauxDSEd",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select id, nombre from ejecucion_formacion\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        320,
+        528
+      ],
+      "id": "2968e0b2-6f72-4e98-a4e6-94003c650e40",
+      "name": "Execute a SQL query2",
+      "credentials": {
+        "postgres": {
+          "id": "ko5fFqsOIauxDSEd",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select id, name from \"user\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        320,
+        704
+      ],
+      "id": "fa13a642-8469-49c5-b3e3-e57fb82f46c1",
+      "name": "Execute a SQL query3",
+      "credentials": {
+        "postgres": {
+          "id": "ko5fFqsOIauxDSEd",
+          "name": "Postgres account 2"
+        }
+      }
     }
   ],
   "connections": {
@@ -524,6 +704,34 @@
         [
           {
             "node": "Remove Trabajador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query3",
             "type": "main",
             "index": 0
           }
@@ -646,6 +854,50 @@
           }
         ]
       ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query2": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query3": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -653,34 +905,36 @@
     "binaryMode": "separate"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "8a0cf846-5c0b-4d0a-8f1e-24848f2b8061",
-  "activeVersionId": "8a0cf846-5c0b-4d0a-8f1e-24848f2b8061",
-  "versionCounter": 36,
+  "versionId": "8c0f2f4c-90e4-4b98-aae9-52240d1a80bd",
+  "activeVersionId": "8c0f2f4c-90e4-4b98-aae9-52240d1a80bd",
+  "versionCounter": 106,
   "triggerCount": 1,
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-04-20T08:43:55.636Z",
-      "createdAt": "2026-04-20T08:43:55.636Z",
+      "updatedAt": "2026-04-22T08:46:52.367Z",
+      "createdAt": "2026-04-22T08:46:52.367Z",
       "role": "workflow:owner",
       "workflowId": "R5yHppLWfre3MYim",
-      "projectId": "sBWXsirJNs9eVf7I",
+      "projectId": "HPNLsCxwhHCLkcBf",
       "project": {
-        "updatedAt": "2026-04-07T12:45:46.647Z",
-        "createdAt": "2026-03-17T14:36:55.666Z",
-        "id": "sBWXsirJNs9eVf7I",
+        "updatedAt": "2026-04-22T08:46:19.945Z",
+        "createdAt": "2026-04-22T08:41:51.280Z",
+        "id": "HPNLsCxwhHCLkcBf",
         "name": "Adriano Casado Villarreal <adriano.casado@sgtech.tech>",
         "type": "personal",
         "icon": null,
         "description": null,
-        "creatorId": "71e73ad8-a6d1-4bbe-9a4d-70b3c90181b6"
+        "creatorId": "134af668-187e-480f-8edf-2641b318bfd3"
       }
     }
   ],
   "versionMetadata": {
-    "name": "FormacionesFinal",
+    "name": "Version 8c0f2f4c",
     "description": ""
   }
 }
