@@ -8,9 +8,8 @@ import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { UsuariosStatsRowComponent } from '../../components/stats-row/usuarios-stats-row.component';
 import { UsuariosToolbarComponent, UsuariosFilterType } from '../../components/toolbar/usuarios-toolbar.component';
 import { UsuariosTableComponent } from '../../components/usuarios-table/usuarios-table.component';
-import { UsuariosModalAddComponent } from '../../components/modal-add/modal-add.component';
-import { UsuariosModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
+import { UsuariosModalFormComponent } from '../../components/modal-form/modal-form.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
 
 @Component({
@@ -22,8 +21,7 @@ import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/conf
     UsuariosStatsRowComponent,
     UsuariosToolbarComponent,
     UsuariosTableComponent,
-    UsuariosModalAddComponent,
-    UsuariosModalEditComponent,
+    UsuariosModalFormComponent,
     UsuariosModalDetailComponent,
     ConfirmationModalComponent
 ],
@@ -41,8 +39,7 @@ export class UsuariosPageComponent implements OnInit {
     readonly PAGE_SIZE = 10;
 
     // ── Estado modales ────────────────────────────────
-    showAdd = false;
-    showEdit = false;
+    showForm = false;
     showBaja = false;
     showDetail = false;
     selectedId: number | null = null;
@@ -97,19 +94,33 @@ export class UsuariosPageComponent implements OnInit {
     }
 
     openAdd(): void {
-        this.showAdd = true;
+        this.selectedId = null;
+        this.showForm = true;
     }
 
-    onSaveAdd(data: Omit<Usuario, 'id'>): void {
-        this.svc.add(data).subscribe({
-            next: () => {
-                this.showAdd = false;
-                this.toast.show('success', `✓ Usuario <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
-            },
-            error: () => {
-                this.toast.show('error', `✗ No se pudo añadir el usuario. Inténtalo de nuevo.`);
-            }
-        });
+    onSaveForm(data: Partial<Usuario>): void {
+        if (this.selectedId) {
+            this.svc.update(this.selectedId, data as Usuario).subscribe({
+                next: () => {
+                    this.showForm = false;
+                    this.selectedId = null;
+                    this.toast.show('info', `✎ Usuario <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
+                },
+                error: () => {
+                    this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
+                }
+            });
+        } else {
+            this.svc.add(data as Omit<Usuario, 'id'>).subscribe({
+                next: () => {
+                    this.showForm = false;
+                    this.toast.show('success', `✓ Usuario <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
+                },
+                error: () => {
+                    this.toast.show('error', `✗ No se pudo añadir el usuario. Inténtalo de nuevo.`);
+                }
+            });
+        }
     }
 
     onDetailClick(id: number): void {
@@ -119,20 +130,7 @@ export class UsuariosPageComponent implements OnInit {
 
     onEditClick(id: number): void {
         this.selectedId = id;
-        this.showEdit = true;
-    }
-
-    onSaveEdit(data: Usuario): void {
-        this.svc.update(data.id, data).subscribe({
-            next: () => {
-                this.showEdit = false;
-                this.selectedId = null;
-                this.toast.show('info', `✎ Usuario <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
-            },
-            error: () => {
-                this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
-            }
-        });
+        this.showForm = true;
     }
 
     onBajaClick(id: number): void {

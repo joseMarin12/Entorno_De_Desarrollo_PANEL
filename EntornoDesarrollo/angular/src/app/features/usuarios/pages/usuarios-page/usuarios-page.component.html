@@ -40,20 +40,12 @@
 </div>
 
 <!-- Modales -->
-@if (showAdd) {
-  <app-usuarios-modal-add
-    [emailUsuarios]="emailUsuarios()"
-    (save)="onSaveAdd($event)"
-    (close)="showAdd = false"
-  />
-}
-
-@if (showEdit && selectedUsuario) {
-  <app-usuarios-modal-edit
+@if (showForm) {
+  <app-usuarios-modal-form
     [usuario]="selectedUsuario"
     [emailUsuarios]="emailUsuarios()"
-    (save)="onSaveEdit($event)"
-    (close)="showEdit = false; selectedId = null"
+    (save)="onSaveForm($event)"
+    (close)="showForm = false; selectedId = null"
   />
 }
 
