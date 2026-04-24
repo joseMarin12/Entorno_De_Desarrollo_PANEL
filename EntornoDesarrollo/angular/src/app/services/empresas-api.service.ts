@@ -23,7 +23,14 @@ export class EmpresasApiService extends BaseCrud<Empresa> {
   }
 
   update(id: number, data: Empresa): Observable<Empresa> {
-    return this._update({ action: 'updateEmpresa', empresaId: id, empresaData: data });
+    return this._update({ action: 'updateEmpresa', empresaId: id, empresaData: {
+      nombre: data.nombre,
+      razonSocial: data.razonSocial,
+      cif: data.cif,
+      id_tipo_empresa: data.id_tipo_empresa,
+      id_comerciales: data.id_comerciales,
+      activo: data.activo,
+    } });
   }
 
   toggleStatus(id: number): Observable<Empresa> {

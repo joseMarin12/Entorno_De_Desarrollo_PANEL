@@ -16,12 +16,13 @@ import { forkJoin, of, catchError, map } from 'rxjs';
 })
 export class ModalEditComponent implements OnChanges, OnInit {
   @Input() empresa: Empresa | null = null;
+  @Input() existingCIFs: string[] = [];
   @Output() save  = new EventEmitter<Empresa>();
   @Output() close = new EventEmitter<void>();
 
   private comercialesApi = inject(ComercialesApiService);
   private empresasApi = inject(EmpresasApiService);
-
+  private formInitialized = false;
   private _tipos = signal<TipoEmpresa[]>([]);
   private _comerciales = signal<Comercial[]>([]);
 
@@ -44,6 +45,7 @@ export class ModalEditComponent implements OnChanges, OnInit {
       activo:          this.empresa.activo,
     };
       this.errors = {};
+      this.formInitialized = true;
   }
 
   ngOnInit(): void {
@@ -64,12 +66,14 @@ export class ModalEditComponent implements OnChanges, OnInit {
       }).subscribe(({ tipos, comerciales }) => {
       this._tipos.set(tipos);
       this._comerciales.set(comerciales);
-      this.fillForm();
+      if (!this.formInitialized) this.fillForm();
     });
   }
 
   ngOnChanges(): void {
-    this.fillForm();
+    if (!this.formInitialized) {
+      this.fillForm();
+    }
   }
 
   get subtitle(): string {
@@ -87,8 +91,14 @@ export class ModalEditComponent implements OnChanges, OnInit {
     if (!this.form.razonSocial) this.errors['razonSocial'] = 'Campo obligatorio';
     if (!this.form.id_tipo_empresa) this.errors['id_tipo_empresa'] = 'Campo obligatorio';
     if (!this.form.cif) this.errors['cif'] = 'Campo obligatorio';
+    else if (!this.form.cif || !/^[A-Z]\d{8}$/.test(this.form.cif.trim())) {
+      this.errors['cif'] = 'Introduce un CIF válido';
+    }
+    else if (this.existingCIFs.includes(this.form.cif.trim().toUpperCase())) {
+      this.errors['cif'] = 'Este CIF ya está registrado';
+    }
+  
     if (Object.keys(this.errors).length > 0) return;
-
     this.save.emit({ id: this.empresa!.id, ...this.form, id_tipo_empresa: this.form.id_tipo_empresa!, });
   }
 

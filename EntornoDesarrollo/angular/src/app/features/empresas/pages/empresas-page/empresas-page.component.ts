@@ -92,6 +92,19 @@ export class EmpresasPageComponent implements OnInit {
     });
   }
 
+  /* Get CIF existentes para que no se repitan */
+  get getExistingCIFs(): string[] {
+    return this.empresas().map(e => e.cif.trim().toUpperCase());
+  }
+  
+  get existingCIFsForEdit(): string[] {
+    if (!this.selectedId) return [];
+    return this.empresas()
+      .filter(e => e.id !== this.selectedId)
+      .map(e => e.cif.trim().toUpperCase());
+  }
+
+
   // ── Handlers ──────────────────────────────────────
   onSearchChange(q: string): void {
     this.searchQuery = q;

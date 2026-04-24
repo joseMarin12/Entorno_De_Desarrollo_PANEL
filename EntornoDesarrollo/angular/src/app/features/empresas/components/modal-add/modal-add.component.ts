@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, OnInit, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnInit, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Empresa } from '../../../../models/empresa.model';
@@ -15,6 +15,7 @@ import { TipoEmpresa } from '../../../../models/tipo-empresa.model';
   templateUrl: './modal-add.component.html',
 })
 export class ModalAddComponent implements OnInit {
+  @Input() existingCIFs: string[] = [];
   @Output() save  = new EventEmitter<Omit<Empresa, 'id'>>();
   @Output() close = new EventEmitter<void>();
 
@@ -61,6 +62,12 @@ export class ModalAddComponent implements OnInit {
     if (!this.form.razonSocial) this.errors['razonSocial'] = 'Campo obligatorio';
     if (!this.form.id_tipo_empresa) this.errors['id_tipo_empresa'] = 'Campo obligatorio';
     if (!this.form.cif) this.errors['cif'] = 'Campo obligatorio';
+    else if (!this.form.cif || !/^[A-Z]\d{8}$/.test(this.form.cif.trim())) {
+      this.errors['cif'] = 'Introduce un CIF válido';
+    }
+    else if (this.existingCIFs.includes(this.form.cif.trim().toUpperCase())) {
+      this.errors['cif'] = 'Este CIF ya está registrado';
+    }
     if (Object.keys(this.errors).length > 0) return;
 
     const data: Omit<Empresa, 'id'> = {
