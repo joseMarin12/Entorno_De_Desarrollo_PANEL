@@ -36,13 +36,13 @@
   <!-- Tabla -->
   <app-table
     [columns]="tableColumns"
-    [rows]="paginated"
-    [currentPage]="currentPage"
+    [rows]="paginated()"
+    [currentPage]="currentPage()"
     [pageSize]="PAGE_SIZE"
-    [totalFiltered]="filtered.length"
+    [totalFiltered]="filtered().length"
     [entityLabel]="'seleccionadores'"
     (actionClick)="onTableAction($event)"
-    (pageChange)="currentPage = $event"
+    (pageChange)="currentPage.set($event)"
   />
 
 </div>
@@ -52,9 +52,9 @@
   <app-sel-modal-form
     [seleccionador]="selectedSeleccionador"
     [empresasDisponibles]="empresasDisponibles()"
-    [existingEmails]="existingEmailsForEdit"
+    [existingEmails]="existingEmailsForEdit()"
     (save)="onSaveForm($event)"
-    (close)="showForm = false; selectedId = null"
+    (close)="showForm = false; selectedId.set(null)"
   />
 }
 
@@ -63,7 +63,7 @@
   <app-sel-modal-detail
     [seleccionador]="selectedSeleccionador"
     (edit)="onEditClick($event); showDetail = false"
-    (close)="showDetail = false; selectedId = null"
+    (close)="showDetail = false; selectedId.set(null)"
   />
 }
 
@@ -73,6 +73,6 @@
     [name]="selectedSeleccionadorNombre() ?? ''"
     [mode]="confirmMode === ConfirmMode.DESACTIVAR ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirm()"
-    (closed)="showConfirm = false; selectedId = null"
+    (closed)="showConfirm = false; selectedId.set(null)"
   />
 }
