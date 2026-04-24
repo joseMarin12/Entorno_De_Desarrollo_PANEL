@@ -42,7 +42,7 @@ export class ModalAddComponent implements OnInit {
           return of([]);
         })
       ),
-      comerciales: this.comercialesApi.findAll('', 'true').pipe(
+      comerciales: this.comercialesApi.findAll(1, 1000, '', 'true').pipe(
         map(response => response.data ?? []),
         catchError((err) => {
           console.error('Error al cargar comerciales:', err);

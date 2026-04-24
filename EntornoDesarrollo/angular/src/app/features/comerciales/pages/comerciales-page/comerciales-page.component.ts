@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { ComercialesApiService } from '../../../../services/comerciales-api.service';
+import { ComercialesApiService, ComercialStats } from '../../../../services/comerciales-api.service';
 import { ToastService } from '../../../../services/toast.service';
 import { Comercial } from '../../../../models/comercial.model';
 
@@ -64,73 +64,69 @@ export class ComercialesPageComponent implements OnInit {
     },
   ];
 
-  // ── Estado: todos los comerciales traídos del servidor ──
+  // ── Estado: comerciales de la página actual ──
   private readonly _comerciales = signal<Comercial[]>([]);
   readonly comerciales   = this._comerciales.asReadonly();
 
-  // Paginación en cliente
-  readonly paginatedComerciales = computed(() => {
-    const start = (this.currentPage() - 1) * this.PAGE_SIZE;
-    return this._comerciales().slice(start, start + this.PAGE_SIZE);
-  });
+  // Stats globales del backend
+  private readonly _stats = signal<ComercialStats>({ total: 0, activos: 0, inactivos: 0 });
+  readonly statsTotal     = computed(() => this._stats().total);
+  readonly statsActivos   = computed(() => this._stats().activos);
+  readonly statsInactivos = computed(() => this._stats().inactivos);
 
-  // Contadores calculados en cliente
-  readonly totalRecords   = computed(() => this._comerciales().length);
-  readonly totalActivos   = computed(() => this._comerciales().filter(c => c.activo).length);
-  readonly totalInactivos = computed(() => this._comerciales().filter(c => !c.activo).length);
-
-  // ── Filtros y paginación ──────────────────────────────────
-  searchQuery   = '';
-  activeFilter: FilterType = 'todos';
-  currentPage   = signal(1);
+  // ── Filtros y paginación server-side ─────────────────────────────
+  searchQuery   = signal<string>('');
+  activeFilter  = signal<FilterType>('todos');
+  currentPage   = signal<number>(1);
+  totalFiltered = signal<number>(0);
   readonly PAGE_SIZE = 10;
 
   // ── Estado modales ────────────────────────────────────────
   showAdd  = false;
   showEdit = false;
   showBaja = false;
-  selectedId: number | null = null;
+  selectedId = signal<number | null>(null);
 
   // ── Ciclo de vida ─────────────────────────────────────────
   ngOnInit(): void {
-    this.loadAll();
+    this.loadPage();
   }
 
   // ── Helpers de selección ─────────────────────────────────
   get selectedComercial(): Comercial | null {
-    if (this.selectedId === null) return null;
-    return this.getById(this.selectedId) ?? null;
+    const id = this.selectedId();
+    if (id === null) return null;
+    return this.getById(id) ?? null;
   }
 
-  /**
-   * Emails de la página actual.
-   * La unicidad global la garantiza la restricción UNIQUE de PostgreSQL;
-   * si hay duplicado fuera de esta página, el backend lo rechazará.
-   */
   get existingEmails(): string[] {
     return this.comerciales().map(c => c.email.toLowerCase());
   }
 
   get existingEmailsForEdit(): string[] {
-    if (!this.selectedId) return [];
+    const id = this.selectedId();
+    if (!id) return [];
     return this.comerciales()
-      .filter(c => c.id !== this.selectedId)
+      .filter(c => c.id !== id)
       .map(c => c.email.toLowerCase());
   }
 
   // ── Carga server-side ─────────────────────────────────────
   private getStatusFilter(): string {
-    if (this.activeFilter === 'activos') return 'true';
-    if (this.activeFilter === 'baja')    return 'false';
+    const filter = this.activeFilter();
+    if (filter === 'activos') return 'true';
+    if (filter === 'baja')    return 'false';
     return '';
   }
 
-  private loadAll(): void {
+  private loadPage(): void {
     this.api
-      .findAll(this.searchQuery, this.getStatusFilter(), 1, 1000)
+      .findAll(this.currentPage(), this.PAGE_SIZE, this.searchQuery(), this.getStatusFilter())
       .subscribe({
-        next: (res) => {
-          this._comerciales.set(res.data ?? []);
+        next: (page) => {
+          this._comerciales.set(page.data);
+          this.totalFiltered.set(page.totalFiltered);
+          if (page.stats.total > 0 || page.data.length > 0) this._stats.set(page.stats);
         },
         error: () =>
           this.toast.show('error', '✗ No se pudo cargar los comerciales. Inténtalo de nuevo.'),
@@ -139,19 +135,20 @@ export class ComercialesPageComponent implements OnInit {
 
   // ── Handlers de filtro y paginación ──────────────────────
   onSearchChange(q: string): void {
-    this.searchQuery = q;
+    this.searchQuery.set(q);
     this.currentPage.set(1);
-    this.loadAll();
+    this.loadPage();
   }
 
   onFilterChange(f: FilterType): void {
-    this.activeFilter = f;
+    this.activeFilter.set(f);
     this.currentPage.set(1);
-    this.loadAll();
+    this.loadPage();
   }
 
   onPageChange(page: number): void {
     this.currentPage.set(page);
+    this.loadPage();
   }
 
   // ── Handler unificado para app-table ─────────────────────
@@ -162,15 +159,18 @@ export class ComercialesPageComponent implements OnInit {
   }
 
   // ── Modales ───────────────────────────────────────────────
-  openAdd(): void { this.showAdd = true; }
+  openAdd(): void { 
+    this.selectedId.set(null);
+    this.showAdd = true; 
+  }
 
   onEditClick(id: number): void {
-    this.selectedId = id;
+    this.selectedId.set(id);
     this.showEdit   = true;
   }
 
   onBajaClick(id: number): void {
-    this.selectedId = id;
+    this.selectedId.set(id);
     this.showBaja   = true;
   }
 
@@ -179,8 +179,8 @@ export class ComercialesPageComponent implements OnInit {
     this.api.create({ ...data, id: null }).subscribe({
       next: () => {
         this.showAdd     = false;
-        this.currentPage.set(1);         // volver a la primera página para ver el nuevo registro
-        this.loadAll();
+        this.currentPage.set(1);
+        this.loadPage();
         this.toast.show('success', `✓ Comercial <strong>${data.nombre} ${data.primer_apellido}</strong> añadido correctamente`);
       },
       error: (err) => {
@@ -202,8 +202,8 @@ export class ComercialesPageComponent implements OnInit {
     this.api.update(data.id!, data).subscribe({
       next: () => {
         this.showEdit   = false;
-        this.selectedId = null;
-        this.loadAll();
+        this.selectedId.set(null);
+        this.loadPage();
         this.toast.show('info', `✎ Comercial <strong>${data.nombre} ${data.primer_apellido}</strong> actualizado`);
       },
       error: () =>
@@ -212,15 +212,16 @@ export class ComercialesPageComponent implements OnInit {
   }
 
   onConfirmBaja(): void {
-    if (this.selectedId == null) return;
-    const c        = this.getById(this.selectedId)!;
+    const id = this.selectedId();
+    if (id == null) return;
+    const c        = this.getById(id)!;
     const wasActive = c.activo;
 
-    this.api.toggleStatus(this.selectedId).subscribe({
+    this.api.toggleStatus(id).subscribe({
       next: () => {
         this.showBaja   = false;
-        this.selectedId = null;
-        this.loadAll();
+        this.selectedId.set(null);
+        this.loadPage();
         if (wasActive) {
           this.toast.show('warning', `⊘ Comercial <strong>${this.fullName(c)}</strong> dado de baja`);
         } else {
