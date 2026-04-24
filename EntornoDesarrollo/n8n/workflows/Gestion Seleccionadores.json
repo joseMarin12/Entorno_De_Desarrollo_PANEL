@@ -1,11 +1,4 @@
 {
-  "updatedAt": "2026-04-16T20:33:46.973Z",
-  "createdAt": "2026-04-13T18:24:51.637Z",
-  "id": "qjLNVz9LC37hy4pe",
-  "name": "Gestion Seleccionadores",
-  "description": null,
-  "active": true,
-  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -14,13 +7,13 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "2bc597ff-18a8-499f-baa2-4108a297b942",
+      "id": "e0fe2baf-ac9b-4801-b934-eb655708bec8",
       "name": "Webhook Seleccionadores",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        240,
-        1760
+        2560,
+        3824
       ],
       "webhookId": "a884095a-9de5-4c1b-9869-56be69f43cca"
     },
@@ -152,26 +145,26 @@
         },
         "options": {}
       },
-      "id": "f035668c-72aa-452a-ba77-f7b79aaf3383",
+      "id": "6a27b1c9-1b90-43d4-b57c-075822fe5f7a",
       "name": "Switch Actions",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        496,
-        1760
+        2816,
+        3824
       ]
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst conditions = [];\nconst params = [];\n\nlet query = `\n  SELECT \n    s.*, \n    (CASE WHEN e.id IS NOT NULL THEN json_build_object('id', e.id, 'nombre', e.nombre_empresa) ELSE NULL END) as empresa \n  FROM seleccionadores s \n  LEFT JOIN empresa e ON s.id_empresa = e.id \n  WHERE 1=1\n`;\n\n// 1. Filtro de texto dinámico parametrizado (CORREGIDO: rim() -> trim() y tipo string)\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(CONCAT(s.nombre, ' ', s.primer_apellido, ' ', COALESCE(s.segundo_apellido,'')) ILIKE $${params.length + 1} OR s.email ILIKE $${params.length + 1})`);\n  params.push(`%${filters.searchText.trim()}%`);\n}\n\n// 2. Filtro de status dinámico parametrizado (CORREGIDO: Manejo del valor del select en Front)\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  const statusStr = String(filters.status).toLowerCase();\n  \n  // Condicional corregido para ignorar si en el select nos mandan \"todos\" o \"todos los estados\"\n  if (statusStr !== 'todos' && statusStr !== 'todos los estados') {\n    conditions.push(`s.activo = $${params.length + 1}`);\n    // Solo será true si envían 'activo' / 'activos', caso contrario ('inactivos' o 'de baja') enviará false\n    params.push(statusStr === 'activos' || statusStr === 'activo');\n  }\n}\n\n// 3. NUEVO: Filtro de tipo dinámico parametrizado (Faltaba incorporar este campo del Frontend)\nif (filters.tipo !== undefined && filters.tipo !== null && filters.tipo !== '') {\n  const tipoStr = String(filters.tipo).toLowerCase();\n  \n  // Evitamos filtrar si eligen \"todos o \"todos los tipos\" en el select del form\n  if (tipoStr !== 'todos' && tipoStr !== 'todos los tipos') {\n    conditions.push(`s.tipo = $${params.length + 1}`);\n    params.push(tipoStr); // Inyectará 'interno' o 'externo' de forma de segura\n  }\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\nquery += ' ORDER BY s.created_at DESC';\n\nreturn [{ json: { query: query, params: params } }];\n"
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = body.page || 1;\nconst limit = body.limit || 10;\nconst offset = (page - 1) * limit;\nconst conditions = [];\nconst params = [];\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(CONCAT(s.nombre, ' ', s.primer_apellido, ' ', COALESCE(s.segundo_apellido,'')) ILIKE $${params.length + 1} OR s.email ILIKE $${params.length + 1})`);\n  params.push(`%${filters.searchText.trim()}%`);\n}\n\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  const statusStr = String(filters.status).toLowerCase();\n  if (statusStr !== 'todos' && statusStr !== 'todos los estados') {\n    conditions.push(`s.activo = $${params.length + 1}`);\n    params.push(statusStr === 'activos' || statusStr === 'activo');\n  }\n}\n\nif (filters.tipo !== undefined && filters.tipo !== null && filters.tipo !== '') {\n  const tipoStr = String(filters.tipo).toLowerCase();\n  if (tipoStr !== 'todos' && tipoStr !== 'todos los tipos') {\n    conditions.push(`s.tipo = $${params.length + 1}`);\n    params.push(tipoStr);\n  }\n}\n\nlet whereClause = 'WHERE 1=1';\nif (conditions.length > 0) {\n  whereClause += ' AND ' + conditions.join(' AND ');\n}\n\nconst limitParam = params.length + 1;\nconst offsetParam = params.length + 2;\nparams.push(limit);\nparams.push(offset);\n\nconst query = `WITH global_stats AS (\n  SELECT\n    COUNT(*)::int as total,\n    COUNT(*) FILTER (WHERE activo = true)::int as activos,\n    COUNT(*) FILTER (WHERE activo = false)::int as inactivos,\n    COUNT(*) FILTER (WHERE tipo = 'externo')::int as externos\n  FROM seleccionadores\n)\nSELECT\n  s.*,\n  (CASE WHEN e.id IS NOT NULL THEN json_build_object('id', e.id, 'nombre', e.nombre_empresa) ELSE NULL END) as empresa,\n  COUNT(*) OVER()::int as total_filtered,\n  gs.total as stats_total,\n  gs.activos as stats_activos,\n  gs.inactivos as stats_inactivos,\n  gs.externos as stats_externos\nFROM seleccionadores s\nLEFT JOIN empresa e ON s.id_empresa = e.id\nCROSS JOIN global_stats gs\n${whereClause}\nORDER BY s.created_at DESC\nLIMIT $${limitParam} OFFSET $${offsetParam}`;\n\nreturn [{ json: { query, params } }];\n"
       },
-      "id": "e974d97b-bb4e-4e35-971c-4ad8bbf65b52",
+      "id": "71b6e1f1-c6a0-453e-abe5-a336d2fc28e4",
       "name": "JS: Build Get Query",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        784,
-        1504
+        3104,
+        3568
       ]
     },
     {
@@ -182,13 +175,13 @@
           "queryReplacement": "={{ $json.params }}"
         }
       },
-      "id": "47870717-618a-437e-b286-87b198971581",
+      "id": "79ca9641-d420-46e7-997d-8313b51f08ee",
       "name": "SQL: Get Seleccionadores",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1040,
-        1504
+        3360,
+        3568
       ],
       "credentials": {
         "postgres": {
@@ -203,13 +196,13 @@
         "query": "SELECT id, nombre_empresa AS nombre FROM empresa ORDER BY nombre_empresa ASC;",
         "options": {}
       },
-      "id": "81f6465a-d2cb-4bcc-ae3d-b63a1ac526d5",
+      "id": "43dbf29c-f81c-4a6f-9e92-3d6bb58f784c",
       "name": "SQL: Get Empresas",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        784,
-        1712
+        3104,
+        3776
       ],
       "credentials": {
         "postgres": {
@@ -226,13 +219,13 @@
           "queryReplacement": "={{ [\n  $json.body.seleccionadorData.nombre || null,\n  $json.body.seleccionadorData.primer_apellido || null,\n  $json.body.seleccionadorData.segundo_apellido || null,\n  $json.body.seleccionadorData.telefono || null,\n  $json.body.seleccionadorData.email || null,\n  ($json.body.seleccionadorData.tipo || 'interno').toLowerCase().trim(),\n  $json.body.seleccionadorData.activo !== undefined ? $json.body.seleccionadorData.activo : true,\n  $json.body.seleccionadorData.id_empresa || null,\n  $json.body.seleccionadorData.fecha_ini || null,\n  $json.body.seleccionadorData.salario || null,\n  $json.body.seleccionadorData.fee || null\n] }}"
         }
       },
-      "id": "6aec314e-14c6-4aab-8df5-552f22eef9fb",
+      "id": "8b6bab49-be34-41f9-b685-ef0366f1762e",
       "name": "SQL: Create",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        784,
-        1904
+        3104,
+        3968
       ],
       "credentials": {
         "postgres": {
@@ -249,13 +242,13 @@
           "queryReplacement": "={{ [\n  $json.body.seleccionadorData.nombre || null,\n  $json.body.seleccionadorData.primer_apellido || null,\n  $json.body.seleccionadorData.segundo_apellido || null,\n  $json.body.seleccionadorData.telefono || null,\n  $json.body.seleccionadorData.email || null,\n  $json.body.seleccionadorData.tipo ? $json.body.seleccionadorData.tipo.toLowerCase().trim() : null,\n  $json.body.seleccionadorData.activo !== undefined ? $json.body.seleccionadorData.activo : null,\n  $json.body.seleccionadorData.id_empresa || null,\n  $json.body.seleccionadorData.fecha_ini || null,\n  $json.body.seleccionadorData.salario || null,\n  $json.body.seleccionadorData.fee || null,\n  $json.body.seleccionadorId\n] }}"
         }
       },
-      "id": "b8b4bbb9-67af-46a6-aba4-fd7bed0bda67",
+      "id": "8ac1af1e-50f2-4844-be19-abf92d54ac5d",
       "name": "SQL: Update",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        784,
-        2112
+        3104,
+        4176
       ],
       "credentials": {
         "postgres": {
@@ -272,13 +265,13 @@
           "queryReplacement": "={{ [$json.body.seleccionadorId] }}"
         }
       },
-      "id": "d5af0c4a-53a4-4d6d-90f7-298ef397d472",
+      "id": "1485e7b6-8c12-47d3-a3e0-68db3fa84b4e",
       "name": "SQL: Toggle Status",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        784,
-        2304
+        3104,
+        4368
       ],
       "credentials": {
         "postgres": {
@@ -293,13 +286,13 @@
         "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(item => item.json) } }}",
         "options": {}
       },
-      "id": "8b989309-7760-4ad0-aaf3-9ecf347beeae",
+      "id": "67772d5c-d47b-4ea0-a535-6088d5a3fc4c",
       "name": "Respond API",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1392,
-        1904
+        3712,
+        3968
       ]
     }
   ],
@@ -421,41 +414,9 @@
       ]
     }
   },
-  "settings": {
-    "executionOrder": "v1",
-    "binaryMode": "separate"
-  },
-  "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
   "pinData": {},
-  "versionId": "759b8633-b7ea-4869-9923-b9a2b11d78bf",
-  "activeVersionId": "759b8633-b7ea-4869-9923-b9a2b11d78bf",
-  "versionCounter": 336,
-  "triggerCount": 1,
-  "tags": [],
-  "shared": [
-    {
-      "updatedAt": "2026-04-13T18:24:51.637Z",
-      "createdAt": "2026-04-13T18:24:51.637Z",
-      "role": "workflow:owner",
-      "workflowId": "qjLNVz9LC37hy4pe",
-      "projectId": "k3dNKL20UKoBHhO1",
-      "project": {
-        "updatedAt": "2026-04-13T18:18:29.733Z",
-        "createdAt": "2026-04-13T18:16:42.420Z",
-        "id": "k3dNKL20UKoBHhO1",
-        "name": "Jose Gregorio Marin josegregoriomarin22@gmail.com <josegregoriomarin22@gmail.com>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "creatorId": "c262c472-e055-4fca-8502-db3c6e37c03f"
-      }
-    }
-  ],
-  "versionMetadata": {
-    "name": "Version 759b8633",
-    "description": ""
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce978c989ab1e23db47d18854a2aa4ec48f1cc3365db2fa6e0d1703da947a576"
   }
 }

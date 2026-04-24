@@ -18,10 +18,10 @@
 
   <!-- Estadísticas -->
   <app-sel-stats-row 
-    [total]="total()"
-    [activos]="activos()"
-    [inactivos]="inactivos()"
-    [externos]="externos()"
+    [total]="statsTotal()"
+    [activos]="statsActivos()"
+    [inactivos]="statsInactivos()"
+    [externos]="statsExternos()"
   />
 
   <!-- Toolbar: búsqueda + filtros -->
@@ -36,13 +36,13 @@
   <!-- Tabla -->
   <app-table
     [columns]="tableColumns"
-    [rows]="paginated()"
+    [rows]="seleccionadores()"
     [currentPage]="currentPage()"
     [pageSize]="PAGE_SIZE"
-    [totalFiltered]="filtered().length"
+    [totalFiltered]="totalFiltered()"
     [entityLabel]="'seleccionadores'"
     (actionClick)="onTableAction($event)"
-    (pageChange)="currentPage.set($event)"
+    (pageChange)="onPageChange($event)"
   />
 
 </div>
