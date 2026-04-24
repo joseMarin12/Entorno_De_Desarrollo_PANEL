@@ -300,9 +300,9 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE empresa SET nombre_empresa = $1, razon_social = $2, cif = $3, id_tipo_empresa = $4, id_comerciales =  NULLIF(NULLIF($5::text, \u0027\u0027), \u0027null\u0027)::integer, activo = $6, updated_at = NOW() WHERE id = $7 RETURNING id;",
+        "query": "UPDATE empresa SET nombre_empresa = $1, razon_social = $2, cif = $3, id_tipo_empresa = $4, id_comerciales = NULLIF(NULLIF($5::text, \u0027\u0027), \u0027null\u0027)::integer, activo = $6, updated_at = NOW() WHERE id = $7 RETURNING id;",
         "options": {
-          "queryReplacement": "={{ $json.body.empresaData.nombre }},{{ $json.body.empresaData.razonSocial }},{{ $json.body.empresaData.cif }},{{ $json.body.empresaData.id_tipo_empresa }},{{ $json.body.empresaData.id_comercial }},{{ $json.body.empresaData.activo }},{{ $json.body.empresaId }}"
+          "queryReplacement": "={{ [ $json.body.empresaData.nombre, $json.body.empresaData.razonSocial, $json.body.empresaData.cif, $json.body.empresaData.id_tipo_empresa, $json.body.empresaData.id_comerciales, $json.body.empresaData.activo, $json.body.empresaId ] }}"
         }
       },
       "id": "4a29a274-89f2-444a-ab38-adb92f6a7bd5",
