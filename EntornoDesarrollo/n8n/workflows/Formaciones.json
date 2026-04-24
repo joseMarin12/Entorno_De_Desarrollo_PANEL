@@ -260,7 +260,7 @@
                   {
                     "id": "e64d30af-361a-49b3-be64-060ebca83b9b",
                     "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "getEjecuciÃ³n",
+                    "rightValue": "getEjecucion",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
