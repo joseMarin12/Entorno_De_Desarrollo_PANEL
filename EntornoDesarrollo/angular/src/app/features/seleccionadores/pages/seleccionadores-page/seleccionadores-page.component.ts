@@ -68,7 +68,6 @@ export class SeleccionadoresPageComponent implements OnInit {
   ConfirmMode = ConfirmMode;
 
   ngOnInit(): void {
-    this.loadEmpresas();
     this.loadPage();
   }
 
@@ -116,14 +115,22 @@ export class SeleccionadoresPageComponent implements OnInit {
     }
   }
 
-  openAdd(): void { this.selectedId.set(null); this.selectedSeleccionador = null; this.showForm = true; }
+  openAdd(): void {
+    this.selectedId.set(null);
+    this.selectedSeleccionador = null;
+    this.loadEmpresas();
+    this.showForm = true;
+  }
 
   onDetailClick(id: number): void {
     this.selectedId.set(id); this.selectedSeleccionador = this.getById(id) ?? null; this.showDetail = true;
   }
 
   onEditClick(id: number): void {
-    this.selectedId.set(id); this.selectedSeleccionador = this.getById(id) ?? null; this.showForm = true;
+    this.selectedId.set(id);
+    this.selectedSeleccionador = this.getById(id) ?? null;
+    this.loadEmpresas();
+    this.showForm = true;
   }
 
   onSaveForm(data: Omit<Seleccionador, 'id'>): void {
