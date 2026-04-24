@@ -85,6 +85,31 @@ elseif ($Action -eq "pull") {
         }
     }
 
+    # Sanea metadata minima antes de importar para evitar fallos por name NULL.
+    $workflowsForImport = Get-ChildItem -Path $ExportDir -Filter "*.json" -File
+    $autoNamedCount = 0
+
+    foreach ($workflowFile in $workflowsForImport) {
+        try {
+            $workflowJson = Get-Content -LiteralPath $workflowFile.FullName -Raw | ConvertFrom-Json
+
+            if (-not $workflowJson.name -or [string]::IsNullOrWhiteSpace([string]$workflowJson.name)) {
+                $workflowJson | Add-Member -MemberType NoteProperty -Name "name" -Value $workflowFile.BaseName -Force
+                $jsonText = $workflowJson | ConvertTo-Json -Depth 100
+                [System.IO.File]::WriteAllText($workflowFile.FullName, $jsonText, (New-Object System.Text.UTF8Encoding($false)))
+                $autoNamedCount++
+                Write-Host "  Name autogenerado: $($workflowFile.Name) -> '$($workflowFile.BaseName)'" -ForegroundColor Cyan
+            }
+        }
+        catch {
+            Write-Host "  Aviso: JSON invalido, se mantiene sin cambios: $($workflowFile.Name)" -ForegroundColor DarkYellow
+        }
+    }
+
+    if ($autoNamedCount -gt 0) {
+        Write-Host "Sanitizado completado: workflows con name autogenerado = $autoNamedCount" -ForegroundColor Cyan
+    }
+
     Write-Host "Importando workflows en n8n..." -ForegroundColor Yellow
     docker exec $ContainerName rm -rf $TempImportDir
     docker exec $ContainerName mkdir -p $TempImportDir
