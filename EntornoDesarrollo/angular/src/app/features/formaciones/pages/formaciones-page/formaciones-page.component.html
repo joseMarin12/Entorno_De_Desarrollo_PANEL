@@ -24,9 +24,9 @@
   <app-toolbar (searchChange)="onSearchChange($event)" (filterChange)="onFilterChange($event)" />
 
   <!-- Tabla -->
-  <app-formaciones-table [formaciones]="paginatedformaciones" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"
-    [totalFiltered]="filtered.length" (editClick)="onEditClick($event)" (bajaClick)="onBajaClick($event)"
-    (participantesClick)="onParticipantesClick($event)" (pageChange)="currentPage = $event" />
+  <app-formaciones-table [formaciones]="svc.formaciones()" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"
+    [totalFiltered]="svc.totalFiltered()" (editClick)="onEditClick($event)" (bajaClick)="onBajaClick($event)"
+    (participantesClick)="onParticipantesClick($event)" (pageChange)="onPageChange($event)" />
 
 </div>
 

@@ -179,6 +179,7 @@ CREATE TABLE asignacion (
     fecha_ini DATE,
     fecha_fin DATE,
     tarifa DOUBLE PRECISION,
+    activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (id_empresa) REFERENCES empresa(id),
     FOREIGN KEY (id_trabajador) REFERENCES trabajador(id),
     FOREIGN KEY (id_comerciales) REFERENCES comerciales(id)

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-20T09:21:26.418Z",
+  "updatedAt": "2026-04-23T11:27:05.607Z",
   "createdAt": "2026-04-09T13:26:23.893Z",
   "id": "r8k7krUdPWJ3TxuU",
   "name": "Usuarios",
@@ -151,6 +151,31 @@
               },
               "renameOutput": true,
               "outputKey": "ToogleStatusUsuarios"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a398e4aa-8269-456e-9e1e-8fd23d826e41",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getRole",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getRole"
             }
           ]
         },
@@ -193,15 +218,15 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        240,
-        0
+        256,
+        -144
       ],
       "id": "ff602a9a-10e4-460b-97c6-a0d4e382c579",
       "name": "getUser",
       "credentials": {
         "postgres": {
-          "id": "sU0uiQIGFK8WFqZe",
-          "name": "Postgres account"
+          "id": "ko5fFqsOIauxDSEd",
+          "name": "Postgres account 2"
         }
       }
     },
@@ -214,20 +239,19 @@
         },
         "table": {
           "__rl": true,
-          "value": "users",
+          "value": "user",
           "mode": "list",
-          "cachedResultName": "users"
+          "cachedResultName": "user"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
             "enabled": "={{ $json.body.enabled }}",
-            "created_at": "= {{ new Date().toISOString() }}",
             "name": "={{ $json.body.name }}",
             "surname": "={{ $json.body.surname }}",
             "email": "={{ $json.body.email }}",
-            "role_id": "={{ $json.body.role_id }}",
-            "password": "={{ $json.body.password }}"
+            "password": "={{ $json.body.password }}",
+            "roleid": "={{ $json.body.roleid }}"
           },
           "matchingColumns": [
             "id"
@@ -246,7 +270,7 @@
             {
               "id": "name",
               "displayName": "name",
-              "required": true,
+              "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
@@ -264,20 +288,21 @@
             {
               "id": "email",
               "displayName": "email",
-              "required": true,
+              "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
               "canBeUsedToMatch": true
             },
             {
-              "id": "role_id",
-              "displayName": "role_id",
+              "id": "roleid",
+              "displayName": "roleid",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "number",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "enabled",
@@ -291,19 +316,10 @@
             {
               "id": "password",
               "displayName": "password",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
               "required": false,
               "defaultMatch": false,
               "display": true,
-              "type": "dateTime",
+              "type": "string",
               "canBeUsedToMatch": true
             }
           ],
@@ -316,22 +332,22 @@
             "name",
             "surname",
             "email",
-            "role_id",
-            "enabled"
+            "enabled",
+            "roleid"
           ]
         }
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        240,
-        176
+        256,
+        32
       ],
       "id": "6e26cbd7-53c9-4c97-bd52-fe3373ba4bff",
       "name": "createUser",
       "credentials": {
         "postgres": {
-          "id": "sU0uiQIGFK8WFqZe",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -346,9 +362,9 @@
         },
         "table": {
           "__rl": true,
-          "value": "users",
+          "value": "user",
           "mode": "list",
-          "cachedResultName": "users"
+          "cachedResultName": "user"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -358,9 +374,8 @@
             "name": "={{ $json.body.name }}",
             "surname": "={{ $json.body.surname }}",
             "email": "={{ $json.body.email }}",
-            "role_id": "={{ $json.body.role_id }}",
             "password": "={{ $json.body.password }}",
-            "created_at": "={{ new Date().toISOString() }}"
+            "roleid": "={{ $json.body.roleid }}"
           },
           "matchingColumns": [
             "id"
@@ -379,7 +394,7 @@
             {
               "id": "name",
               "displayName": "name",
-              "required": true,
+              "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
@@ -397,20 +412,21 @@
             {
               "id": "email",
               "displayName": "email",
-              "required": true,
+              "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
               "canBeUsedToMatch": true
             },
             {
-              "id": "role_id",
-              "displayName": "role_id",
+              "id": "roleid",
+              "displayName": "roleid",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "number",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "enabled",
@@ -424,19 +440,10 @@
             {
               "id": "password",
               "displayName": "password",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
               "required": false,
               "defaultMatch": false,
               "display": true,
-              "type": "dateTime",
+              "type": "string",
               "canBeUsedToMatch": true
             }
           ],
@@ -448,27 +455,27 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        240,
-        368
+        256,
+        192
       ],
       "id": "773505ee-47b8-4fc8-be11-f5fa3bcaa5a0",
       "name": "updateUser",
       "credentials": {
         "postgres": {
-          "id": "sU0uiQIGFK8WFqZe",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = parseInt($input.item.json.body.page) || 1;\n\nconst limit = 7;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `\nSELECT \n  id, name, surname, email, role_id, password, enabled, created_at,\n  COUNT(*) OVER() as total_count\nFROM users\nWHERE 1=1\n`;\n\n// Búsqueda por texto\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(\n    CONCAT(name, ' ', surname) ILIKE $${paramIndex}\n    OR email ILIKE $${paramIndex}\n  )`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\n// Filtro por estado (enabled)\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  conditions.push(`enabled = $${paramIndex}`);\n  params.push(filters.status);\n  paramIndex++;\n}\n\n// Filtro por role_id\nif (filters.role_id !== undefined && filters.role_id !== null && filters.role_id !== '') {\n  conditions.push(`role_id = $${paramIndex}`);\n  params.push(filters.role_id);\n  paramIndex++;\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\n// 👇 IMPORTANTE: paginación + orden\nquery += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      limit\n    }\n  }\n];"
+        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = parseInt($input.item.json.body.page) || 1;\n\nconst limit = 7;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `\nSELECT \n  id, name, surname, email, roleid, password, enabled,\n  COUNT(*) OVER() as total_count\nFROM \"user\"\nWHERE 1=1\n`;\n\n// Búsqueda por texto\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(\n    CONCAT(name, ' ', surname) ILIKE $${paramIndex}\n    OR email ILIKE $${paramIndex}\n  )`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\n// Filtro por estado (enabled)\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  conditions.push(`enabled = $${paramIndex}`);\n  params.push(filters.status);\n  paramIndex++;\n}\n\n// Filtro por role_id\nif (filters.roleid !== undefined && filters.roleid !== null && filters.roleid !== '') {\n  conditions.push(`roleid = $${paramIndex}`);\n  params.push(filters.roleid);\n  paramIndex++;\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\n// 👇 IMPORTANTE: paginación + orden\nquery += ` ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      limit\n    }\n  }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        -144
       ],
       "id": "76e7876c-8952-4472-b06d-08096cc8355a",
       "name": "Filter"
@@ -505,7 +512,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE users\nSET enabled = NOT enabled\nWHERE id = $1\nRETURNING id, name, surname, enabled, created_at;",
+        "query": "UPDATE \"user\"\nSET enabled = NOT enabled\nWHERE id = $1\nRETURNING id, name, surname, enabled;",
         "options": {
           "queryReplacement": "={{ $json.body.id }}"
         }
@@ -513,14 +520,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        240,
-        528
+        256,
+        368
       ],
       "id": "87dddd0e-96fb-42b2-b38f-aef8a946e691",
       "name": "Toogle status Usuario",
       "credentials": {
         "postgres": {
-          "id": "sU0uiQIGFK8WFqZe",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -541,6 +548,27 @@
       ],
       "id": "cbd692f2-a6db-43cf-ab2c-ff7b2e4c8dea",
       "name": "Responde Error"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select id, name from role\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        256,
+        544
+      ],
+      "id": "f2ca6849-ba7a-414e-8412-83e78f09c4a5",
+      "name": "getRole",
+      "credentials": {
+        "postgres": {
+          "id": "ko5fFqsOIauxDSEd",
+          "name": "Postgres account 2"
+        }
+      }
     }
   ],
   "connections": {
@@ -588,6 +616,13 @@
         [
           {
             "node": "Toogle status Usuario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "getRole",
             "type": "main",
             "index": 0
           }
@@ -659,6 +694,17 @@
           }
         ]
       ]
+    },
+    "getRole": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -670,32 +716,32 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "743b7f53-f296-4db8-ae4c-1d9f5ebf67c0",
-  "activeVersionId": "743b7f53-f296-4db8-ae4c-1d9f5ebf67c0",
-  "versionCounter": 323,
+  "versionId": "fd1ff0e6-82ec-49ce-8eac-4045a773a746",
+  "activeVersionId": "fd1ff0e6-82ec-49ce-8eac-4045a773a746",
+  "versionCounter": 411,
   "triggerCount": 1,
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-04-09T13:26:23.893Z",
-      "createdAt": "2026-04-09T13:26:23.893Z",
+      "updatedAt": "2026-04-22T08:46:52.367Z",
+      "createdAt": "2026-04-22T08:46:52.367Z",
       "role": "workflow:owner",
       "workflowId": "r8k7krUdPWJ3TxuU",
-      "projectId": "AYW1lTt7Ia1FOUZn",
+      "projectId": "HPNLsCxwhHCLkcBf",
       "project": {
-        "updatedAt": "2026-04-09T13:25:54.856Z",
-        "createdAt": "2026-04-09T08:00:43.905Z",
-        "id": "AYW1lTt7Ia1FOUZn",
-        "name": "Daniel Pedrero <daniel.pedrero@sgtech.tech>",
+        "updatedAt": "2026-04-22T08:46:19.945Z",
+        "createdAt": "2026-04-22T08:41:51.280Z",
+        "id": "HPNLsCxwhHCLkcBf",
+        "name": "Adriano Casado Villarreal <adriano.casado@sgtech.tech>",
         "type": "personal",
         "icon": null,
         "description": null,
-        "creatorId": "44e103cf-5e95-4210-b3c8-2e03962b9f36"
+        "creatorId": "134af668-187e-480f-8edf-2641b318bfd3"
       }
     }
   ],
   "versionMetadata": {
-    "name": "Version 743b7f53",
+    "name": "Version 6babe063",
     "description": ""
   }
 }

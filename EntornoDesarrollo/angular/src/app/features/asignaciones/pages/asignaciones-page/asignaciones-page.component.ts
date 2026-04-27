@@ -1,35 +1,35 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { FormacionesService } from '../../../../services/formaciones.service';
+import { AsignacionesService } from '../../../../services/asignaciones.service';
 import { ToastService } from '../../../../services/toast.service';
-import { Formacion } from '../../../../models/formacion.model';
+import { Asignacion } from '../../../../models/asignacion.model';
 
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
 import { ToolbarComponent, FilterType } from '../../components/toolbar/toolbar.component';
-import { FormacionesTableComponent } from '../../components/formaciones-table/formaciones-table.component';
-import { ModalFormacionComponent } from '../../components/modal-formacion/modal-formacion.component';
-import { ModalParticipantesComponent } from '../../components/modal-participantes/modal-participantes.component';
+import { AsignacionesTableComponent } from '../../components/asignaciones-table/asignaciones-table.component';
+import { ModalAsignacionComponent } from '../../components/modal-asignacion/modal-asignacion.component';
 import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-formaciones-page',
+  selector: 'app-asignaciones-page',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     TopbarComponent,
     StatsRowComponent,
     ToolbarComponent,
-    FormacionesTableComponent,
-    ModalFormacionComponent,
-    ModalParticipantesComponent,
+    AsignacionesTableComponent,
+    ModalAsignacionComponent,
     ConfirmationModalComponent,
   ],
-  templateUrl: './formaciones-page.component.html',
+  templateUrl: './asignaciones-page.component.html',
 })
-export class FormacionesPageComponent implements OnInit {
-  svc = inject(FormacionesService);
+export class AsignacionesPageComponent implements OnInit {
+  svc = inject(AsignacionesService);
   toast = inject(ToastService);
   ConfirmMode = ConfirmMode;
 
@@ -37,12 +37,11 @@ export class FormacionesPageComponent implements OnInit {
   searchQuery = '';
   activeFilter: FilterType = 'todos';
   currentPage = 1;
-  readonly PAGE_SIZE = 10; // Actualizado a 10 según petición
+  readonly PAGE_SIZE = 10;
 
   // ── Estado modales ────────────────────────────────
   showForm = false; 
   showBaja = false;
-  showParticipantes = false;
   selectedId: number | null = null;
 
   // ── Ciclo de vida ─────────────────────────────────
@@ -55,7 +54,7 @@ export class FormacionesPageComponent implements OnInit {
   }
 
   // ── Getters para la vista ─────────────────────────
-  get selectedformacion(): Formacion | null {
+  get selectedAsignacion(): Asignacion | null {
     return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
   }
 
@@ -89,23 +88,21 @@ export class FormacionesPageComponent implements OnInit {
 
   onSaveForm(data: any): void {
     if (this.selectedId) {
-      // Editar
       this.svc.update(this.selectedId, data).subscribe({
         next: () => {
           this.showForm = false;
           this.selectedId = null;
-          this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
+          this.toast.show('info', `✎ Asignación actualizada correctamente.`);
         },
         error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
       });
     } else {
-      // Añadir
       this.svc.add(data).subscribe({
         next: () => {
           this.showForm = false;
-          this.toast.show('success', `✓ Formación <strong>${data.curso}</strong> añadida correctamente`);
+          this.toast.show('success', `✓ Asignación añadida correctamente.`);
         },
-        error: () => this.toast.show('error', `✗ No se pudo añadir la formación. Inténtalo de nuevo.`),
+        error: () => this.toast.show('error', `✗ No se pudo añadir la asignación. Inténtalo de nuevo.`),
       });
     }
   }
@@ -115,23 +112,18 @@ export class FormacionesPageComponent implements OnInit {
     this.showBaja = true;
   }
 
-  onParticipantesClick(id: number): void {
-    this.selectedId = id;
-    this.showParticipantes = true;
-  }
-
   onConfirmBaja(): void {
     if (this.selectedId == null) return;
     const c = this.svc.getById(this.selectedId)!;
-    const wasActive = c.activo === true;
+    const wasActive = c.activo !== false; // Asumimos true por defecto
     this.svc.toggleActivo(this.selectedId).subscribe({
       next: () => {
         this.showBaja = false;
         this.selectedId = null;
         if (wasActive) {
-          this.toast.show('warning', `⊘ Formación <strong>${this.svc.title(c)}</strong> dada de baja`);
+          this.toast.show('warning', `⊘ Asignación dada de baja.`);
         } else {
-          this.toast.show('success', `↺ Formación <strong>${this.svc.title(c)}</strong> reactivada`);
+          this.toast.show('success', `↺ Asignación reactivada.`);
         }
       },
       error: () => this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`),
