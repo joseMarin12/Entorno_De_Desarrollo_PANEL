@@ -22,9 +22,9 @@ export class ComercialesApiService extends BaseCrud<Comercial> {
   protected readonly API_URL = `${environment.apiUrl}/comerciales`;
 
   findAll(page = 1, limit = 10, searchText = '', status = ''): Observable<ComercialPage> {
-    return this.http.post<{ data: any[] }>(this.API_URL, {
+    return this.trackRequest(this.http.post<{ data: any[] }>(this.API_URL, {
       action: 'getAll', page, limit, filters: { searchText, status }
-    }).pipe(map(res => {
+    })).pipe(map(res => {
       const raw = res.data ?? [];
       if (raw.length === 0) {
         return { data: [], totalFiltered: 0, stats: { total: 0, activos: 0, inactivos: 0 } };

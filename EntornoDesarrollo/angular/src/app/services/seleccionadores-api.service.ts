@@ -23,9 +23,9 @@ export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
   protected readonly API_URL = `${environment.apiUrl}/seleccionadores`;
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<SeleccionadorPage> {
-    return this.http.post<{ data: any[] }>(this.API_URL, {
+    return this.trackRequest(this.http.post<{ data: any[] }>(this.API_URL, {
       action: 'getSeleccionadores', page, limit, filters: { searchText, status, tipo }
-    }).pipe(map(res => {
+    })).pipe(map(res => {
       const raw = res.data ?? [];
       if (raw.length === 0) {
         return { data: [], totalFiltered: 0, stats: { total: 0, activos: 0, inactivos: 0, externos: 0 } };
@@ -67,7 +67,7 @@ export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
   }
 
   getEmpresas(): Observable<{id: number, nombre: string}[]> {
-    return this.http.post<{data: {id: number, nombre: string}[]}>(this.API_URL, { action: 'getEmpresas' })
+    return this.trackRequest(this.http.post<{data: {id: number, nombre: string}[]}>(this.API_URL, { action: 'getEmpresas' }))
       .pipe(map(res => res.data ?? []));
   }
 }

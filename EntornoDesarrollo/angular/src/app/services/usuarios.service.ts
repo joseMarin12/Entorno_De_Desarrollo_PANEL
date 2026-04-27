@@ -25,7 +25,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
 
   loadRoles(): void {
     const payload = { action: 'getRole' };
-    this.http.post<{data: any[]}>(this.API_URL, payload).subscribe({
+    this.trackRequest(this.http.post<{data: any[]}>(this.API_URL, payload)).subscribe({
       next: (res) => {
         if (!res || !res.data) return;
         const roles = res.data.map(r => {
@@ -39,7 +39,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
   }
 
   loadComercialesEmails(): Observable<string[]> {
-    return this.http.get<any>(`${environment.apiUrl}/comerciales`).pipe(
+    return this.trackRequest(this.http.get<any>(`${environment.apiUrl}/comerciales`)).pipe(
       map(res => (res.data || []).map((c: any) => c.email).filter(Boolean))
     );
   }
@@ -183,7 +183,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
   private applyRobustMerge(backendRes: any, localData: Usuario): Usuario {
     const mapped = this.mapSingleFromBackend(backendRes);
     const isReal = backendRes && (backendRes.id || backendRes.nombre || backendRes.name || backendRes.email);
-    
+
     if (isReal) {
       const cleanedMapped: any = {};
       const raw = (backendRes.json && typeof backendRes.json === 'object') ? backendRes.json : backendRes;
@@ -197,7 +197,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
       if (raw.roleid || raw.role_id || raw.ID_ROL || raw.id_rol) cleanedMapped.roleid = mapped.roleid;
 
       const merged = { ...localData, ...cleanedMapped };
-      
+
       if (!cleanedMapped.password && localData.password) {
         merged.password = localData.password;
       }
@@ -207,8 +207,8 @@ export class UsuariosService extends BaseCrud<Usuario> {
   }
 
   private mapSingleFromBackend(item: any): Usuario {
-    const d = (item && item.json && typeof item.json === 'object' && !Array.isArray(item.json)) 
-              ? item.json 
+    const d = (item && item.json && typeof item.json === 'object' && !Array.isArray(item.json))
+              ? item.json
               : item;
 
     if (!d || typeof d !== 'object') return {} as Usuario;

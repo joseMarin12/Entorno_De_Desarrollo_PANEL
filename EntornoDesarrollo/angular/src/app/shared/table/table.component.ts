@@ -1,5 +1,6 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RequestLoadingService } from '../../services/request-loading.service';
 
 /** Field value type for formatting */
 export type FieldType = 'text' | 'number' | 'date';
@@ -124,6 +125,8 @@ export interface ColumnDef {
   styleUrl: './table.component.scss'
 })
 export class TableComponent {
+  private readonly requestLoading = inject(RequestLoadingService);
+
   columns = input<ColumnDef[]>([]);
   rows = input<any[]>([]);
   currentPage = input(1);
@@ -135,6 +138,7 @@ export class TableComponent {
   pageChange = output<number>();
   /** Emits { type, id } when an action button is clicked */
   actionClick = output<{ type: string; id: number }>();
+  readonly isLoading = this.requestLoading.isLoading;
 
   totalPages = computed(() => Math.max(1, Math.ceil(this.totalFiltered() / this.pageSize())));
 
