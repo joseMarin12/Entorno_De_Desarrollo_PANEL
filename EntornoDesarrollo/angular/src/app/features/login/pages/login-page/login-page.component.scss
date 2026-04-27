@@ -56,28 +56,28 @@
 
 .login-form-container {
   width: 100%;
-  max-width: 400px;
-  padding: 2rem;
+  max-width: 480px;
+  padding: 2.5rem;
   
   .logo {
     margin-bottom: 2rem;
     img {
-      height: 48px;
+      height: 58px;
     }
   }
 
   h1 {
-    font-size: 1.75rem;
+    font-size: 2.1rem;
     font-weight: 700;
     color: #000000;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
     letter-spacing: -0.02em;
   }
 
   .subtitle {
-    font-size: 0.875rem;
+    font-size: 1.05rem;
     color: #4b5563;
-    margin-bottom: 2.5rem;
+    margin-bottom: 3rem;
     letter-spacing: 0.05em;
     font-weight: 500;
   }
@@ -87,10 +87,10 @@
 
     label {
       display: block;
-      font-size: 0.875rem;
+      font-size: 1.05rem;
       font-weight: 500;
       color: #374151;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
     }
 
     .input-wrapper {
@@ -100,19 +100,19 @@
 
       .icon {
         position: absolute;
-        left: 1rem;
-        width: 18px;
-        height: 18px;
+        left: 1.25rem;
+        width: 22px;
+        height: 22px;
         color: #9ca3af;
         pointer-events: none;
       }
 
       input {
         width: 100%;
-        padding: 0.75rem 1rem 0.75rem 2.75rem;
+        padding: 1rem 1.25rem 1rem 3.25rem;
         border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        font-size: 0.9375rem;
+        border-radius: 8px;
+        font-size: 1.125rem;
         color: #111827;
         outline: none;
         transition: all 0.2s;
@@ -131,13 +131,13 @@
 
   .btn-primary {
     width: 100%;
-    margin-top: 1rem;
-    padding: 0.875rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
     background-color: #002c5c;
     color: white;
     border: none;
-    border-radius: 6px;
-    font-size: 0.9375rem;
+    border-radius: 8px;
+    font-size: 1.125rem;
     font-weight: 600;
     cursor: pointer;
     display: flex;
@@ -151,8 +151,8 @@
     }
     
     .arrow {
-      width: 18px;
-      height: 18px;
+      width: 22px;
+      height: 22px;
     }
   }
 }
