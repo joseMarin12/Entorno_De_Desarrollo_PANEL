@@ -21,7 +21,7 @@
 
     <!-- Toolbar: búsqueda + filtros -->
     <app-usuarios-toolbar
-      (searchChange)="onSearchChange($event)"
+      (searchChange)="onSearch($event)"
       (filterChange)="onFilterChange($event)"
     />
 
@@ -40,35 +40,29 @@
 </div>
 
 <!-- Modales -->
-@if (showAdd) {
-  <app-usuarios-modal-add
+@if (showForm) {
+  <app-usuarios-modal-form
+    [usuario]="selectedUsuario() || null"
     [emailUsuarios]="emailUsuarios()"
-    (save)="onSaveAdd($event)"
-    (close)="showAdd = false"
+    [roles]="svc.roles()"
+    (save)="onSaveForm($event)"
+    (close)="showForm = false; selectedId = null"
   />
 }
 
-@if (showEdit && selectedUsuario) {
-  <app-usuarios-modal-edit
-    [usuario]="selectedUsuario"
-    [emailUsuarios]="emailUsuarios()"
-    (save)="onSaveEdit($event)"
-    (close)="showEdit = false; selectedId = null"
-  />
-}
-
-@if (showBaja && selectedUsuario) {
+@if (showBaja && selectedUsuario()) {
   <app-confirmation-modal
-    [name]="selectedUsuario ? selectedUsuario.nombre + ' ' + selectedUsuario.apellido1 : ''"
-    [mode]="selectedUsuario.enabled ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
+    [name]="selectedUsuario() ? selectedUsuario()!.nombre + ' ' + selectedUsuario()!.apellido1 : ''"
+    [mode]="selectedUsuario()!.enabled ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirmBaja()"
     (closed)="showBaja = false; selectedId = null"
   />
 }
 
-@if (showDetail && selectedUsuario) {
+@if (showDetail && selectedUsuario()) {
   <app-usuarios-modal-detail
-    [usuario]="selectedUsuario"
+    [usuario]="selectedUsuario()!"
+    [roles]="svc.roles()"
     (edit)="onEditClick($event); showDetail = false"
     (close)="showDetail = false; selectedId = null"
   />
