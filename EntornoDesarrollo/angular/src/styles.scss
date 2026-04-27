@@ -160,6 +160,16 @@ router-outlet + * {
   min-width: 0;
 }
 
+.main-full {
+  margin-left: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  min-width: 0;
+}
+
 /* ══ TOPBAR ══ */
 .topbar {
   height: var(--topbar-h); background: var(--card);

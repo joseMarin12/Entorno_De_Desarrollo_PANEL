@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { LoginPageComponent } from './features/login/pages/login-page/login-page.component';
 import { ComercialesPageComponent } from './features/comerciales/pages/comerciales-page/comerciales-page.component';
 import { SeleccionadoresPageComponent } from './features/seleccionadores/pages/seleccionadores-page/seleccionadores-page.component';
 import { EmpresasPageComponent } from './features/empresas/pages/empresas-page/empresas-page.component';
@@ -8,7 +9,8 @@ import { UsuariosPageComponent } from './features/usuarios/pages/usuarios-page/u
 import { FormacionesPageComponent } from './features/formaciones/pages/formaciones-page/formaciones-page.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'comerciales', pathMatch: 'full' },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login', component: LoginPageComponent },
   { path: 'comerciales', component: ComercialesPageComponent },
   { path: 'seleccionadores', component: SeleccionadoresPageComponent },
   { path: 'empresas/:id/direcciones', component: EmpresasDireccionesPageComponent },
@@ -16,6 +18,4 @@ export const routes: Routes = [
   { path: 'empresas', component: EmpresasPageComponent },
   { path: 'usuarios', component: UsuariosPageComponent },
   { path: 'formaciones', component: FormacionesPageComponent },
-  // Añade aquí el resto de rutas cuando crees las otras páginas:
-  // { path: 'empresas',        component: EmpresasPageComponent },
 ];
