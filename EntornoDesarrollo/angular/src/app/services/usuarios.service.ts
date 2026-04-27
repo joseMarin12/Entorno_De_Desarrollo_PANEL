@@ -38,11 +38,6 @@ export class UsuariosService extends BaseCrud<Usuario> {
     });
   }
 
-  loadComercialesEmails(): Observable<string[]> {
-    return this.http.get<any>(`${environment.apiUrl}/comerciales`).pipe(
-      map(res => (res.data || []).map((c: any) => c.email).filter(Boolean))
-    );
-  }
 
   loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {
     this.loading.set(true);
