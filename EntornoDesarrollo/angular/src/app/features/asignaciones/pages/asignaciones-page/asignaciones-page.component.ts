@@ -40,7 +40,7 @@ export class AsignacionesPageComponent implements OnInit {
   readonly PAGE_SIZE = 10;
 
   // ── Estado modales ────────────────────────────────
-  showForm = false; 
+  showForm = false;
   showBaja = false;
   selectedId: number | null = null;
 
