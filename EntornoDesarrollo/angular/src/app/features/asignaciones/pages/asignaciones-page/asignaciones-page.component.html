@@ -1,0 +1,45 @@
+<app-topbar pageTitle="Asignaciones" />
+
+<div class="page-content">
+
+  <!-- Cabecera -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Asignaciones</div>
+      <div class="page-subtitle">Gestiona las asignaciones de comerciales y trabajadores a empresas</div>
+    </div>
+    <button class="btn btn-primary" (click)="openAdd()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      Nueva Asignación
+    </button>
+  </div>
+
+  <!-- Estadísticas -->
+  <app-stats-row [total]="svc.total()" [activas]="svc.totalActivos()" [inactivas]="svc.totalInactivos()" />
+
+  <!-- Toolbar: búsqueda + filtros -->
+  <app-toolbar (searchChange)="onSearchChange($event)" (filterChange)="onFilterChange($event)" />
+
+  <!-- Tabla -->
+  <app-asignaciones-table [asignaciones]="svc.asignaciones()" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"
+    [totalFiltered]="svc.totalFiltered()" (editClick)="onEditClick($event)" (bajaClick)="onBajaClick($event)"
+    (pageChange)="onPageChange($event)" />
+
+</div>
+
+<!-- Modales -->
+@if (showForm) {
+<app-modal-asignacion [asignacion]="selectedAsignacion!" (save)="onSaveForm($event)"
+  (close)="showForm = false; selectedId = null" />
+}
+
+@if (showBaja && selectedAsignacion) {
+<app-confirmation-modal name="Asignación #{{selectedAsignacion.id}}"
+  [title]="selectedAsignacion.activo !== false ? '¿Dar de baja asignación?' : '¿Reactivar asignación?'"
+  [description]="selectedAsignacion.activo !== false ? 'La asignación pasará a estado inactivo.' : 'La asignación volverá a estar activa.'"
+  [mode]="selectedAsignacion.activo !== false ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
+  (confirm)="onConfirmBaja()" (closed)="showBaja = false; selectedId = null" />
+}

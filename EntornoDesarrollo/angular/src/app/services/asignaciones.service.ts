@@ -3,39 +3,38 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 import { BaseCrud } from './base.service';
-import { Formacion } from '../models/formacion.model';
+import { Asignacion } from '../models/asignacion.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
-export class FormacionesService extends BaseCrud<Formacion> {
+export class AsignacionesService extends BaseCrud<Asignacion> {
 
-    public readonly API_URL = `${environment.apiUrl}/formaciones`;
+    public readonly API_URL = `${environment.apiUrl}/asignaciones`;
 
     // ── Estado reactivo ──────────────────────────────────────────────────────
-    private _formaciones = signal<Formacion[]>([]);
+    private _asignaciones = signal<Asignacion[]>([]);
     readonly loading = signal(false);
     readonly error = signal<string | null>(null);
 
-    readonly formaciones = this._formaciones.asReadonly();
+    readonly asignaciones = this._asignaciones.asReadonly();
+    readonly total = signal(0);
     readonly totalActivos = signal(0);
     readonly totalInactivos = signal(0);
-    readonly total = signal(0);
-
     readonly totalFiltered = signal(0);
 
     // ── Carga inicial ────────────────────────────────────────────────────────
-    loadAll(searchText = '', filterType = 'todos', page = 1, pageSize = 10): Observable<Formacion[]> {
+    loadAll(searchText = '', filterType = 'todos', page = 1, pageSize = 10): Observable<Asignacion[]> {
         this.loading.set(true);
         this.error.set(null);
-
+        
         let activo: boolean | undefined = undefined;
         if (filterType === 'activos') activo = true;
         if (filterType === 'baja') activo = false;
 
-        return this._findAll({ action: 'getFormaciones', filters: { searchText, activo }, page, pageSize }).pipe(
+        return this._findAll({ action: 'getAsignaciones', filters: { searchText, activo }, page, pageSize }).pipe(
             tap({
                 next: list => {
-                    this._formaciones.set(list);
+                    this._asignaciones.set(list);
                     if (list && list.length > 0) {
                         const first = list[0] as any;
                         this.totalFiltered.set(Number(first.total_records) || list.length);
@@ -44,6 +43,10 @@ export class FormacionesService extends BaseCrud<Formacion> {
                         this.totalInactivos.set(Number(first.total_inactivos) || 0);
                     } else {
                         this.totalFiltered.set(0);
+                        // Cuando la lista de búsqueda está vacía, no queremos poner los globales a 0 si hay datos.
+                        // Sin embargo, si la DB está vacía, será 0. Si simplemente no hay resultados de búsqueda,
+                        // la query anterior no nos da los totales globales porque no hay registros.
+                        // Para solucionarlo de forma sencilla, si total_global venía, lo usamos, si no, lo dejamos igual.
                     }
                     this.loading.set(false);
                 },
@@ -53,50 +56,50 @@ export class FormacionesService extends BaseCrud<Formacion> {
     }
 
     // ── CRUD ─────────────────────────────────────────────────────────────────
-    add(data: Omit<Formacion, 'id'>): Observable<Formacion> {
+    add(data: Omit<Asignacion, 'id'>): Observable<Asignacion> {
         this.loading.set(true);
         this.error.set(null);
-        return this._create({ action: 'createFormacion', formacionData: data }).pipe(
+        return this._create({ action: 'createAsignacion', asignacionData: data }).pipe(
             tap({
-                next: created => { this._formaciones.update(list => [created, ...list]); this.loading.set(false); },
+                next: created => { this._asignaciones.update(list => [created, ...list]); this.loading.set(false); },
                 error: e => { this.error.set(e?.message ?? 'Error al crear'); this.loading.set(false); },
             })
         );
     }
 
-    update(id: number, data: Omit<Formacion, 'id'>): Observable<Formacion> {
+    update(id: number, data: Omit<Asignacion, 'id'>): Observable<Asignacion> {
         this.loading.set(true);
         this.error.set(null);
-        return this._update({ action: 'updateFormacion', formacionId: id, formacionData: data }).pipe(
+        return this._update({ action: 'updateAsignacion', asignacionId: id, asignacionData: data }).pipe(
             tap({
-                next: updated => { this._formaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c)); this.loading.set(false); },
+                next: updated => { this._asignaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c)); this.loading.set(false); },
                 error: e => { this.error.set(e?.message ?? 'Error al actualizar'); this.loading.set(false); },
             })
         );
     }
 
-    toggleActivo(id: number): Observable<Formacion> {
+    toggleActivo(id: number): Observable<Asignacion> {
         this.loading.set(true);
         this.error.set(null);
-        return this._toggleStatus({ action: 'toggleFormacionStatus', formacionId: id }).pipe(
+        return this._toggleStatus({ action: 'toggleAsignacionStatus', asignacionId: id }).pipe(
             tap({
-                next: updated => { this._formaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c)); this.loading.set(false); },
+                next: updated => { this._asignaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c)); this.loading.set(false); },
                 error: e => { this.error.set(e?.message ?? 'Error al cambiar estado'); this.loading.set(false); },
             })
         );
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
-    getById(id: number): Formacion | undefined {
-        return this._formaciones().find(c => c.id === id);
+    getById(id: number): Asignacion | undefined {
+        return this._asignaciones().find(c => c.id === id);
     }
 
-    title(c: Formacion): string {
-        return c.curso || 'Sin título';
+    title(c: Asignacion): string {
+        return `Asignación #${c.id}`;
     }
 
-    initials(c: Formacion): string {
-        return (c.curso ? c.curso.substring(0, 2) : 'FO').toUpperCase();
+    initials(c: Asignacion): string {
+        return `A${c.id}`;
     }
 
     colorFor(id: number): string {
@@ -107,6 +110,6 @@ export class FormacionesService extends BaseCrud<Formacion> {
             'linear-gradient(135deg,#55569e,#3198bf)',
             'linear-gradient(135deg,#5a4d9a,#23b4cd)',
         ];
-        return COLORS[(id - 1) % COLORS.length];
+        return COLORS[(id - 1) % COLORS.length] || COLORS[0];
     }
 }

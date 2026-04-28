@@ -5,18 +5,25 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
-class FormacionController extends Controller
+class AsignacionController extends Controller
 {
-
-    private string $n8nUrl = 'http://n8n:5678/webhook/gestion-formaciones';
+    private string $n8nUrl = 'http://n8n:5678/webhook/asignaciones';
 
     public function proxy(Request $request)
     {
         $payload = $request->all();
 
-        $allowedActions = ['getFormaciones', 'createFormacion', 'updateFormacion', 'toggleFormacionStatus', 'getTrabajadores', 'addTrabajadorToFormacion', 'removeTrabajadorFromFormacion', 'getArea', 'getModalidad', 'getEjecucion', 'getResponsable'];
+        $allowedActions = [
+            'getAsignaciones', 
+            'createAsignacion', 
+            'updateAsignacion', 
+            'toggleAsignacionStatus', // Para el borrado lógico
+            'getEmpresas', 
+            'getTrabajadores', 
+            'getComerciales'
+        ];
 
-        if (!in_array($payload['action'], $allowedActions)) {
+        if (!isset($payload['action']) || !in_array($payload['action'], $allowedActions)) {
             return response()->json(['error' => 'Acción no válida: ' . ($payload['action'] ?? 'null')], 400);
         }
 

@@ -49,7 +49,7 @@
         </div>
 
         <div class="form-group">
-          <app-lookup-select [apiUrl]="svc.API_URL" action="getEjecución" label="Ejecución"
+          <app-lookup-select [apiUrl]="svc.API_URL" action="getEjecucion" label="Ejecución"
             placeholder="Seleccionar ejecución..." [(ngModel)]="form.id_ejecucion" [hasError]="!!errors['id_ejecucion']"
             [required]="true">
           </app-lookup-select>
@@ -58,7 +58,7 @@
 
         <div class="form-group">
           <app-lookup-select [apiUrl]="svc.API_URL" action="getResponsable" label="Responsable" labelField="name"
-            placeholder="Seleccionar responsable..." [(ngModel)]="form.id_responsable"
+            [searchable]="true" placeholder="Seleccionar responsable..." [(ngModel)]="form.id_responsable"
             [hasError]="!!errors['id_responsable']" [required]="true">
           </app-lookup-select>
           @if (errors['id_responsable']) { <span class="form-hint error-msg">{{ errors['id_responsable'] }}</span> }
