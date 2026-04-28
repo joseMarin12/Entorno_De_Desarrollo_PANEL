@@ -36,9 +36,7 @@ export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
         inactivos: first.stats_inactivos ?? 0, externos: first.stats_externos ?? 0
       };
       const totalFiltered: number = first.total_filtered ?? raw.length;
-      const data: Seleccionador[] = raw
-        .filter(item => item.id !== null)
-        .map(item => {
+      const data: Seleccionador[] = raw.map(item => {
           const { total_filtered, stats_total, stats_activos, stats_inactivos, stats_externos, ...sel } = item;
           return sel as Seleccionador;
         });
