@@ -2,11 +2,11 @@ import { Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, sign
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Empresa } from '../../../../models/empresa.model';
-import { EmpresasApiService } from '../../../../services/empresas-api.service';
 import { ComercialesApiService } from '../../../../services/comerciales-api.service';
 import { Comercial, comercialFullName } from '../../../../models/comercial.model';
 import { TipoEmpresa } from '../../../../models/tipo-empresa.model';
 import { forkJoin, of, catchError, map } from 'rxjs';
+import { TipoEmpresaStore } from '../../../../services/tipo-empresa.store';
 
 @Component({
   selector: 'app-modal-edit',
@@ -19,11 +19,11 @@ export class ModalEditComponent implements OnChanges, OnInit {
   @Output() save  = new EventEmitter<Empresa>();
   @Output() close = new EventEmitter<void>();
 
-  private comercialesApi = inject(ComercialesApiService);
-  private empresasApi = inject(EmpresasApiService);
+  private readonly comercialesApi = inject(ComercialesApiService);
+  private readonly tipoEmpresaStore = inject(TipoEmpresaStore);
 
-  private _tipos = signal<TipoEmpresa[]>([]);
-  private _comerciales = signal<Comercial[]>([]);
+  private readonly _tipos = signal<TipoEmpresa[]>([]);
+  private readonly _comerciales = signal<Comercial[]>([]);
 
   readonly comerciales = this._comerciales.asReadonly();
   readonly tipos = this._tipos.asReadonly();
@@ -48,7 +48,7 @@ export class ModalEditComponent implements OnChanges, OnInit {
 
   ngOnInit(): void {
       forkJoin({
-        tipos: this.empresasApi.findTipos().pipe(
+        tipos: this.tipoEmpresaStore.ensureLoaded().pipe(
           catchError((err) => {
             console.error('Error al cargar tipos:', err);
             return of([]);

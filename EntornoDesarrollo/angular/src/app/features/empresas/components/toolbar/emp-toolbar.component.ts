@@ -1,12 +1,8 @@
-import { Component, EventEmitter, inject, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { firstValueFrom } from 'rxjs';
-import { TipoEmpresa } from '../../../../models/tipo-empresa.model';
-import { EmpresasApiService } from '../../../../services/empresas-api.service';
 
 export type EmpFilterType = '' | 'activa' | 'baja';
-export type EmpFilterTipoType = string;
 
 @Component({
   selector: 'app-toolbar',
@@ -15,20 +11,12 @@ export type EmpFilterTipoType = string;
   templateUrl: './emp-toolbar.component.html',
 })
 export class EmpToolbarComponent {
+  @Input() tipos: string[] = [];
   @Output() searchChange = new EventEmitter<string>();
   @Output() filterChange = new EventEmitter<EmpFilterType>();
-  @Output() tipoFilterChange = new EventEmitter<EmpFilterTipoType>();
-
-  private empresasApi = inject(EmpresasApiService);
-  private _tipos = signal<TipoEmpresa[]>([]);
-  readonly tipos = this._tipos.asReadonly();
+  @Output() tipoFilterChange = new EventEmitter<string>();
 
   searchValue = '';
   filterValue: EmpFilterType = '';
-  tipoFilterValue: EmpFilterTipoType = '';
-
-  async ngOnInit(): Promise<void> {
-    const tipos = await firstValueFrom(this.empresasApi.findTipos());
-    this._tipos.set(tipos);
-  }
+  tipoFilterValue: string = '';
 }

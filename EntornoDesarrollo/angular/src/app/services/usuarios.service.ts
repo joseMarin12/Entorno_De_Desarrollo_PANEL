@@ -1,7 +1,6 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, signal, computed } from '@angular/core';
 import { Observable, tap, map, catchError, throwError } from 'rxjs';
-import { Usuario, Role } from '../models/usuarios.model';
+import { Usuario } from '../models/usuarios.model';
 import { BaseCrud } from './base.service';
 import { environment } from '../../environments/environment';
 
@@ -19,24 +18,6 @@ export class UsuariosService extends BaseCrud<Usuario> {
   readonly total    = this.totalRecords.asReadonly();
   readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
   readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
-
-  private _roles = signal<Role[]>([]);
-  readonly roles = this._roles.asReadonly();
-
-  loadRoles(): void {
-    const payload = { action: 'getRole' };
-    this.trackRequest(this.http.post<{data: any[]}>(this.API_URL, payload)).subscribe({
-      next: (res) => {
-        if (!res || !res.data) return;
-        const roles = res.data.map(r => {
-          const json = r.json || r;
-          return { id: Number(json.id), name: json.name };
-        });
-        this._roles.set(roles);
-      },
-      error: (e) => console.error('Error loading roles', e)
-    });
-  }
 
   loadComercialesEmails(): Observable<string[]> {
     return this.trackRequest(this.http.get<any>(`${environment.apiUrl}/comerciales`)).pipe(

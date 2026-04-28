@@ -10,7 +10,7 @@ import { UsuariosTableComponent } from '../../components/usuarios-table/usuarios
 import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
 import { UsuariosModalFormComponent } from '../../components/modal-form/modal-form.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
-import { environment } from '../../../../../environments/environment';
+import { RolesStore } from '../../../../services/roles.store';
 
 @Component({
     selector: 'app-usuarios-page',
@@ -36,6 +36,7 @@ import { environment } from '../../../../../environments/environment';
 export class UsuariosPageComponent implements OnInit {
     svc = inject(UsuariosService);
     toast = inject(ToastService);
+    rolesStore = inject(RolesStore);
 
     // ── Estado ────────────────────────────────────────
     currentPage = 1;
@@ -52,7 +53,7 @@ export class UsuariosPageComponent implements OnInit {
     activeFilter: UsuariosFilterType = 'todos';
 
     // ── Datos calculados ──────────────────────────────
-    selectedUsuario = computed(() => 
+    selectedUsuario = computed(() =>
         this.selectedId ? this.svc.getById(this.selectedId) : null
     );
 
@@ -60,9 +61,8 @@ export class UsuariosPageComponent implements OnInit {
 
     // ── Ciclo de vida ─────────────────────────────────
     ngOnInit(): void {
-        this.svc.loadRoles();
+        this.rolesStore.ensureLoaded().subscribe();
         this.loadPage();
-        this.loadComercialesEmails();
     }
 
     // ── Lógica de carga ───────────────────────────────

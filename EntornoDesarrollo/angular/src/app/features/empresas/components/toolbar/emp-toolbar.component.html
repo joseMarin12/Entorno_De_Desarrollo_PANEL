@@ -28,8 +28,8 @@
         (ngModelChange)="tipoFilterChange.emit($event)"
       >
         <option value="">Tipo: Todos</option>
-        @for (tipo of tipos(); track tipo.id) {
-          <option [value]="tipo.nombre">{{ tipo.nombre }}</option>
+        @for (tipo of tipos; track tipo) {
+          <option [value]="tipo">{{ tipo }}</option>
         }
       </select>
 
