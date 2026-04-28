@@ -19,43 +19,25 @@
       <div class="form-grid">
 
         <div class="form-group full">
-          <app-lookup-select 
-            [apiUrl]="svc.API_URL" 
-            action="getEmpresas" 
-            label="Empresa" 
-            labelField="nombre_empresa"
-            placeholder="Seleccionar empresa..."
-            [(ngModel)]="form.id_empresa" 
-            [hasError]="!!errors['id_empresa']" 
-            [required]="true">
+          <app-lookup-select [apiUrl]="svc.API_URL" action="getEmpresas" label="Empresa" labelField="nombre_empresa"
+            placeholder="Seleccionar empresa..." [searchable]="true" [(ngModel)]="form.id_empresa"
+            [hasError]="!!errors['id_empresa']" [required]="true">
           </app-lookup-select>
           @if (errors['id_empresa']) { <span class="form-hint error-msg">{{ errors['id_empresa'] }}</span> }
         </div>
 
         <div class="form-group">
-          <app-lookup-select 
-            [apiUrl]="svc.API_URL" 
-            action="getTrabajadores" 
-            label="Trabajador" 
-            labelField="nombre_completo"
-            placeholder="Seleccionar trabajador..."
-            [(ngModel)]="form.id_trabajador" 
-            [hasError]="!!errors['id_trabajador']" 
-            [required]="true">
+          <app-lookup-select [apiUrl]="svc.API_URL" action="getTrabajadores" label="Trabajador"
+            labelField="nombre_completo" placeholder="Buscar trabajador..." [searchable]="true"
+            [(ngModel)]="form.id_trabajador" [hasError]="!!errors['id_trabajador']" [required]="true">
           </app-lookup-select>
           @if (errors['id_trabajador']) { <span class="form-hint error-msg">{{ errors['id_trabajador'] }}</span> }
         </div>
 
         <div class="form-group">
-          <app-lookup-select 
-            [apiUrl]="svc.API_URL" 
-            action="getComerciales" 
-            label="Comercial" 
-            labelField="nombre_completo"
-            placeholder="Seleccionar comercial..."
-            [(ngModel)]="form.id_comerciales" 
-            [hasError]="!!errors['id_comerciales']" 
-            [required]="true">
+          <app-lookup-select [apiUrl]="svc.API_URL" action="getComerciales" label="Comercial"
+            labelField="nombre_completo" placeholder="Buscar comercial..." [searchable]="true"
+            [(ngModel)]="form.id_comerciales" [hasError]="!!errors['id_comerciales']" [required]="true">
           </app-lookup-select>
           @if (errors['id_comerciales']) { <span class="form-hint error-msg">{{ errors['id_comerciales'] }}</span> }
         </div>

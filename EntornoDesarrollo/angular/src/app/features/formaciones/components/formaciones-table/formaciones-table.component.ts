@@ -1,13 +1,25 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TableComponent, ColumnDef } from '../../../../shared/table/table.component';
 import { Formacion } from '../../../../models/formacion.model';
 import { FormacionesService } from '../../../../services/formaciones.service';
 
 @Component({
   selector: 'app-formaciones-table',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './formaciones-table.component.html',
+  imports: [CommonModule, TableComponent],
+  template: `
+    <app-table
+      [columns]="columns"
+      [rows]="formaciones"
+      [currentPage]="currentPage"
+      [pageSize]="pageSize"
+      [totalFiltered]="totalFiltered"
+      entityLabel="formaciones"
+      (pageChange)="pageChange.emit($event)"
+      (actionClick)="onAction($event)">
+    </app-table>
+  `,
 })
 export class FormacionesTableComponent {
   @Input() formaciones: Formacion[] = [];
@@ -22,38 +34,75 @@ export class FormacionesTableComponent {
 
   svc = inject(FormacionesService);
 
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.totalFiltered / this.pageSize));
-  }
+  columns: ColumnDef[] = [
+    {
+      header: 'Formacion',
+      type: 'avatar-name',
+      nameFields: ['curso'],
+      subField: 'id',
+      subPrefix: 'ID: ',
+      activeField: 'activo',
+      colorFn: (id) => this.svc.colorFor(id),
+      initialsFn: (row) => this.svc.initials(row),
+    },
+    {
+      header: 'Denominacion',
+      type: 'text',
+      field: 'denominacion',
+    },
+    {
+      header: 'Horario',
+      type: 'text',
+      field: 'horario',
+    },
+    {
+      header: 'Estado',
+      type: 'status-badge',
+      activeField: 'activo',
+      activeLabel: 'Activo',
+      inactiveLabel: 'Inactivo',
+    },
+    {
+      header: 'Acciones',
+      type: 'actions',
+      actions: [
+        {
+          type: 'edit',
+          title: 'Editar',
+          icon: 'edit',
+          variant: 'edit',
+          showWhen: 'always',
+        },
+        {
+          type: 'baja',
+          title: 'Dar de baja',
+          icon: 'ban',
+          variant: 'danger',
+          showWhen: 'active',
+          activeField: 'activo',
+        },
+        {
+          type: 'baja',
+          title: 'Reactivar',
+          icon: 'refresh',
+          variant: 'success',
+          showWhen: 'inactive',
+          activeField: 'activo',
+        },
+        {
+          type: 'participantes',
+          title: 'Ver participantes',
+          icon: 'eye',
+          variant: 'view',
+          showWhen: 'always',
+        },
+      ],
+    },
+  ];
 
-  title(formacion: Formacion): string {
-    return formacion.curso || 'Sin título';
-  }
-
-  initials(formacion: Formacion): string {
-    const t = this.title(formacion);
-    return t.substring(0, 2).toUpperCase();
-  }
-
-  colorFor(id: number | string): string {
-    const colors = [
-      'linear-gradient(135deg, #10b981, #059669)',
-      'linear-gradient(135deg, #3b82f6, #2563eb)',
-      'linear-gradient(135deg, #6366f1, #4f46e5)',
-      'linear-gradient(135deg, #f59e0b, #d97706)',
-      'linear-gradient(135deg, #ec4899, #db2777)'
-    ];
-    return colors[Number(id) % colors.length] || colors[0];
-  }
-
-  get paginationInfo(): string {
-    if (this.totalFiltered === 0) return 'Sin resultados';
-    const start = (this.currentPage - 1) * this.pageSize + 1;
-    const end = Math.min(this.currentPage * this.pageSize, this.totalFiltered);
-    return `Mostrando ${start}–${end} de ${this.totalFiltered} formaciones`;
-  }
-
-  get pages(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  onAction(event: { type: string; id: number }): void {
+    if (event.type === 'edit') this.editClick.emit(event.id);
+    if (event.type === 'baja') this.bajaClick.emit(event.id);
+    if (event.type === 'participantes') this.participantesClick.emit(event.id);
   }
 }
