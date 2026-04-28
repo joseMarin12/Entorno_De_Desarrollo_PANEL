@@ -14,7 +14,7 @@ class FormacionController extends Controller
     {
         $payload = $request->all();
 
-        $allowedActions = ['getFormaciones', 'createFormacion', 'updateFormacion', 'toggleFormacionStatus', 'getTrabajadores', 'addTrabajadorToFormacion', 'removeTrabajadorFromFormacion', 'getArea', 'getModalidad', 'getEjecución', 'getResponsable'];
+        $allowedActions = ['getFormaciones', 'createFormacion', 'updateFormacion', 'toggleFormacionStatus', 'getTrabajadores', 'addTrabajadorToFormacion', 'removeTrabajadorFromFormacion', 'getArea', 'getModalidad', 'getEjecucion', 'getResponsable'];
 
         if (!in_array($payload['action'], $allowedActions)) {
             return response()->json(['error' => 'Acción no válida: ' . ($payload['action'] ?? 'null')], 400);

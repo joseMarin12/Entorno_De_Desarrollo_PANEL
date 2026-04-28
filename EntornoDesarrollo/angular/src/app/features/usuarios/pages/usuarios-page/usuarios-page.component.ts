@@ -62,7 +62,6 @@ export class UsuariosPageComponent implements OnInit {
     ngOnInit(): void {
         this.svc.loadRoles();
         this.loadPage();
-        this.loadComercialesEmails();
     }
 
     // ── Lógica de carga ───────────────────────────────
@@ -80,13 +79,6 @@ export class UsuariosPageComponent implements OnInit {
         this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters).subscribe();
     }
 
-    private loadComercialesEmails(): void {
-        this.svc.loadComercialesEmails().subscribe({
-            next: (emails) => {
-                this.emailUsuarios.set(emails);
-            }
-        });
-    }
 
     // ── Eventos Toolbar ───────────────────────────────
     onSearch(query: string): void {

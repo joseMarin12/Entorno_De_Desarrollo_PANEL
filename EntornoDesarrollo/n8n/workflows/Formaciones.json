@@ -2,7 +2,7 @@
   "updatedAt": "2026-04-23T10:18:48.930Z",
   "createdAt": "2026-04-20T08:43:55.636Z",
   "id": "R5yHppLWfre3MYim",
-  "name": "Gestión Formaciones",
+  "name": "Formaciones",
   "description": null,
   "active": true,
   "isArchived": false,
@@ -23,7 +23,7 @@
         384
       ],
       "id": "ee427571-815e-4590-b347-112dc73a5916",
-      "name": "API Gestión Formaciones",
+      "name": "API GestiÃ³n Formaciones",
       "webhookId": "formaciones-gestion-uuid-0001"
     },
     {
@@ -260,7 +260,7 @@
                   {
                     "id": "e64d30af-361a-49b3-be64-060ebca83b9b",
                     "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "getEjecución",
+                    "rightValue": "getEjecucion",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -312,7 +312,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 15;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  whereClause += ` AND (f.curso ILIKE $${paramIndex} OR f.denominacion ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.id_estado !== undefined && filters.id_estado !== null && filters.id_estado !== '') {\n  whereClause += ` AND f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\n// Si queremos que por defecto traiga activos e inactivos, dejamos WHERE 1=1.\n// Si el frontend enviara un filtro de status, podramos manejarlo aqu.\n\nparams.push(pageSize);\nconst limitParam = paramIndex++;\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) as total\n  FROM formacion f\n  ${whereClause}\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre as estado_nombre,\n    af.nombre as area_nombre,\n    mf.nombre as modalidad_nombre,\n    exe.nombre as ejecucion_nombre,\n    COUNT(ft.id_trabajador) as num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY f.id, ef.nombre, af.nombre, mf.nombre, exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\nSELECT paginado.*, total_count.total as total_records\nFROM paginado, total_count;\n`;\n\nreturn [{ json: { query, params, page, pageSize } }];"
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 15;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = \u0027WHERE 1=1\u0027;\n\nif (filters.searchText \u0026\u0026 typeof filters.searchText === \u0027string\u0027 \u0026\u0026 filters.searchText.trim() !== \u0027\u0027) {\n  whereClause += ` AND (f.curso ILIKE $${paramIndex} OR f.denominacion ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.id_estado !== undefined \u0026\u0026 filters.id_estado !== null \u0026\u0026 filters.id_estado !== \u0027\u0027) {\n  whereClause += ` AND f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\n// Si queremos que por defecto traiga activos e inactivos, dejamos WHERE 1=1.\n// Si el frontend enviara un filtro de status, podramos manejarlo aqu.\n\nparams.push(pageSize);\nconst limitParam = paramIndex++;\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) as total\n  FROM formacion f\n  ${whereClause}\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre as estado_nombre,\n    af.nombre as area_nombre,\n    mf.nombre as modalidad_nombre,\n    exe.nombre as ejecucion_nombre,\n    COUNT(ft.id_trabajador) as num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY f.id, ef.nombre, af.nombre, mf.nombre, exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\nSELECT paginado.*, total_count.total as total_records\nFROM paginado, total_count;\n`;\n\nreturn [{ json: { query, params, page, pageSize } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -341,7 +341,7 @@
       "name": "Get Formaciones",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -364,7 +364,7 @@
       "name": "Insert Formacion",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -387,7 +387,7 @@
       "name": "Update Formacion",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -410,14 +410,14 @@
       "name": "Toggle Formacion Status",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst idFormacion = body.id_formacion;\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT\n  t.id,\n  t.nombre,\n  t.primer_apellido,\n  t.segundo_apellido,\n  t.dni_nif_pasaporte,\n  t.email,\n  t.telefono,\n  t.activo,\n  CASE WHEN ft.id IS NOT NULL THEN true ELSE false END as asignado\nFROM trabajador t\nLEFT JOIN formacion_trabajador ft\n  ON ft.id_trabajador = t.id AND ft.id_formacion = $${paramIndex}\nWHERE t.activo = true`;\nparams.push(idFormacion);\nparamIndex++;\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  query += ` AND (CONCAT(t.nombre, ' ', t.primer_apellido, ' ', COALESCE(t.segundo_apellido,'')) ILIKE $${paramIndex} OR t.dni_nif_pasaporte ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.soloDisponibles === true) {\n  query += ' AND ft.id IS NULL';\n}\n\nquery += ' ORDER BY t.primer_apellido, t.nombre';\n\nreturn [{ json: { query, params } }];"
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst idFormacion = body.id_formacion;\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT\n  t.id,\n  t.nombre,\n  t.primer_apellido,\n  t.segundo_apellido,\n  t.dni_nif_pasaporte,\n  t.email,\n  t.telefono,\n  t.activo,\n  CASE WHEN ft.id IS NOT NULL THEN true ELSE false END as asignado\nFROM trabajador t\nLEFT JOIN formacion_trabajador ft\n  ON ft.id_trabajador = t.id AND ft.id_formacion = $${paramIndex}\nWHERE t.activo = true`;\nparams.push(idFormacion);\nparamIndex++;\n\nif (filters.searchText \u0026\u0026 typeof filters.searchText === \u0027string\u0027 \u0026\u0026 filters.searchText.trim() !== \u0027\u0027) {\n  query += ` AND (CONCAT(t.nombre, \u0027 \u0027, t.primer_apellido, \u0027 \u0027, COALESCE(t.segundo_apellido,\u0027\u0027)) ILIKE $${paramIndex} OR t.dni_nif_pasaporte ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.soloDisponibles === true) {\n  query += \u0027 AND ft.id IS NULL\u0027;\n}\n\nquery += \u0027 ORDER BY t.primer_apellido, t.nombre\u0027;\n\nreturn [{ json: { query, params } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -446,7 +446,7 @@
       "name": "Get Trabajadores",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -469,7 +469,7 @@
       "name": "Add Trabajador",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -492,7 +492,7 @@
       "name": "Remove Trabajador",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -510,7 +510,7 @@
             {
               "id": "2",
               "name": "error",
-              "value": "Acción inválida. Acciones: getFormaciones, createFormacion, updateFormacion, toggleFormacionStatus, getTrabajadores, addTrabajadorToFormacion, removeTrabajadorFromFormacion",
+              "value": "AcciÃ³n invÃ¡lida. Acciones: getFormaciones, createFormacion, updateFormacion, toggleFormacionStatus, getTrabajadores, addTrabajadorToFormacion, removeTrabajadorFromFormacion",
               "type": "string"
             }
           ]
@@ -529,7 +529,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item => item.json) }) }}",
+        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item =\u003e item.json) }) }}",
         "options": {
           "responseCode": 200
         }
@@ -576,7 +576,7 @@
       "name": "Execute a SQL query",
       "credentials": {
         "postgres": {
-          "id": "ko5fFqsOIauxDSEd",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account 2"
         }
       }
@@ -597,7 +597,7 @@
       "name": "Execute a SQL query1",
       "credentials": {
         "postgres": {
-          "id": "ko5fFqsOIauxDSEd",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account 2"
         }
       }
@@ -618,7 +618,7 @@
       "name": "Execute a SQL query2",
       "credentials": {
         "postgres": {
-          "id": "ko5fFqsOIauxDSEd",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account 2"
         }
       }
@@ -639,14 +639,14 @@
       "name": "Execute a SQL query3",
       "credentials": {
         "postgres": {
-          "id": "ko5fFqsOIauxDSEd",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account 2"
         }
       }
     }
   ],
   "connections": {
-    "API Gestión Formaciones": {
+    "API GestiÃ³n Formaciones": {
       "main": [
         [
           {
@@ -925,7 +925,7 @@
         "updatedAt": "2026-04-22T08:46:19.945Z",
         "createdAt": "2026-04-22T08:41:51.280Z",
         "id": "HPNLsCxwhHCLkcBf",
-        "name": "Adriano Casado Villarreal <adriano.casado@sgtech.tech>",
+        "name": "Adriano Casado Villarreal \u003cadriano.casado@sgtech.tech\u003e",
         "type": "personal",
         "icon": null,
         "description": null,
