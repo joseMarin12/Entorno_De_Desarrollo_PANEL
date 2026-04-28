@@ -126,6 +126,26 @@
           box-shadow: 0 0 0 1px #002c5c;
         }
       }
+
+      &.error {
+        input {
+          border-color: #ef4444;
+          &:focus {
+            box-shadow: 0 0 0 1px #ef4444;
+          }
+        }
+        .icon {
+          color: #ef4444;
+        }
+      }
+    }
+
+    .error-text {
+      display: block;
+      color: #ef4444;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+      font-weight: 400;
     }
   }
 
@@ -146,8 +166,13 @@
     gap: 0.75rem;
     transition: background-color 0.2s;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: #001f41;
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
     }
     
     .arrow {

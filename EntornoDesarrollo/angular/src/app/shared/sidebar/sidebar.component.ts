@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { UiService } from '../../services/ui.service';
+import { AutenticadorService } from '../../services/autenticador.service';
 
 export interface NavItem {
   label: string;
@@ -17,6 +18,7 @@ export interface NavItem {
 })
 export class SidebarComponent {
   ui = inject(UiService);
+  auth = inject(AutenticadorService);
 
   gestionItems: NavItem[] = [
     { label: 'Usuarios',        route: '/usuarios',        icon: 'user' },
