@@ -5,7 +5,7 @@ import { Empresa } from '../../../../models/empresa.model';
 import { ComercialesApiService } from '../../../../services/comerciales-api.service';
 import { EmpresasApiService } from '../../../../services/empresas-api.service';
 import { Comercial, comercialFullName } from '../../../../models/comercial.model';
-import { firstValueFrom } from 'rxjs';
+import { catchError, of, forkJoin, map } from 'rxjs';
 import { TipoEmpresa } from '../../../../models/tipo-empresa.model';
 
 @Component({
@@ -27,27 +27,33 @@ export class ModalAddComponent implements OnInit {
   readonly comerciales = this._comerciales.asReadonly();
   readonly tipos = this._tipos.asReadonly();
 
-  form = { nombre: '', razonSocial: '', cif: '', id_tipo_empresa: null as number | null, direcciones: 0, contactos: 0, id_comercial: null as number | null, activo: true };
+  form = { nombre: '', razonSocial: '', cif: '', id_tipo_empresa: null as number | null, direcciones: 0, contactos: 0, id_comerciales: null as number | null, activo: true };
   errors: Record<string, string> = {};
 
   toggleActivo(): void {
     this.form.activo = !this.form.activo;
   }
 
-  async ngOnInit(): Promise<void> {
-    await Promise.allSettled([
-      firstValueFrom(this.comercialesApi.findAll('', 'activo'))
-        .then(response => this._comerciales.set(response.data ?? []))
-        .catch(() => console.warn('No se pudieron cargar los comerciales')),
-
-      firstValueFrom(this.empresasApi.findTipos())
-        .then(tipos => {
-          console.log('Tipos de empresa cargados:', tipos);
-          this._tipos.set(tipos);
+  ngOnInit(): void {
+    forkJoin({
+      tipos: this.empresasApi.findTipos().pipe(
+        catchError((err) => {
+          console.error('Error al cargar tipos:', err);
+          return of([]);
         })
-        .catch((err) => console.error('No se pudieron cargar los tipos:', err)),
-    ]);
-  }
+      ),
+      comerciales: this.comercialesApi.findAll(1, 1000, '', 'true').pipe(
+        map(response => response.data ?? []),
+        catchError((err) => {
+          console.error('Error al cargar comerciales:', err);
+          return of([]);
+        })
+      )
+    }).subscribe(({ tipos, comerciales }) => {
+    this._tipos.set(tipos);
+    this._comerciales.set(comerciales);
+  });
+}
 
   submit(): void {
     this.errors = {};
@@ -62,7 +68,7 @@ export class ModalAddComponent implements OnInit {
       razonSocial: this.form.razonSocial,
       cif: this.form.cif,
       id_tipo_empresa: this.form.id_tipo_empresa!,
-      id_comercial: this.form.id_comercial,
+      id_comerciales: this.form.id_comerciales,
       direcciones: this.form.direcciones,
       contactos: this.form.contactos,
       activo: this.form.activo,
@@ -73,7 +79,7 @@ export class ModalAddComponent implements OnInit {
   }
 
   reset(): void {
-    this.form = { nombre: '', razonSocial: '', id_tipo_empresa: null, cif: '', direcciones: 0, contactos: 0, id_comercial: null, activo: true };
+    this.form = { nombre: '', razonSocial: '', id_tipo_empresa: null, cif: '', direcciones: 0, contactos: 0, id_comerciales: null, activo: true };
     this.errors = {};
   }
 

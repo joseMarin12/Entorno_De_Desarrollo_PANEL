@@ -127,15 +127,6 @@ export class SelModalFormComponent implements OnChanges {
 
   setTipo(tipo: TipoSeleccionador): void {
     this.form.tipo = tipo;
-    if (tipo === 'interno') {
-      this.form.telefono = '';
-      this.form.email = '';
-      this.form.id_empresa = undefined;
-      this.form.empresa = undefined;
-      this.form.fecha_ini = '';
-      this.form.salario = undefined;
-      this.form.fee = undefined;
-    }
   }
 
   toggleActivo(): void {
@@ -198,7 +189,19 @@ export class SelModalFormComponent implements OnChanges {
       return;
     }
 
-    this.save.emit({ ...this.form });
+    // Limpieza: si es interno, no enviar campos exclusivos de externo
+    const payload = { ...this.form };
+    if (payload.tipo === 'interno') {
+      payload.telefono = '';
+      payload.email = '';
+      payload.id_empresa = undefined;
+      payload.empresa = undefined;
+      payload.fecha_ini = '';
+      payload.salario = undefined;
+      payload.fee = undefined;
+    }
+
+    this.save.emit(payload);
   }
 
   // Método para asignar el ID de empresa para el backend

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { FormacionesService } from '../../../../services/formaciones.service';
@@ -40,12 +40,12 @@ export class FormacionesPageComponent implements OnInit {
   readonly PAGE_SIZE = 10; // Actualizado a 10 según petición
 
   // ── Estado modales ────────────────────────────────
-  showForm = false; 
+  showForm = false;
   showBaja = false;
   showParticipantes = false;
-  selectedId: number | null = null;
+  readonly selectedId = signal<number | null>(null);
 
-  // ── Ciclo de vida ─────────────────────────────────
+  // ── Ciclo de vida ─────────────────────────────────────────────────────────
   ngOnInit(): void {
     this.loadData();
   }
@@ -55,11 +55,12 @@ export class FormacionesPageComponent implements OnInit {
   }
 
   // ── Getters para la vista ─────────────────────────
-  get selectedformacion(): Formacion | null {
-    return this.selectedId != null ? (this.svc.getById(this.selectedId) ?? null) : null;
-  }
+  readonly selectedformacion = computed<Formacion | null>(() => {
+    const id = this.selectedId();
+    return id != null ? (this.svc.getById(id) ?? null) : null;
+  });
 
-  // ── Handlers ──────────────────────────────────────
+  // ── Handlers ──────────────────────────────────────────────────────────────
   onSearchChange(q: string): void {
     this.searchQuery = q;
     this.currentPage = 1;
@@ -78,22 +79,23 @@ export class FormacionesPageComponent implements OnInit {
   }
 
   openAdd(): void {
-    this.selectedId = null;
+    this.selectedId.set(null);
     this.showForm = true;
   }
 
   onEditClick(id: number): void {
-    this.selectedId = id;
+    this.selectedId.set(id);
     this.showForm = true;
   }
 
   onSaveForm(data: any): void {
-    if (this.selectedId) {
+    const id = this.selectedId();
+    if (id) {
       // Editar
-      this.svc.update(this.selectedId, data).subscribe({
+      this.svc.update(id, data).subscribe({
         next: () => {
           this.showForm = false;
-          this.selectedId = null;
+          this.selectedId.set(null);
           this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
         },
         error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
@@ -111,23 +113,24 @@ export class FormacionesPageComponent implements OnInit {
   }
 
   onBajaClick(id: number): void {
-    this.selectedId = id;
+    this.selectedId.set(id);
     this.showBaja = true;
   }
 
   onParticipantesClick(id: number): void {
-    this.selectedId = id;
+    this.selectedId.set(id);
     this.showParticipantes = true;
   }
 
   onConfirmBaja(): void {
-    if (this.selectedId == null) return;
-    const c = this.svc.getById(this.selectedId)!;
+    const id = this.selectedId();
+    if (id == null) return;
+    const c = this.svc.getById(id)!;
     const wasActive = c.activo === true;
-    this.svc.toggleActivo(this.selectedId).subscribe({
+    this.svc.toggleActivo(id).subscribe({
       next: () => {
         this.showBaja = false;
-        this.selectedId = null;
+        this.selectedId.set(null);
         if (wasActive) {
           this.toast.show('warning', `⊘ Formación <strong>${this.svc.title(c)}</strong> dada de baja`);
         } else {

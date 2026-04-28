@@ -1,43 +1,60 @@
+
 -- Roles y permisos
 
 CREATE TABLE role (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(45)
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(45) NOT NULL
+);
+
+INSERT INTO role (id, name) OVERRIDING SYSTEM VALUE
+VALUES
+    (1, 'Administrador'),
+    (2, 'Usuario')
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
+
+SELECT setval(
+    pg_get_serial_sequence('role', 'id'),
+    (SELECT COALESCE(MAX(id), 1) FROM role),
+    true
 );
 
 CREATE TABLE permission (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(16)
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(16) NOT NULL
 );
 
 CREATE TABLE "user" (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(45),
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(45) NOT NULL,
     surname VARCHAR(128),
-    email VARCHAR(128),
-    roleId INT,
-    enabled BOOLEAN,
-    password VARCHAR(32),
-    FOREIGN KEY (roleId) REFERENCES role(id)
+    email VARCHAR(128) UNIQUE NOT NULL,
+    roleid INT,
+    enabled BOOLEAN DEFAULT TRUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user_role FOREIGN KEY (roleid) REFERENCES role(id) ON DELETE SET NULL
 );
 
+-- Localizaciones
+
 CREATE TABLE localization (
-    id SERIAL PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     url VARCHAR(255)
 );
 
 CREATE TABLE role_localization_permission (
-    id SERIAL PRIMARY KEY,
-    roleId INT,
-    localizationId INT,
-    permissionId INT,
-    FOREIGN KEY (roleId) REFERENCES role(id),
-    FOREIGN KEY (localizationId) REFERENCES localization(id),
-    FOREIGN KEY (permissionId) REFERENCES permission(id)
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    roleid INT,
+    localization_id INT,
+    permission_id INT,
+    FOREIGN KEY (roleid) REFERENCES role(id) ON DELETE CASCADE,
+    FOREIGN KEY (localization_id) REFERENCES localization(id) ON DELETE CASCADE,
+    FOREIGN KEY (permission_id) REFERENCES permission(id) ON DELETE CASCADE
 );
 
+
 -- Comerciales y empresas
- 
+
 CREATE TABLE comerciales (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(45) NOT NULL,
@@ -45,9 +62,9 @@ CREATE TABLE comerciales (
     segundo_apellido VARCHAR(45),
     telefono VARCHAR(20),
     email VARCHAR(128) UNIQUE,
-    activo BOOLEAN NOT NULL DEFAULT TRUE,  
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP  
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE tipo_empresa (
@@ -61,14 +78,15 @@ CREATE TABLE empresa (
     razon_social VARCHAR(128),
     cif VARCHAR(9) UNIQUE,
     id_tipo_empresa INT,
-    id_comerciales INT,  --cambie el nombre de la columna para que coincida con la tabla comerciales
+    id_comerciales INT,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_tipo_empresa) REFERENCES tipo_empresa(id) ON DELETE SET NULL,
-    FOREIGN KEY (id_comerciales) REFERENCES comerciales(id) ON DELETE SET NULL  --cambie el nombre de la columna para que coincida con la tabla comerciales
+    FOREIGN KEY (id_comerciales) REFERENCES comerciales(id) ON DELETE SET NULL
 );
 
-CREATE TABLE pais ( --cree la tabla pais
+CREATE TABLE pais (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     pais VARCHAR(45) NOT NULL
 );
@@ -81,36 +99,33 @@ CREATE TABLE provincia (
 );
 
 CREATE TABLE localidad (
-    id SERIAL PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_provincia INT,
-    localidad VARCHAR(100),
-    FOREIGN KEY (id_provincia) REFERENCES provincia(id)
+    localidad VARCHAR(100) NOT NULL,
+    FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE CASCADE
 );
 
 CREATE TABLE direccion_empresa (
-    id SERIAL PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     direccion VARCHAR(128),
     codigo_postal VARCHAR(10),
     id_empresa INT,
     id_localidad INT,
-    FOREIGN KEY (id_empresa) REFERENCES empresa(id),
-    FOREIGN KEY (id_localidad) REFERENCES localidad(id)
+    FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE CASCADE
 );
 
 CREATE TABLE contacto_empresa (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(45),
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre VARCHAR(45) NOT NULL,
     primer_apellido VARCHAR(45),
     telefono VARCHAR(20),
     email VARCHAR(128),
     cargo VARCHAR(45),
     id_empresa INT,
-    FOREIGN KEY (id_empresa) REFERENCES empresa(id)
+    FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE CASCADE
 );
 
--- Selecciones y trabajadores
- 
--- Seleccionadores (Fusión de Internos y Externos)
 CREATE TABLE seleccionadores (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(64) NOT NULL,
@@ -143,7 +158,7 @@ CREATE TABLE trabajador (
     direccion VARCHAR(128),
     nacionalidad VARCHAR(45),
     fecha_nacimiento DATE,
-    id_seleccionadores INT, -- Referencia a la nueva tabla unificada
+    id_seleccionadores INT, 
     activo BOOLEAN DEFAULT TRUE,
     fecha_ini DATE,
     fecha_fin DATE,
@@ -156,23 +171,27 @@ CREATE TABLE trabajador (
     FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE SET NULL
 );
 
+-- Documentacion
+
 CREATE TABLE tipoDoc (
-    id SERIAL PRIMARY KEY,
-    tipo VARCHAR(45)
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    tipo VARCHAR(45) NOT NULL
 );
 
 CREATE TABLE documentacion (
-    id SERIAL PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_trabajador INT,
     id_tipoDoc INT,
     doc BYTEA,
-    descripcion VARCHAR(45),
-    FOREIGN KEY (id_trabajador) REFERENCES trabajador(id),
-    FOREIGN KEY (id_tipoDoc) REFERENCES tipoDoc(id)
+    descripcion TEXT,
+    FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_tipoDoc) REFERENCES tipoDoc(id) ON DELETE CASCADE
 );
 
+-- Asignaciones
+
 CREATE TABLE asignacion (
-    id SERIAL PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_empresa INT,
     id_trabajador INT,
     id_comerciales INT,
@@ -185,39 +204,68 @@ CREATE TABLE asignacion (
     FOREIGN KEY (id_comerciales) REFERENCES comerciales(id)
 );
 
+-- Formación
+
 CREATE TABLE estado_formacion (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(45)
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre VARCHAR(45) NOT NULL
 );
+
+INSERT INTO estado_formacion (nombre) VALUES
+    ('Activo'),
+    ('Inactivo'),
+    ('Planificada'),
+    ('En curso'),
+    ('Finalizada'),
+    ('Cancelada');
 
 CREATE TABLE area_formacion (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100)
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL
 );
+
+INSERT INTO area_formacion (nombre) VALUES
+    ('Técnica'),
+    ('Habilidades blandas'),
+    ('Seguridad'),
+    ('Idiomas'),
+    ('Gestión y liderazgo'),
+    ('Otros');
 
 CREATE TABLE modalidad_formacion (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(45)
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre VARCHAR(45) NOT NULL
 );
+
+INSERT INTO modalidad_formacion (nombre) VALUES
+    ('Presencial'),
+    ('Online'),
+    ('Semipresencial'),
+    ('A distancia');
 
 CREATE TABLE ejecucion_formacion (
-    id SERIAL PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(45)
 );
 
+INSERT INTO ejecucion_formacion (nombre) VALUES
+    ('Interna'),
+    ('Externa'),
+    ('Mixta');
+
 CREATE TABLE formacion (
-    id SERIAL PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_estado INT,
     curso VARCHAR(100),
     denominacion VARCHAR(255),
-    motivo VARCHAR(255),
+    motivo TEXT,
     id_area INT,
-    recursos VARCHAR(255),
+    recursos TEXT,
     id_responsable INT,
     id_modalidad INT,
     duracion INT,
     dentro_fuera_jornada VARCHAR(20),
-    observaciones VARCHAR(255),
+    observaciones TEXT,
     fecha_prevista DATE,
     fecha_inicio DATE,
     fecha_fin DATE,
@@ -228,33 +276,33 @@ CREATE TABLE formacion (
     coste DOUBLE PRECISION,
     bonificacion DOUBLE PRECISION,
     total DOUBLE PRECISION,
-    activo BOOLEAN NOT NULL DEFAULT true,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_estado) REFERENCES estado_formacion(id),
-    FOREIGN KEY (id_area) REFERENCES area_formacion(id),
-    FOREIGN KEY (id_responsable) REFERENCES "user"(id),
-    FOREIGN KEY (id_modalidad) REFERENCES modalidad_formacion(id),
-    FOREIGN KEY (id_ejecucion) REFERENCES ejecucion_formacion(id)
+    FOREIGN KEY (id_estado) REFERENCES estado_formacion(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_area) REFERENCES area_formacion(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_responsable) REFERENCES "user"(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_modalidad) REFERENCES modalidad_formacion(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_ejecucion) REFERENCES ejecucion_formacion(id) ON DELETE SET NULL
 );
 
 CREATE TABLE formacion_trabajador (
-    id SERIAL PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_formacion INT,
     id_trabajador INT,
-    asistencia BOOLEAN,
+    asistencia BOOLEAN DEFAULT FALSE,
     eficacia VARCHAR(45),
-    FOREIGN KEY (id_formacion) REFERENCES formacion(id),
-    FOREIGN KEY (id_trabajador) REFERENCES trabajador(id)
+    FOREIGN KEY (id_formacion) REFERENCES formacion(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE
 );
 
 -- Documentos para firmar
- 
+
 CREATE TABLE tipo_documento_firma (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL
 );
- 
+
 CREATE TABLE documento_firma (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre_fichero VARCHAR(255),
@@ -266,7 +314,7 @@ CREATE TABLE documento_firma (
     FOREIGN KEY (id_tipo_documento) REFERENCES tipo_documento_firma(id) ON DELETE SET NULL,
     FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE
 );
- 
+
 CREATE TABLE documento_firma_historial (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_documento_firma INT,
@@ -275,11 +323,21 @@ CREATE TABLE documento_firma_historial (
     fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_documento_firma) REFERENCES documento_firma(id) ON DELETE CASCADE
 );
- 
+
 -- Indices
- 
+
 CREATE INDEX idx_trabajador_seleccionadores ON trabajador(id_seleccionadores);
 CREATE INDEX idx_trabajador_localidad ON trabajador(id_localidad);
 CREATE INDEX idx_asignacion_empresa ON asignacion(id_empresa);
 CREATE INDEX idx_asignacion_trabajador ON asignacion(id_trabajador);
 CREATE INDEX idx_empresa_tipo ON empresa(id_tipo_empresa);
+
+
+-- Inserts necesarios
+
+INSERT INTO tipo_empresa (tipo_empresa)
+VALUES 
+    ('Tecnológica'),
+    ('Consultoría'),
+    ('Logística'),
+    ('Marketing');

@@ -1,62 +1,70 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
+import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
+import { Usuario } from '../../../../models/usuarios.model';
 import { UsuariosService } from '../../../../services/usuarios.service';
 import { ToastService } from '../../../../services/toast.service';
-import { ComercialesApiService } from '../../../../services/comerciales-api.service';
-import { Usuario } from '../../../../models/usuarios.model';
-import { Comercial } from '../../../../models/comercial.model';
-import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { UsuariosStatsRowComponent } from '../../components/stats-row/usuarios-stats-row.component';
 import { UsuariosToolbarComponent, UsuariosFilterType } from '../../components/toolbar/usuarios-toolbar.component';
 import { UsuariosTableComponent } from '../../components/usuarios-table/usuarios-table.component';
-import { UsuariosModalAddComponent } from '../../components/modal-add/modal-add.component';
-import { UsuariosModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
+import { UsuariosModalFormComponent } from '../../components/modal-form/modal-form.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
+import { environment } from '../../../../../environments/environment';
 
 @Component({
     selector: 'app-usuarios-page',
     standalone: true,
     imports: [
-    CommonModule,
-    TopbarComponent,
-    UsuariosStatsRowComponent,
-    UsuariosToolbarComponent,
-    UsuariosTableComponent,
-    UsuariosModalAddComponent,
-    UsuariosModalEditComponent,
-    UsuariosModalDetailComponent,
-    ConfirmationModalComponent
-],
+        CommonModule,
+        TopbarComponent,
+        UsuariosStatsRowComponent,
+        UsuariosToolbarComponent,
+        UsuariosTableComponent,
+        UsuariosModalFormComponent,
+        UsuariosModalDetailComponent,
+        ConfirmationModalComponent
+    ],
     templateUrl: './usuarios-page.component.html',
+    styles: [`
+        .page-container { padding: 32px; max-width: 1600px; margin: 0 auto; }
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; margin-bottom: 8px; }
+        .page-subtitle { color: var(--text-muted); font-size: 14px; font-weight: 500; }
+    `]
 })
 export class UsuariosPageComponent implements OnInit {
     svc = inject(UsuariosService);
     toast = inject(ToastService);
-    comercialesSvc = inject(ComercialesApiService);
-    ConfirmMode = ConfirmMode;
-    private readonly _comercialesEmails = signal<string[]>([]);
 
-    // ── Filtros ──────────────────────────────────────
-    searchQuery = '';
-    activeFilter: UsuariosFilterType = 'todos';
+    // ── Estado ────────────────────────────────────────
     currentPage = 1;
     readonly PAGE_SIZE = 10;
 
     // ── Estado modales ────────────────────────────────
-    showAdd = false;
-    showEdit = false;
+    showForm = false;
     showBaja = false;
     showDetail = false;
     selectedId: number | null = null;
 
+    // ── Filtros ───────────────────────────────────────
+    searchQuery = '';
+    activeFilter: UsuariosFilterType = 'todos';
+
+    // ── Datos calculados ──────────────────────────────
+    selectedUsuario = computed(() => 
+        this.selectedId ? this.svc.getById(this.selectedId) : null
+    );
+
+    emailUsuarios = signal<string[]>([]);
+
     // ── Ciclo de vida ─────────────────────────────────
     ngOnInit(): void {
+        this.svc.loadRoles();
         this.loadPage();
-        this.loadComercialesEmails();
     }
 
+    // ── Lógica de carga ───────────────────────────────
     private loadPage(): void {
         let status: boolean | '' = '';
         if (this.activeFilter === 'activos') {
@@ -68,34 +76,12 @@ export class UsuariosPageComponent implements OnInit {
             searchText: this.searchQuery,
             status,
         };
-        this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters);
+        this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters).subscribe();
     }
 
-    private loadComercialesEmails(): void {
-        this.comercialesSvc.findAll('', '', 1, 1000).subscribe({
-            next: (page) => {
-                const emails = (page.data || []).map((c: Comercial) => c.email.toLowerCase());
-                this._comercialesEmails.set(emails);
-            }
-        });
-    }
 
-    get selectedUsuario(): Usuario | null {
-        if (this.selectedId == null) {
-            return null;
-        }
-        return this.svc.getById(this.selectedId) ?? null;
-    }
-
-    // ── Validación de Emails ──────────────────────────
-    readonly emailUsuarios = computed(() => {
-        const fromUsers = this.svc.usuarios().map(u => u.email.toLowerCase());
-        const fromComerciales = this._comercialesEmails();
-        return Array.from(new Set([...fromUsers, ...fromComerciales]));
-    });
-
-    // ── Handlers ──────────────────────────────────────
-    onSearchChange(query: string): void {
+    // ── Eventos Toolbar ───────────────────────────────
+    onSearch(query: string): void {
         this.searchQuery = query;
         this.currentPage = 1;
         this.loadPage();
@@ -107,22 +93,39 @@ export class UsuariosPageComponent implements OnInit {
         this.loadPage();
     }
 
+    // ── Acciones Tabla ────────────────────────────────
     onPageChange(page: number): void {
         this.currentPage = page;
         this.loadPage();
     }
 
     openAdd(): void {
-        this.showAdd = true;
+        this.selectedId = null;
+        this.showForm = true;
     }
 
-    async onSaveAdd(data: Omit<Usuario, 'id'>): Promise<void> {
-        try {
-            await this.svc.add(data);
-            this.showAdd = false;
-            this.toast.show('success', `✓ Usuario <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
-        } catch {
-            this.toast.show('error', `✗ No se pudo añadir el usuario. Inténtalo de nuevo.`);
+    onSaveForm(data: Partial<Usuario>): void {
+        if (this.selectedId) {
+            this.svc.update(this.selectedId, data as Usuario).subscribe({
+                next: () => {
+                    this.showForm = false;
+                    this.selectedId = null;
+                    this.toast.show('info', `✎ Usuario <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
+                },
+                error: () => {
+                    this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
+                }
+            });
+        } else {
+            this.svc.add(data as Omit<Usuario, 'id'>).subscribe({
+                next: () => {
+                    this.showForm = false;
+                    this.toast.show('success', `✓ Usuario <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
+                },
+                error: () => {
+                    this.toast.show('error', `✗ No se pudo añadir el usuario. Inténtalo de nuevo.`);
+                }
+            });
         }
     }
 
@@ -133,18 +136,7 @@ export class UsuariosPageComponent implements OnInit {
 
     onEditClick(id: number): void {
         this.selectedId = id;
-        this.showEdit = true;
-    }
-
-    async onSaveEdit(data: Usuario): Promise<void> {
-        try {
-            await this.svc.update(data.id, data);
-            this.showEdit = false;
-            this.selectedId = null;
-            this.toast.show('info', `✎ Usuario <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
-        } catch {
-            this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
-        }
+        this.showForm = true;
     }
 
     onBajaClick(id: number): void {
@@ -152,21 +144,25 @@ export class UsuariosPageComponent implements OnInit {
         this.showBaja = true;
     }
 
-    async onConfirmBaja(): Promise<void> {
+    onConfirmBaja(): void {
         if (this.selectedId == null) return;
         const u = this.svc.getById(this.selectedId)!;
         const wasActive = u.enabled;
-        try {
-            await this.svc.toggleActivo(this.selectedId);
-            this.showBaja = false;
-            this.selectedId = null;
-            if (wasActive) {
-                this.toast.show('warning', `⊘ Usuario <strong>${this.svc.fullName(u)}</strong> dado de baja`);
-            } else {
-                this.toast.show('success', `↺ Usuario <strong>${this.svc.fullName(u)}</strong> reactivado`);
+        this.svc.toggleActivo(this.selectedId).subscribe({
+            next: () => {
+                this.showBaja = false;
+                this.selectedId = null;
+                if (wasActive) {
+                    this.toast.show('warning', `⊘ Usuario <strong>${this.svc.fullName(u)}</strong> dado de baja`);
+                } else {
+                    this.toast.show('success', `↺ Usuario <strong>${this.svc.fullName(u)}</strong> reactivado`);
+                }
+            },
+            error: () => {
+                this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`);
             }
-        } catch {
-            this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`);
-        }
+        });
     }
+
+    get ConfirmMode() { return ConfirmMode; }
 }

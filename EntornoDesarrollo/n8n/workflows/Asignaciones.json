@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-27T08:20:17.631Z",
+  "updatedAt": "2026-04-27T11:12:26.734Z",
   "createdAt": "2026-04-27T08:11:54.431Z",
   "id": "ZuR0pcnpMBB50x5B",
   "name": "Asignaciones",
@@ -216,7 +216,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 10;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  whereClause += ` AND (e.nombre_empresa ILIKE $${paramIndex} OR CONCAT(t.nombre, ' ', t.primer_apellido) ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.id_empresa !== undefined && filters.id_empresa !== null && filters.id_empresa !== '') {\n  whereClause += ` AND a.id_empresa = $${paramIndex}`;\n  params.push(filters.id_empresa);\n  paramIndex++;\n}\n\nif (filters.id_trabajador !== undefined && filters.id_trabajador !== null && filters.id_trabajador !== '') {\n  whereClause += ` AND a.id_trabajador = $${paramIndex}`;\n  params.push(filters.id_trabajador);\n  paramIndex++;\n}\n\nif (filters.id_comerciales !== undefined && filters.id_comerciales !== null && filters.id_comerciales !== '') {\n  whereClause += ` AND a.id_comerciales = $${paramIndex}`;\n  params.push(filters.id_comerciales);\n  paramIndex++;\n}\n\nif (filters.activo !== undefined && filters.activo !== null && filters.activo !== '') {\n  whereClause += ` AND a.activo = $${paramIndex}`;\n  params.push(filters.activo);\n  paramIndex++;\n}\n\nparams.push(pageSize);\nconst limitParam = paramIndex++;\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT a.id) as total\n  FROM asignacion a\n  LEFT JOIN empresa e ON e.id = a.id_empresa\n  LEFT JOIN trabajador t ON t.id = a.id_trabajador\n  LEFT JOIN comerciales c ON c.id = a.id_comerciales\n  ${whereClause}\n),\nglobal_counts AS (\n  SELECT \n    COUNT(*) as total_global,\n    SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) as total_activos,\n    SUM(CASE WHEN activo = false THEN 1 ELSE 0 END) as total_inactivos\n  FROM asignacion\n),\npaginado AS (\n  SELECT\n    a.*,\n    e.nombre_empresa,\n    CONCAT(t.nombre, ' ', t.primer_apellido, COALESCE(' ' || t.segundo_apellido, '')) AS trabajador_nombre,\n    CONCAT(c.nombre, ' ', c.primer_apellido, COALESCE(' ' || c.segundo_apellido, '')) AS comercial_nombre\n  FROM asignacion a\n  LEFT JOIN empresa e ON e.id = a.id_empresa\n  LEFT JOIN trabajador t ON t.id = a.id_trabajador\n  LEFT JOIN comerciales c ON c.id = a.id_comerciales\n  ${whereClause}\n  ORDER BY a.id DESC\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\nSELECT paginado.*, total_count.total AS total_records, \n       global_counts.total_global, global_counts.total_activos, global_counts.total_inactivos\nFROM paginado, total_count, global_counts;\n`;\n\nreturn [{ json: { query, params, page, pageSize } }];\n"
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\n\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 10;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (\n  filters.searchText &&\n  typeof filters.searchText === 'string' &&\n  filters.searchText.trim() !== ''\n) {\n  whereClause += `\n    AND (\n      e.nombre_empresa ILIKE $${paramIndex}\n      OR CONCAT(t.nombre, ' ', t.primer_apellido) ILIKE $${paramIndex}\n    )\n  `;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (\n  filters.id_empresa !== undefined &&\n  filters.id_empresa !== null &&\n  filters.id_empresa !== ''\n) {\n  whereClause += ` AND a.id_empresa = $${paramIndex}`;\n  params.push(filters.id_empresa);\n  paramIndex++;\n}\n\nif (\n  filters.id_trabajador !== undefined &&\n  filters.id_trabajador !== null &&\n  filters.id_trabajador !== ''\n) {\n  whereClause += ` AND a.id_trabajador = $${paramIndex}`;\n  params.push(filters.id_trabajador);\n  paramIndex++;\n}\n\nif (\n  filters.id_comerciales !== undefined &&\n  filters.id_comerciales !== null &&\n  filters.id_comerciales !== ''\n) {\n  whereClause += ` AND a.id_comerciales = $${paramIndex}`;\n  params.push(filters.id_comerciales);\n  paramIndex++;\n}\n\nif (\n  filters.activo !== undefined &&\n  filters.activo !== null &&\n  filters.activo !== ''\n) {\n  whereClause += ` AND a.activo = $${paramIndex}`;\n  params.push(filters.activo);\n  paramIndex++;\n}\n\n// Paginación\nparams.push(pageSize);\nconst limitParam = paramIndex++;\n\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\n// Query principal\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT a.id) AS total\n  FROM asignacion a\n  LEFT JOIN empresa e ON e.id = a.id_empresa\n  LEFT JOIN trabajador t ON t.id = a.id_trabajador\n  LEFT JOIN comerciales c ON c.id = a.id_comerciales\n  ${whereClause}\n),\nglobal_counts AS (\n  SELECT \n    COUNT(*) AS total_global,\n    SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) AS total_activos,\n    SUM(CASE WHEN activo = false THEN 1 ELSE 0 END) AS total_inactivos\n  FROM asignacion\n),\npaginado AS (\n  SELECT\n    a.*,\n    e.nombre_empresa,\n    CONCAT(\n      t.nombre,\n      ' ',\n      t.primer_apellido,\n      COALESCE(' ' || t.segundo_apellido, '')\n    ) AS trabajador_nombre,\n    CONCAT(\n      c.nombre,\n      ' ',\n      c.primer_apellido,\n      COALESCE(' ' || c.segundo_apellido, '')\n    ) AS comercial_nombre\n  FROM asignacion a\n  LEFT JOIN empresa e ON e.id = a.id_empresa\n  LEFT JOIN trabajador t ON t.id = a.id_trabajador\n  LEFT JOIN comerciales c ON c.id = a.id_comerciales\n  ${whereClause}\n  ORDER BY a.id DESC\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\n\nSELECT \n  paginado.*,\n  total_count.total AS total_records,\n  global_counts.total_global,\n  global_counts.total_activos,\n  global_counts.total_inactivos\nFROM paginado, total_count, global_counts;\n`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      pageSize,\n    },\n  },\n];"
       },
       "id": "02b71f2c-8b07-480e-80ce-275726e3c013",
       "name": "Build Get Asignaciones Query",
@@ -625,9 +625,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "b1ac2ed6-6f50-4494-a52f-c6716a05ca56",
-  "activeVersionId": "b1ac2ed6-6f50-4494-a52f-c6716a05ca56",
-  "versionCounter": 8,
+  "versionId": "c3120bed-d3de-464c-a88a-929547441ecb",
+  "activeVersionId": "c3120bed-d3de-464c-a88a-929547441ecb",
+  "versionCounter": 14,
   "triggerCount": 1,
   "tags": [],
   "shared": [
@@ -650,7 +650,7 @@
     }
   ],
   "versionMetadata": {
-    "name": "Version b1ac2ed6",
+    "name": "Version c3120bed",
     "description": ""
   }
 }

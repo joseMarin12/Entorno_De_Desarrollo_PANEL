@@ -1,5 +1,5 @@
 {
-  "name": "Client Management API Backend",
+  "name": "Empresas",
   "nodes": [
     {
       "parameters": {
@@ -145,7 +145,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(i => ({\n  id: i.json.id,\n  nombre: i.json.nombre,\n  razonSocial: i.json.razon_social,\n  cif: i.json.cif,\n  activo: i.json.activo,\n  id_tipo_empresa: i.json.id_tipo_empresa,\n  tipo: i.json.tipo,\n  id_comercial: i.json.id_comercial,\n  comercial: i.json.comercial,\n  direcciones: Number(i.json.direcciones),\n  contactos: Number(i.json.contactos)\n})) } }}",
+        "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(i =\u003e ({\n  id: i.json.id,\n  nombre: i.json.nombre,\n  razonSocial: i.json.razon_social,\n  cif: i.json.cif,\n  activo: i.json.activo,\n  id_tipo_empresa: i.json.id_tipo_empresa,\n  tipo: i.json.tipo,\n  id_comercial: i.json.id_comercial,\n  comercial: i.json.comercial,\n  direcciones: Number(i.json.direcciones),\n  contactos: Number(i.json.contactos)\n})) } }}",
         "options": {
           "responseCode": 200
         }
@@ -207,7 +207,7 @@
     },
     {
       "parameters": {
-        "content": "## Empresas Management API\n\n**Endpoint:** POST /webhook/gestion-empresas\n\n**Actions:**\n- getEmpresas: Obtiene las empresas clientes\n- createEmpresa: creación de empresa cliente\n- updateEmpresa: actualizar empresa cliente mediante ID\n- toggleEmpresaStatus: dar de baja a empresa cliente mediante ID\n- getTiposEmpresa: obtiene los tipos de las empresas",
+        "content": "## Empresas Management API\n\n**Endpoint:** POST /webhook/gestion-empresas\n\n**Actions:**\n- getEmpresas: Obtiene las empresas clientes\n- createEmpresa: creaciÃ³n de empresa cliente\n- updateEmpresa: actualizar empresa cliente mediante ID\n- toggleEmpresaStatus: dar de baja a empresa cliente mediante ID\n- getTiposEmpresa: obtiene los tipos de las empresas",
         "height": 312,
         "width": 340,
         "color": 4
@@ -229,7 +229,7 @@
         "options": {}
       },
       "id": "e00f7ff6-370b-4bf9-a1d1-b7c083702a08",
-      "name": "Gestión Empresas API",
+      "name": "GestiÃ³n Empresas API",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
@@ -240,7 +240,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT e.id, e.nombre_empresa AS nombre, e.razon_social, e.cif, e.created_at, e.activo, e.id_tipo_empresa,\nt.tipo_empresa AS tipo, e.id_comercial, COUNT(DISTINCT d.id) AS direcciones, \nCOUNT(DISTINCT c.id) AS contactos \nFROM empresa e \nLEFT JOIN tipo_empresa t ON t.id = e.id_tipo_empresa \nLEFT JOIN direccion_empresa d ON d.id_empresa = e.id \nLEFT JOIN contacto_empresa c ON c.id_empresa = e.id \nWHERE 1=1`;\n\nif (filters.searchText && filters.searchText.trim() !== '') {\n  conditions.push(`(e.nombre_empresa ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.tipo && filters.tipo.trim() !== '') {\n  conditions.push(`t.tipo_empresa = $${paramIndex}`);\n  params.push(filters.tipo);\n  paramIndex++;\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\nquery += ' GROUP BY e.id, e.nombre_empresa, t.tipo_empresa';\nquery += ' ORDER BY e.created_at ASC';\n\nreturn [{\n  json: {\n    query: query,\n    params: params.join(',')\n  }\n}];"
+        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT e.id, e.nombre_empresa AS nombre, e.razon_social, e.cif, e.created_at, e.activo, e.id_tipo_empresa,\nt.tipo_empresa AS tipo, e.id_comerciales, COUNT(DISTINCT d.id) AS direcciones, \nCOUNT(DISTINCT c.id) AS contactos \nFROM empresa e \nLEFT JOIN tipo_empresa t ON t.id = e.id_tipo_empresa \nLEFT JOIN direccion_empresa d ON d.id_empresa = e.id \nLEFT JOIN contacto_empresa c ON c.id_empresa = e.id \nWHERE 1=1`;\n\nif (filters.searchText \u0026\u0026 filters.searchText.trim() !== \u0027\u0027) {\n  conditions.push(`(e.nombre_empresa ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.tipo \u0026\u0026 filters.tipo.trim() !== \u0027\u0027) {\n  conditions.push(`t.tipo_empresa = $${paramIndex}`);\n  params.push(filters.tipo);\n  paramIndex++;\n}\n\nif (conditions.length \u003e 0) {\n  query += \u0027 AND \u0027 + conditions.join(\u0027 AND \u0027);\n}\n\nquery += \u0027 GROUP BY e.id, e.nombre_empresa, t.tipo_empresa\u0027;\nquery += \u0027 ORDER BY e.created_at ASC\u0027;\n\nreturn [{\n  json: {\n    query: query,\n    params: params.join(\u0027,\u0027)\n  }\n}];"
       },
       "id": "a432b92e-13df-4a1e-9d91-4fc1a71ce169",
       "name": "Build Get Empresas Query",
@@ -269,7 +269,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -292,7 +292,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -300,9 +300,9 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE empresa SET nombre_empresa = $1, razon_social = $2, cif = $3, id_tipo_empresa = $4, id_comercial =  NULLIF(NULLIF($5::text, ''), 'null')::integer, activo = $6, updated_at = NOW() WHERE id = $7 RETURNING id;",
+        "query": "UPDATE empresa SET nombre_empresa = $1, razon_social = $2, cif = $3, id_tipo_empresa = $4, id_comerciales = NULLIF(NULLIF($5::text, \u0027\u0027), \u0027null\u0027)::integer, activo = $6, updated_at = NOW() WHERE id = $7 RETURNING id;",
         "options": {
-          "queryReplacement": "={{ $json.body.empresaData.nombre }},{{ $json.body.empresaData.razonSocial }},{{ $json.body.empresaData.cif }},{{ $json.body.empresaData.id_tipo_empresa }},{{ $json.body.empresaData.id_comercial }},{{ $json.body.empresaData.activo }},{{ $json.body.empresaId }}"
+          "queryReplacement": "={{ [ $json.body.empresaData.nombre, $json.body.empresaData.razonSocial, $json.body.empresaData.cif, $json.body.empresaData.id_tipo_empresa, $json.body.empresaData.id_comerciales, $json.body.empresaData.activo, $json.body.empresaId ] }}"
         }
       },
       "id": "4a29a274-89f2-444a-ab38-adb92f6a7bd5",
@@ -315,7 +315,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -338,14 +338,14 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.item.json.body;\n\nconst fields = ['nombre_empresa', 'razon_social', 'cif', 'id_tipo_empresa', 'activo'];\nconst values = [body.empresaData.nombre, body.empresaData.razonSocial, body.empresaData.cif, body.empresaData.id_tipo_empresa, body.empresaData.activo];\n\nif (body.empresaData.id_comercial !== null && body.empresaData.id_comercial !== undefined) {\n  fields.push('id_comercial');\n  values.push(body.empresaData.id_comercial);\n}\n\nconst placeholders = values.map((_, i) => `$${i + 1}`).join(', ');\n\nreturn [{\n  json: {\n    query: `INSERT INTO empresa (${fields.join(', ')})\n            VALUES (${placeholders})\n            RETURNING id, nombre_empresa AS nombre, razon_social, cif, id_tipo_empresa, id_comercial, activo, created_at`,\n    params: values.join(',')\n  }\n}];"
+        "jsCode": "const body = $input.item.json.body;\n\nconst fields = [\u0027nombre_empresa\u0027, \u0027razon_social\u0027, \u0027cif\u0027, \u0027id_tipo_empresa\u0027, \u0027activo\u0027];\nconst values = [body.empresaData.nombre, body.empresaData.razonSocial, body.empresaData.cif, body.empresaData.id_tipo_empresa, body.empresaData.activo];\n\nif (body.empresaData.id_comerciales !== null \u0026\u0026 body.empresaData.id_comerciales !== undefined) {\n  fields.push(\u0027id_comerciales\u0027);\n  values.push(body.empresaData.id_comerciales);\n}\n\nconst placeholders = values.map((_, i) =\u003e `$${i + 1}`).join(\u0027, \u0027);\n\nreturn [{\n  json: {\n    query: `INSERT INTO empresa (${fields.join(\u0027, \u0027)})\n            VALUES (${placeholders})\n            RETURNING id, nombre_empresa AS nombre, razon_social, cif, id_tipo_empresa, id_comerciales, activo, created_at`,\n    params: values.join(\u0027,\u0027)\n  }\n}];"
       },
       "id": "a2f02678-06f8-45b4-8db2-863fdd1cd6a7",
       "name": "Build Create Empresas Query",
@@ -372,14 +372,14 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const id = $input.item.json.id;\n\nreturn [{\n  json: {\n    query: `\n      SELECT \n        e.id,\n        e.nombre_empresa        AS nombre,\n        e.razon_social,\n        e.cif,\n        e.activo,\n        e.id_tipo_empresa,\n        t.tipo_empresa          AS tipo,\n        e.id_comercial,\n        NULLIF(CONCAT(c.nombre, ' ', c.primer_apellido), ' ') AS comercial,\n        COUNT(DISTINCT d.id)    AS direcciones,\n        COUNT(DISTINCT co.id)   AS contactos\n      FROM empresa e\n      LEFT JOIN tipo_empresa t  ON t.id = e.id_tipo_empresa\n      LEFT JOIN comercial c     ON c.id = e.id_comercial\n      LEFT JOIN direccion_empresa d  ON d.id_empresa = e.id\n      LEFT JOIN contacto_empresa co  ON co.id_empresa = e.id\n      WHERE e.id = $1\n      GROUP BY e.id, t.tipo_empresa, c.nombre, c.primer_apellido\n    `,\n    params: String(id)\n  }\n}];"
+        "jsCode": "const id = $input.item.json.id;\n\nreturn [{\n  json: {\n    query: `\n      SELECT \n        e.id,\n        e.nombre_empresa        AS nombre,\n        e.razon_social,\n        e.cif,\n        e.activo,\n        e.id_tipo_empresa,\n        t.tipo_empresa          AS tipo,\n        e.id_comerciales,\n        NULLIF(CONCAT(c.nombre, \u0027 \u0027, c.primer_apellido), \u0027 \u0027) AS comercial,\n        COUNT(DISTINCT d.id)    AS direcciones,\n        COUNT(DISTINCT co.id)   AS contactos\n      FROM empresa e\n      LEFT JOIN tipo_empresa t  ON t.id = e.id_tipo_empresa\n      LEFT JOIN comerciales c     ON c.id = e.id_comerciales\n      LEFT JOIN direccion_empresa d  ON d.id_empresa = e.id\n      LEFT JOIN contacto_empresa co  ON co.id_empresa = e.id\n      WHERE e.id = $1\n      GROUP BY e.id, t.tipo_empresa, c.nombre, c.primer_apellido\n    `,\n    params: String(id)\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -408,7 +408,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -473,7 +473,7 @@
         ]
       ]
     },
-    "Gestión Empresas API": {
+    "GestiÃ³n Empresas API": {
       "main": [
         [
           {
@@ -592,7 +592,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "c20e80e4-1549-413d-a755-42d2c8e84055",
+  "versionId": "610ac43c-2309-43be-a489-e5ad6f00c90e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0be933b78a35dd21a30a023de1af3d127feafa94bc11949cc457a6e73f9525d9"

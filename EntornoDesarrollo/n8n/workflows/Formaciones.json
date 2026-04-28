@@ -1,8 +1,8 @@
 {
-  "updatedAt": "2026-04-24T09:29:18.106Z",
+  "updatedAt": "2026-04-27T13:36:39.735Z",
   "createdAt": "2026-04-20T08:43:55.636Z",
   "id": "R5yHppLWfre3MYim",
-  "name": "Gestión Formaciones",
+  "name": "Formaciones",
   "description": null,
   "active": true,
   "isArchived": false,
@@ -312,7 +312,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 10;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  whereClause += ` AND (f.curso ILIKE $${paramIndex} OR f.denominacion ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.id_estado !== undefined && filters.id_estado !== null && filters.id_estado !== '') {\n  whereClause += ` AND f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\nif (filters.activo !== undefined && filters.activo !== null && filters.activo !== '') {\n  whereClause += ` AND f.activo = $${paramIndex}`;\n  params.push(filters.activo);\n  paramIndex++;\n}\n\nparams.push(pageSize);\nconst limitParam = paramIndex++;\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) as total\n  FROM formacion f\n  ${whereClause}\n),\nglobal_counts AS (\n  SELECT \n    COUNT(*) as total_global,\n    SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) as total_activos,\n    SUM(CASE WHEN activo = false THEN 1 ELSE 0 END) as total_inactivos\n  FROM formacion\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre as estado_nombre,\n    af.nombre as area_nombre,\n    mf.nombre as modalidad_nombre,\n    exe.nombre as ejecucion_nombre,\n    COUNT(ft.id_trabajador) as num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY f.id, ef.nombre, af.nombre, mf.nombre, exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\nSELECT paginado.*, total_count.total as total_records,\n       global_counts.total_global, global_counts.total_activos, global_counts.total_inactivos\nFROM paginado, total_count, global_counts;\n`;\n\nreturn [{ json: { query, params, page, pageSize } }];"
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\n\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 10;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (\n  filters.searchText &&\n  typeof filters.searchText === 'string' &&\n  filters.searchText.trim() !== ''\n) {\n  whereClause += `\n    AND (\n      f.curso ILIKE $${paramIndex}\n      OR f.denominacion ILIKE $${paramIndex}\n    )\n  `;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (\n  filters.id_estado !== undefined &&\n  filters.id_estado !== null &&\n  filters.id_estado !== ''\n) {\n  whereClause += ` AND f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\nif (\n  filters.activo !== undefined &&\n  filters.activo !== null &&\n  filters.activo !== ''\n) {\n  whereClause += ` AND f.activo = $${paramIndex}`;\n  params.push(filters.activo);\n  paramIndex++;\n}\n\n// Paginación\nparams.push(pageSize);\nconst limitParam = paramIndex++;\n\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\n// Query principal\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) AS total\n  FROM formacion f\n  ${whereClause}\n),\nglobal_counts AS (\n  SELECT \n    COUNT(*) AS total_global,\n    SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) AS total_activos,\n    SUM(CASE WHEN activo = false THEN 1 ELSE 0 END) AS total_inactivos\n  FROM formacion\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre AS estado_nombre,\n    af.nombre AS area_nombre,\n    mf.nombre AS modalidad_nombre,\n    exe.nombre AS ejecucion_nombre,\n    COUNT(ft.id_trabajador) AS num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY \n    f.id,\n    ef.nombre,\n    af.nombre,\n    mf.nombre,\n    exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\n\nSELECT \n  paginado.*,\n  total_count.total AS total_records,\n  global_counts.total_global,\n  global_counts.total_activos,\n  global_counts.total_inactivos\nFROM paginado, total_count, global_counts;\n`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      pageSize,\n    },\n  },\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -909,9 +909,9 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "8dcef55f-de77-4111-9189-33b0ff70d703",
-  "activeVersionId": "8dcef55f-de77-4111-9189-33b0ff70d703",
-  "versionCounter": 141,
+  "versionId": "918d34e1-a3d1-478b-a505-40b856d71559",
+  "activeVersionId": "918d34e1-a3d1-478b-a505-40b856d71559",
+  "versionCounter": 144,
   "triggerCount": 1,
   "tags": [],
   "shared": [
@@ -934,7 +934,7 @@
     }
   ],
   "versionMetadata": {
-    "name": "Version 8dcef55f",
+    "name": "Version 918d34e1",
     "description": ""
   }
 }
