@@ -27,42 +27,21 @@ function Publish-And-ActivateRepoWorkflows {
     }
 }
 
-function Repair-CommonMojibake {
-    param([string]$Text)
-
-    if ([string]::IsNullOrEmpty($Text)) { return $Text }
-    if ($Text -notmatch 'Ã|Â|â|ð|¢|€|™') { return $Text }
-
-    try {
-        $latin1 = [System.Text.Encoding]::GetEncoding(28591)
-        $bytes = $latin1.GetBytes($Text)
-        $repaired = [System.Text.Encoding]::UTF8.GetString($bytes)
-        if (-not [string]::IsNullOrEmpty($repaired)) {
-            return $repaired
-        }
-    }
-    catch {
-    }
-
-    return $Text
-}
-
 function Normalize-WorkflowValue {
     param(
         [object]$Value,
-        [string[]]$FieldsToIgnore
+        [string[]]$FieldsToIgnore,
+        [string]$Path = '$'
     )
 
     if ($null -eq $Value) { return $null }
 
-    if ($Value -is [string]) {
-        return (Repair-CommonMojibake $Value)
-    }
+    if ($Value -is [string]) { return (Normalize-ComparableText -Text $Value -Path $Path) }
 
     if ($Value -is [System.Collections.IEnumerable] -and $Value -isnot [string] -and $Value -isnot [System.Collections.IDictionary]) {
         $items = @()
         foreach ($item in $Value) {
-            $items += ,(Normalize-WorkflowValue -Value $item -FieldsToIgnore $FieldsToIgnore)
+            $items += ,(Normalize-WorkflowValue -Value $item -FieldsToIgnore $FieldsToIgnore -Path ($Path + '[]'))
         }
         return $items
     }
@@ -72,12 +51,146 @@ function Normalize-WorkflowValue {
         $ordered = [ordered]@{}
         foreach ($propName in ($props.Name | Sort-Object)) {
             if ($propName -in $FieldsToIgnore) { continue }
-            $ordered[$propName] = Normalize-WorkflowValue -Value $Value.$propName -FieldsToIgnore $FieldsToIgnore
+
+            # Ignore environment-specific credential ids in comparison.
+            if ($propName -eq 'id' -and $Path -like '*.credentials.*') { continue }
+
+            $ordered[$propName] = Normalize-WorkflowValue -Value $Value.$propName -FieldsToIgnore $FieldsToIgnore -Path ($Path + '.' + $propName)
         }
         return $ordered
     }
 
     return $Value
+}
+
+function Get-ComparableWorkflow {
+    param(
+        [object]$Workflow,
+        [string[]]$FieldsToIgnore
+    )
+
+    $shape = [ordered]@{
+        name = $null
+        nodes = @()
+        connections = $null
+        settings = $null
+    }
+
+    if ($null -ne $Workflow) {
+        $shape.name = Normalize-WorkflowValue -Value $Workflow.name -FieldsToIgnore $FieldsToIgnore -Path '$.name'
+        $shape.nodes = Normalize-WorkflowValue -Value $Workflow.nodes -FieldsToIgnore $FieldsToIgnore -Path '$.nodes'
+        $shape.connections = Normalize-WorkflowValue -Value $Workflow.connections -FieldsToIgnore $FieldsToIgnore -Path '$.connections'
+        $shape.settings = Normalize-WorkflowValue -Value $Workflow.settings -FieldsToIgnore $FieldsToIgnore -Path '$.settings'
+    }
+
+    return $shape
+}
+
+function Has-PotentialMojibake {
+    param([string]$Text)
+
+    if ([string]::IsNullOrEmpty($Text)) { return $false }
+
+    foreach ($ch in $Text.ToCharArray()) {
+        $code = [int][char]$ch
+        if ($code -eq 0x00C3 -or $code -eq 0x00C2 -or $code -eq 0x00E2) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Normalize-ComparableText {
+    param(
+        [string]$Text,
+        [string]$Path = '$'
+    )
+
+    if ([string]::IsNullOrEmpty($Text)) { return $Text }
+
+    $normalized = $Text.Normalize([System.Text.NormalizationForm]::FormKC)
+
+    $candidate = $normalized
+    for ($i = 0; $i -lt 3; $i++) {
+        if (-not (Has-PotentialMojibake $candidate)) {
+            break
+        }
+
+        try {
+            $latin1 = [System.Text.Encoding]::GetEncoding(28591)
+            $bytes = $latin1.GetBytes($candidate)
+            $repaired = [System.Text.Encoding]::UTF8.GetString($bytes)
+            if ([string]::IsNullOrEmpty($repaired) -or $repaired -eq $candidate) {
+                break
+            }
+            $candidate = $repaired.Normalize([System.Text.NormalizationForm]::FormKC)
+        }
+        catch {
+            break
+        }
+    }
+
+    $candidate = Remove-MojibakeResidue $candidate
+    $candidate = Remove-Diacritics $candidate
+
+    if ($Path -like '*.jsCode' -or $Path -like '*.query' -or $Path -like '*.responseBody') {
+        return (Normalize-CodeLikeText $candidate)
+    }
+
+    return $candidate
+}
+
+function Remove-MojibakeResidue {
+    param([string]$Text)
+
+    if ([string]::IsNullOrEmpty($Text)) { return $Text }
+
+    $builder = New-Object System.Text.StringBuilder
+    foreach ($ch in $Text.ToCharArray()) {
+        $code = [int][char]$ch
+        if ($code -eq 0x00C2 -or $code -eq 0x00C3 -or $code -eq 0xFFFD) {
+            continue
+        }
+        [void]$builder.Append($ch)
+    }
+
+    return $builder.ToString()
+}
+
+function Normalize-CodeLikeText {
+    param([string]$Text)
+
+    if ([string]::IsNullOrEmpty($Text)) { return $Text }
+
+    $normalized = $Text -replace "`r`n", "`n"
+    $normalized = $normalized -replace "`r", "`n"
+
+    $lines = $normalized -split "`n"
+    $trimmedLines = @()
+    foreach ($line in $lines) {
+        $trimmedLines += $line.TrimEnd()
+    }
+
+    return ([string]::Join("`n", $trimmedLines)).Trim()
+}
+
+function Remove-Diacritics {
+    param([string]$Text)
+
+    if ([string]::IsNullOrEmpty($Text)) { return $Text }
+
+    $decomposed = $Text.Normalize([System.Text.NormalizationForm]::FormD)
+    $builder = New-Object System.Text.StringBuilder
+
+    foreach ($ch in $decomposed.ToCharArray()) {
+        $category = [Globalization.CharUnicodeInfo]::GetUnicodeCategory($ch)
+        if ($category -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
+            [void]$builder.Append($ch)
+        }
+    }
+
+    return $builder.ToString().Normalize([System.Text.NormalizationForm]::FormC)
 }
 
 if (-not (Test-Path $ExportDir)) {
@@ -116,12 +229,12 @@ if ($Action -eq "push") {
 
             $localFile = Join-Path $ExportDir "$workflowName.json"
             $hasChanges = $true
-            $tempNormalized = Normalize-WorkflowValue -Value $tempJson -FieldsToIgnore $fieldsToIgnore | ConvertTo-Json -Depth 100 -Compress
+            $tempNormalized = Get-ComparableWorkflow -Workflow $tempJson -FieldsToIgnore $fieldsToIgnore | ConvertTo-Json -Depth 100 -Compress
 
             if (Test-Path $localFile) {
                 $localRaw = Get-Content -LiteralPath $localFile -Raw
                 $localJson = $localRaw | ConvertFrom-Json
-                $localNormalized = Normalize-WorkflowValue -Value $localJson -FieldsToIgnore $fieldsToIgnore | ConvertTo-Json -Depth 100 -Compress
+                $localNormalized = Get-ComparableWorkflow -Workflow $localJson -FieldsToIgnore $fieldsToIgnore | ConvertTo-Json -Depth 100 -Compress
 
                 if ($tempNormalized -eq $localNormalized) {
                     $hasChanges = $false
@@ -358,9 +471,6 @@ elseif ($Action -eq "publish") {
                 $resolvedId = ($idByNameSql | docker exec -i postgres_db psql -U admin -d n8n -At 2>$null)
                 if ($resolvedId) {
                     Write-Host "  Resolviendo id por nombre para '$($workflowJson.name)': $resolvedId" -ForegroundColor Yellow
-                    $workflowJson | Add-Member -MemberType NoteProperty -Name "id" -Value $resolvedId -Force
-                    $jsonText = $workflowJson | ConvertTo-Json -Depth 100
-                    [System.IO.File]::WriteAllText($workflowFile.FullName, $jsonText, (New-Object System.Text.UTF8Encoding($false)))
                 }
             }
 
@@ -372,9 +482,6 @@ elseif ($Action -eq "publish") {
                     $resolvedId = ($idByFileNameSql | docker exec -i postgres_db psql -U admin -d n8n -At 2>$null)
                     if ($resolvedId) {
                         Write-Host "  Resolviendo id por nombre de archivo '$fileBaseName': $resolvedId" -ForegroundColor Yellow
-                        $workflowJson | Add-Member -MemberType NoteProperty -Name "id" -Value $resolvedId -Force
-                        $jsonText = $workflowJson | ConvertTo-Json -Depth 100
-                        [System.IO.File]::WriteAllText($workflowFile.FullName, $jsonText, (New-Object System.Text.UTF8Encoding($false)))
                     }
                 }
             }
