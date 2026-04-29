@@ -6,6 +6,18 @@ CREATE TABLE role (
     name VARCHAR(45) NOT NULL
 );
 
+INSERT INTO role (id, name) OVERRIDING SYSTEM VALUE
+VALUES
+    (1, 'Administrador'),
+    (2, 'Usuario')
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
+
+SELECT setval(
+    pg_get_serial_sequence('role', 'id'),
+    (SELECT COALESCE(MAX(id), 1) FROM role),
+    true
+);
+
 CREATE TABLE permission (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(16) NOT NULL
@@ -114,8 +126,6 @@ CREATE TABLE contacto_empresa (
     FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE CASCADE
 );
 
--- Selecciones y trabajadores
-
 CREATE TABLE seleccionadores (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(64) NOT NULL,
@@ -148,7 +158,7 @@ CREATE TABLE trabajador (
     direccion VARCHAR(128),
     nacionalidad VARCHAR(45),
     fecha_nacimiento DATE,
-    id_seleccionadores INT,
+    id_seleccionadores INT, 
     activo BOOLEAN DEFAULT TRUE,
     fecha_ini DATE,
     fecha_fin DATE,
@@ -200,20 +210,47 @@ CREATE TABLE estado_formacion (
     nombre VARCHAR(45) NOT NULL
 );
 
+INSERT INTO estado_formacion (nombre) VALUES
+    ('Activo'),
+    ('Inactivo'),
+    ('Planificada'),
+    ('En curso'),
+    ('Finalizada'),
+    ('Cancelada');
+
 CREATE TABLE area_formacion (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL
 );
+
+INSERT INTO area_formacion (nombre) VALUES
+    ('Técnica'),
+    ('Habilidades blandas'),
+    ('Seguridad'),
+    ('Idiomas'),
+    ('Gestión y liderazgo'),
+    ('Otros');
 
 CREATE TABLE modalidad_formacion (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(45) NOT NULL
 );
 
+INSERT INTO modalidad_formacion (nombre) VALUES
+    ('Presencial'),
+    ('Online'),
+    ('Semipresencial'),
+    ('A distancia');
+
 CREATE TABLE ejecucion_formacion (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(45)
 );
+
+INSERT INTO ejecucion_formacion (nombre) VALUES
+    ('Interna'),
+    ('Externa'),
+    ('Mixta');
 
 CREATE TABLE formacion (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

@@ -5,7 +5,15 @@ use App\Http\Controllers\SeleccionadorController;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\FormacionController;
 use App\Http\Controllers\EmpresaController;
+use App\Http\Controllers\AutenticadorController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Auth
+|--------------------------------------------------------------------------
+*/
+Route::post('/login', [AutenticadorController::class, 'login']);
 
 /*
 |--------------------------------------------------------------------------

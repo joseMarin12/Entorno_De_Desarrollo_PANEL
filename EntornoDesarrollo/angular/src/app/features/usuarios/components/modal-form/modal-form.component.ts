@@ -1,15 +1,18 @@
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Usuario, Role } from '../../../../models/usuarios.model';
+import { UsuariosService } from '../../../../services/usuarios.service';
+import { LookupSelectComponent } from '../../../../shared/lookup-select/lookup-select.component';
 
 @Component({
   selector: 'app-usuarios-modal-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LookupSelectComponent],
   templateUrl: './modal-form.component.html',
 })
 export class UsuariosModalFormComponent implements OnChanges {
+  public svc = inject(UsuariosService);
   @Input() usuario: Usuario | null = null;
   @Input() emailUsuarios: string[] = [];
   @Input() roles: Role[] = [];

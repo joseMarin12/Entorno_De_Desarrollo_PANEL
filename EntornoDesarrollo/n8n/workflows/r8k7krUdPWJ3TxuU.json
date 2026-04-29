@@ -193,7 +193,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item =\u003e item.json) }) }}",
+        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item => item.json) }) }}",
         "options": {
           "responseCode": 200
         }
@@ -225,7 +225,7 @@
       "name": "getUser",
       "credentials": {
         "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
+          "id": "0PqKc6BkC38ueyxO",
           "name": "Postgres account 2"
         }
       }
@@ -347,7 +347,7 @@
       "name": "createUser",
       "credentials": {
         "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
+          "id": "Kih4P6xJ67gZaubs",
           "name": "Postgres account"
         }
       }
@@ -462,7 +462,7 @@
       "name": "updateUser",
       "credentials": {
         "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
+          "id": "Kih4P6xJ67gZaubs",
           "name": "Postgres account"
         }
       }
@@ -527,7 +527,7 @@
       "name": "Toogle status Usuario",
       "credentials": {
         "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
+          "id": "Kih4P6xJ67gZaubs",
           "name": "Postgres account"
         }
       }
@@ -565,7 +565,7 @@
       "name": "getRole",
       "credentials": {
         "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
+          "id": "0PqKc6BkC38ueyxO",
           "name": "Postgres account 2"
         }
       }
@@ -718,7 +718,7 @@
   "pinData": {},
   "versionId": "6321163c-c6b4-4629-aeee-6d4d8f4ebff5",
   "activeVersionId": "6321163c-c6b4-4629-aeee-6d4d8f4ebff5",
-  "versionCounter": 415,
+  "versionCounter": 416,
   "triggerCount": 1,
   "tags": [],
   "shared": [
@@ -732,7 +732,7 @@
         "updatedAt": "2026-04-22T09:42:42.949Z",
         "createdAt": "2026-04-22T09:42:05.392Z",
         "id": "scuB9Y3NwfAwv0vk",
-        "name": "p v \u003cdaniel.pedrero@sgtech.tech\u003e",
+        "name": "p v <daniel.pedrero@sgtech.tech>",
         "type": "personal",
         "icon": null,
         "description": null,

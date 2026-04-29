@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, tap, map, catchError, throwError } from 'rxjs';
 import { Usuario, Role } from '../models/usuarios.model';
 import { BaseCrud } from './base.service';
@@ -7,7 +8,7 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class UsuariosService extends BaseCrud<Usuario> {
 
-  protected override readonly API_URL = `${environment.apiUrl}/usuarios`;
+  public override readonly API_URL = `${environment.apiUrl}/usuarios`;
 
   private _usuarios = signal<Usuario[]>([]);
   readonly loading  = signal(false);
@@ -24,16 +25,15 @@ export class UsuariosService extends BaseCrud<Usuario> {
 
   loadRoles(): void {
     const payload = { action: 'getRole' };
-    this.http.post<{data: any[]}>(this.API_URL, payload).pipe(
-      map(res => {
-        if (!res || !res.data) return [];
-        return res.data.map(r => {
+    this.http.post<{data: any[]}>(this.API_URL, payload).subscribe({
+      next: (res) => {
+        if (!res || !res.data) return;
+        const roles = res.data.map(r => {
           const json = r.json || r;
           return { id: Number(json.id), name: json.name };
         });
-      })
-    ).subscribe({
-      next: (roles) => this._roles.set(roles),
+        this._roles.set(roles);
+      },
       error: (e) => console.error('Error loading roles', e)
     });
   }
@@ -145,10 +145,15 @@ export class UsuariosService extends BaseCrud<Usuario> {
     this.loading.set(true);
     this.error.set(null);
     const u = this.getById(id);
-    const newState = u ? !u.enabled : true;
+    if (!u) {
+      this.error.set('Usuario no encontrado');
+      return throwError(() => new Error('Usuario no encontrado'));
+    }
+
+    const newState = !u.enabled;
 
     const payload = {
-      action: 'Toogle status usuarios',
+      action: 'Toogle status usuarios', // Mantiene el typo 'Toogle' para coincidir con el Switch de n8n
       id,
       enabled: newState,
       activo: newState,
@@ -156,7 +161,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
     };
 
     return this._toggleStatus(payload).pipe(
-      map(res => this.applyRobustMerge(res, { ...u!, enabled: newState })),
+      map(res => this.applyRobustMerge(res, { ...u, enabled: newState })),
       tap(updatedUser => {
         this._usuarios.update(list => list.map(user => user.id === id ? updatedUser : user));
       }),
@@ -174,9 +179,20 @@ export class UsuariosService extends BaseCrud<Usuario> {
     const isReal = backendRes && (backendRes.id || backendRes.nombre || backendRes.name || backendRes.email);
     
     if (isReal) {
-      // Preserve password from localData if backend didn't return it
-      const merged = { ...localData, ...mapped };
-      if (!mapped.password && localData.password) {
+      const cleanedMapped: any = {};
+      const raw = (backendRes.json && typeof backendRes.json === 'object') ? backendRes.json : backendRes;
+
+      if (raw.id || raw.ID || raw.id_usuario) cleanedMapped.id = mapped.id;
+      if (raw.name || raw.nombre || raw.username) cleanedMapped.nombre = mapped.nombre;
+      if (raw.surname || raw.apellido1 || raw.last_name) cleanedMapped.apellido1 = mapped.apellido1;
+      if (raw.email || raw.user_email) cleanedMapped.email = mapped.email;
+      if (raw.enabled !== undefined || raw.activo !== undefined || raw.status !== undefined) cleanedMapped.enabled = mapped.enabled;
+      if (raw.password || raw.pass) cleanedMapped.password = mapped.password;
+      if (raw.roleid || raw.role_id || raw.ID_ROL || raw.id_rol) cleanedMapped.roleid = mapped.roleid;
+
+      const merged = { ...localData, ...cleanedMapped };
+      
+      if (!cleanedMapped.password && localData.password) {
         merged.password = localData.password;
       }
       return merged;
