@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Observable, tap, map, catchError, throwError } from 'rxjs';
-import { Usuario } from '../models/usuarios.model';
+import { Role, Usuario } from '../models/usuarios.model';
 import { BaseCrud } from './base.service';
 import { environment } from '../../environments/environment';
 
@@ -9,7 +9,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
 
   public override readonly API_URL = `${environment.apiUrl}/usuarios`;
 
-  private _usuarios = signal<Usuario[]>([]);
+  private readonly _usuarios = signal<Usuario[]>([]);
   readonly loading  = signal(false);
   readonly error    = signal<string | null>(null);
   readonly totalRecords = signal(0);
@@ -19,11 +19,24 @@ export class UsuariosService extends BaseCrud<Usuario> {
   readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
   readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
 
-  loadComercialesEmails(): Observable<string[]> {
-    return this.trackRequest(this.http.get<any>(`${environment.apiUrl}/comerciales`)).pipe(
-      map(res => (res.data || []).map((c: any) => c.email).filter(Boolean))
-    );
+  private readonly _roles = signal<Role[]>([]);
+  readonly roles = this._roles.asReadonly();
+
+  loadRoles(): void {
+    const payload = { action: 'getRole' };
+    this.http.post<{data: any[]}>(this.API_URL, payload).subscribe({
+      next: (res) => {
+        if (!res || !res.data) return;
+        const roles = res.data.map(r => {
+          const json = r.json || r;
+          return { id: Number(json.id), name: json.name };
+        });
+        this._roles.set(roles);
+      },
+      error: (e) => console.error('Error loading roles', e)
+    });
   }
+
 
   loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {
     this.loading.set(true);

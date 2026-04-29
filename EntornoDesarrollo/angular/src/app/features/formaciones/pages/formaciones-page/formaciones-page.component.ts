@@ -33,47 +33,28 @@ export class FormacionesPageComponent implements OnInit {
   toast = inject(ToastService);
   ConfirmMode = ConfirmMode;
 
-  // ── Filtros (Signals para que computed() los detecte) ─────────────────────
-  readonly searchQuery = signal('');
-  readonly activeFilter = signal<FilterType>('todos');
-  readonly currentPage = signal(1);
-  readonly PAGE_SIZE = 10;
+  // ── Filtros ──────────────────────────────────────
+  searchQuery = '';
+  activeFilter: FilterType = 'todos';
+  currentPage = 1;
+  readonly PAGE_SIZE = 10; // Actualizado a 10 según petición
 
   // ── Estado modales ────────────────────────────────
-  showForm = false; // Unificado para añadir/editar
+  showForm = false;
   showBaja = false;
   showParticipantes = false;
   readonly selectedId = signal<number | null>(null);
 
   // ── Ciclo de vida ─────────────────────────────────────────────────────────
   ngOnInit(): void {
-    this.svc.loadAll().subscribe();
+    this.loadData();
   }
 
-  // ── Computed (memoizados: solo recalculan si cambia alguna dependencia) ───
-  readonly filtered = computed(() => {
-    const formaciones = this.svc.formaciones();
-    const filter = this.activeFilter();
-    const q = this.searchQuery().toLowerCase().trim();
+  loadData(): void {
+    this.svc.loadAll(this.searchQuery, this.activeFilter, this.currentPage, this.PAGE_SIZE).subscribe();
+  }
 
-    return formaciones.filter(c => {
-      const matchFilter =
-        filter === 'todos' ? true :
-          filter === 'activos' ? c.activo === true : c.activo === false;
-
-      const matchSearch = !q
-        || this.svc.title(c).toLowerCase().includes(q)
-        || (c.denominacion && c.denominacion.toLowerCase().includes(q));
-
-      return matchFilter && matchSearch;
-    });
-  });
-
-  readonly paginatedformaciones = computed(() => {
-    const start = (this.currentPage() - 1) * this.PAGE_SIZE;
-    return this.filtered().slice(start, start + this.PAGE_SIZE);
-  });
-
+  // ── Getters para la vista ─────────────────────────
   readonly selectedformacion = computed<Formacion | null>(() => {
     const id = this.selectedId();
     return id != null ? (this.svc.getById(id) ?? null) : null;
@@ -81,13 +62,20 @@ export class FormacionesPageComponent implements OnInit {
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   onSearchChange(q: string): void {
-    this.searchQuery.set(q);
-    this.currentPage.set(1);
+    this.searchQuery = q;
+    this.currentPage = 1;
+    this.loadData();
   }
 
   onFilterChange(f: FilterType): void {
-    this.activeFilter.set(f);
-    this.currentPage.set(1);
+    this.activeFilter = f;
+    this.currentPage = 1;
+    this.loadData();
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.loadData();
   }
 
   openAdd(): void {

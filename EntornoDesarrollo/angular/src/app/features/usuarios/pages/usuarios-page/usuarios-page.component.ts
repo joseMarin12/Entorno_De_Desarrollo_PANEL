@@ -80,13 +80,6 @@ export class UsuariosPageComponent implements OnInit {
         this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters).subscribe();
     }
 
-    private loadComercialesEmails(): void {
-        this.svc.loadComercialesEmails().subscribe({
-            next: (emails) => {
-                this.emailUsuarios.set(emails);
-            }
-        });
-    }
 
     // ── Eventos Toolbar ───────────────────────────────
     onSearch(query: string): void {
