@@ -1,0 +1,151 @@
+{
+  "updatedAt": "2026-04-28T09:36:53.512Z",
+  "createdAt": "2026-04-27T13:15:32.879Z",
+  "id": "VQeWJYRxOGnvxX4X",
+  "name": "Login",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "login",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a8024b37-0531-43ba-9e59-4357e6bb4c33",
+      "name": "Webhook",
+      "webhookId": "56be4f26-96d2-4249-8627-56e0dfe624c3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputPass = $node[\"Webhook\"].json.body.password;\n\nif (items.length === 0) {\n  return [{\n    json: {\n      success: false,\n      message: \"Usuario no encontrado\"\n    }\n  }];\n}\n\nconst usuario = items[0].json;\n\n//  BLOQUEO POR BORRADO LÓGICO\nif (usuario.enabled === false) {\n  return [{\n    json: {\n      success: false,\n      message: \"Usuario deshabilitado\"\n    }\n  }];\n}\n\n//  Validación password\nconst dbPass = String(usuario.password).trim();\nconst userPass = String(inputPass).trim();\n\nif (dbPass !== userPass) {\n  return [{\n    json: {\n      success: false,\n      message: \"Contraseña incorrecta\"\n    }\n  }];\n}\n\n//  Login correcto\nreturn [{\n  json: {\n    success: true,\n    user: {\n      id: usuario.id,\n      email: usuario.email\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "id": "c3d2e6f3-5f23-43f6-bd44-eca6d26799f9",
+      "name": "verificarEmail"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, email, enabled, password \nFROM \"user\"\nwhere email = '{{ $json.body.email }}'\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        256,
+        0
+      ],
+      "id": "a703302d-eb68-4a50-866c-28a749a30961",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "Kih4P6xJ67gZaubs",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        688,
+        0
+      ],
+      "id": "efd02858-5412-4fb4-969c-f72655d724dd",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verificarEmail": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "verificarEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "d2050036-fda5-4b40-9292-1d0b9fc1cd54",
+  "activeVersionId": "d2050036-fda5-4b40-9292-1d0b9fc1cd54",
+  "versionCounter": 150,
+  "triggerCount": 1,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-04-27T13:15:32.879Z",
+      "createdAt": "2026-04-27T13:15:32.879Z",
+      "role": "workflow:owner",
+      "workflowId": "VQeWJYRxOGnvxX4X",
+      "projectId": "scuB9Y3NwfAwv0vk",
+      "project": {
+        "updatedAt": "2026-04-22T09:42:42.949Z",
+        "createdAt": "2026-04-22T09:42:05.392Z",
+        "id": "scuB9Y3NwfAwv0vk",
+        "name": "p v <daniel.pedrero@sgtech.tech>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "06b871d4-11e0-4b54-8aa7-b150c2e36810"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version d2050036",
+    "description": ""
+  }
+}

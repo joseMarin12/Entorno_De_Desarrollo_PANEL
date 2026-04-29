@@ -36,4 +36,11 @@ export class SidebarComponent {
     { label: 'Comisiones',   route: '/comisiones',   icon: 'chart' },
     { label: 'Informes',     route: '/informes',     icon: 'table' },
   ];
+  
+  get roleName(): string {
+    const roleId = this.auth.currentUser()?.roleid;
+    if (roleId === 1) return 'Administrador';
+    if (roleId === 2) return 'Usuario';
+    return 'Rol no definido';
+  }
 }

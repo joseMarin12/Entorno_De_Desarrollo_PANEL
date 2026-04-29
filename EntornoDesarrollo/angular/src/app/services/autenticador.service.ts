@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 export interface User {
   id: number;
   email: string;
+  roleid?: number;
 }
 
 export interface LoginResponse {
@@ -30,6 +31,10 @@ export class AutenticadorService {
     return this.http.post<LoginResponse>(this.API_URL, credentials).pipe(
       tap(response => {
         if (response.success && response.user) {
+          // Normalizar el user para asegurar que roleid existe
+          const rawUser = response.user as any;
+          response.user.roleid = Number(rawUser.roleid || rawUser.role_id || rawUser.id_rol || rawUser.ID_ROL || 2);
+          
           this.saveUser(response.user);
           this.currentUser.set(response.user);
         }
@@ -49,7 +54,18 @@ export class AutenticadorService {
 
   private getUserFromStorage(): User | null {
     const userJson = localStorage.getItem('user');
-    return userJson ? JSON.parse(userJson) : null;
+    if (!userJson) return null;
+    
+    try {
+      const user = JSON.parse(userJson);
+      // Asegurar normalización incluso al cargar de storage
+      if (user && !user.roleid) {
+        user.roleid = Number(user.roleid || user.role_id || user.id_rol || user.ID_ROL || 2);
+      }
+      return user;
+    } catch (e) {
+      return null;
+    }
   }
 
   isAuthenticated(): boolean {
