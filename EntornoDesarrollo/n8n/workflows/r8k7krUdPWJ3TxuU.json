@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-29T11:14:41.402Z",
+  "updatedAt": "2026-04-29T13:09:38.542Z",
   "createdAt": "2026-04-09T13:26:23.893Z",
   "id": "r8k7krUdPWJ3TxuU",
   "name": "Usuarios",
@@ -17,8 +17,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -416,
-        288
+        -704,
+        272
       ],
       "id": "7f0b8ab2-08b0-4625-84ab-ffc38d7a8c5f",
       "name": "Webhook",
@@ -184,8 +184,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -160,
-        224
+        -448,
+        208
       ],
       "id": "4955f0df-57ef-4324-bcda-059ff6d99307",
       "name": "Switch"
@@ -369,13 +369,13 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "enabled": "={{ $json.body.enabled }}",
-            "id": "={{ $json.body.id }}",
-            "name": "={{ $json.body.name }}",
-            "surname": "={{ $json.body.surname }}",
-            "email": "={{ $json.body.email }}",
-            "password": "={{ $json.body.password }}",
-            "roleid": "={{ $json.body.roleid }}"
+            "id": "={{ $json.id }}",
+            "name": "={{ $json.name }}",
+            "surname": "={{ $json.surname }}",
+            "email": "={{ $json.email }}",
+            "password": "={{ $json.password }}",
+            "roleid": "={{ $json.roleid }}",
+            "enabled": "={{ $json.enabled }}"
           },
           "matchingColumns": [
             "id"
@@ -435,7 +435,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "boolean",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "password",
@@ -582,6 +583,19 @@
       ],
       "id": "e3635adf-0674-46d9-ad4a-5cada9eae111",
       "name": "hashPass"
+    },
+    {
+      "parameters": {
+        "jsCode": "const bcrypt = require('bcryptjs');\n\nconst body = $json.body;\n\n// Solo hashea si viene una contraseña nueva\nif (body.password && body.password.trim() !== '') {\n  const hashedPassword = await bcrypt.hash(body.password, 10);\n  return [{ json: { ...body, password: hashedPassword } }];\n}\n\n// Si no viene password, lo eliminamos para no sobreescribir el hash existente\nconst { password, ...bodyWithoutPassword } = body;\nreturn [{ json: bodyWithoutPassword }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        208
+      ],
+      "id": "579e135e-83f0-49fd-b9d0-e0cee6f00ff3",
+      "name": "hashCode"
     }
   ],
   "connections": {
@@ -614,7 +628,7 @@
         ],
         [
           {
-            "node": "updateUser",
+            "node": "hashCode",
             "type": "main",
             "index": 0
           }
@@ -729,6 +743,17 @@
           }
         ]
       ]
+    },
+    "hashCode": {
+      "main": [
+        [
+          {
+            "node": "updateUser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -740,9 +765,9 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "d220c6de-b2ed-4285-b5fe-91792dadf177",
-  "activeVersionId": "d220c6de-b2ed-4285-b5fe-91792dadf177",
-  "versionCounter": 454,
+  "versionId": "20371cb1-a962-4fc8-a5c5-80f2b87e0959",
+  "activeVersionId": "20371cb1-a962-4fc8-a5c5-80f2b87e0959",
+  "versionCounter": 474,
   "triggerCount": 1,
   "tags": [],
   "shared": [
@@ -765,7 +790,7 @@
     }
   ],
   "versionMetadata": {
-    "name": "Version d220c6de",
+    "name": "Version 20371cb1",
     "description": ""
   }
 }
