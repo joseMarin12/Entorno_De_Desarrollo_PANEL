@@ -229,7 +229,7 @@
         "options": {}
       },
       "id": "e00f7ff6-370b-4bf9-a1d1-b7c083702a08",
-      "name": "GestiÃ³n Empresas API",
+      "name": "Gestion Empresas API",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
@@ -473,7 +473,7 @@
         ]
       ]
     },
-    "GestiÃ³n Empresas API": {
+    "Gestion Empresas API": {
       "main": [
         [
           {

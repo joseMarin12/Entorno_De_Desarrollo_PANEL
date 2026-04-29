@@ -432,7 +432,7 @@
         "options": {}
       },
       "id": "f83aed11-1a23-48e6-a046-232232dc6ae0",
-      "name": "API de GestiÃ³n de Comerciales",
+      "name": "API de Gestion de Comerciales",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
@@ -548,7 +548,7 @@
         ]
       ]
     },
-    "API de GestiÃ³n de Comerciales": {
+    "API de Gestion de Comerciales": {
       "main": [
         [
           {
