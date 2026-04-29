@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-27T10:05:11.409Z",
+  "updatedAt": "2026-04-29T11:14:41.402Z",
   "createdAt": "2026-04-09T13:26:23.893Z",
   "id": "r8k7krUdPWJ3TxuU",
   "name": "Usuarios",
@@ -246,12 +246,12 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "enabled": "={{ $json.body.enabled }}",
-            "name": "={{ $json.body.name }}",
-            "surname": "={{ $json.body.surname }}",
-            "email": "={{ $json.body.email }}",
-            "password": "={{ $json.body.password }}",
-            "roleid": "={{ $json.body.roleid }}"
+            "enabled": "={{ $json.enabled }}",
+            "name": "={{ $json.name }}",
+            "surname": "={{ $json.surname }}",
+            "email": "={{ $json.email }}",
+            "password": "={{ $json.password }}",
+            "roleid": "={{ $json.roleid }}"
           },
           "matchingColumns": [
             "id"
@@ -569,6 +569,19 @@
           "name": "Postgres account 2"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const bcrypt = require('bcryptjs');\n\nconst body = $json.body;\n\nconst hashedPassword = await bcrypt.hash(body.password, 10);\n\nreturn [{\n  json: {\n    ...body,\n    password: hashedPassword\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        48
+      ],
+      "id": "e3635adf-0674-46d9-ad4a-5cada9eae111",
+      "name": "hashPass"
     }
   ],
   "connections": {
@@ -594,7 +607,7 @@
         ],
         [
           {
-            "node": "createUser",
+            "node": "hashPass",
             "type": "main",
             "index": 0
           }
@@ -705,6 +718,17 @@
           }
         ]
       ]
+    },
+    "hashPass": {
+      "main": [
+        [
+          {
+            "node": "createUser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -716,9 +740,9 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "6321163c-c6b4-4629-aeee-6d4d8f4ebff5",
-  "activeVersionId": "6321163c-c6b4-4629-aeee-6d4d8f4ebff5",
-  "versionCounter": 416,
+  "versionId": "d220c6de-b2ed-4285-b5fe-91792dadf177",
+  "activeVersionId": "d220c6de-b2ed-4285-b5fe-91792dadf177",
+  "versionCounter": 454,
   "triggerCount": 1,
   "tags": [],
   "shared": [
@@ -741,7 +765,7 @@
     }
   ],
   "versionMetadata": {
-    "name": "Version 6321163c",
+    "name": "Version d220c6de",
     "description": ""
   }
 }

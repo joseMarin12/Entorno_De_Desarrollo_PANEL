@@ -46,7 +46,7 @@
     [emailUsuarios]="emailUsuarios()"
     [roles]="svc.roles()"
     (save)="onSaveForm($event)"
-    (close)="showForm = false; selectedId = null"
+    (close)="showForm = false; selectedId.set(null)"
   />
 }
 
@@ -55,7 +55,7 @@
     [name]="selectedUsuario() ? selectedUsuario()!.nombre + ' ' + selectedUsuario()!.apellido1 : ''"
     [mode]="selectedUsuario()!.enabled ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
     (confirm)="onConfirmBaja()"
-    (closed)="showBaja = false; selectedId = null"
+    (closed)="showBaja = false; selectedId.set(null)"
   />
 }
 
@@ -64,6 +64,6 @@
     [usuario]="selectedUsuario()!"
     [roles]="svc.roles()"
     (edit)="onEditClick($event); showDetail = false"
-    (close)="showDetail = false; selectedId = null"
+    (close)="showDetail = false; selectedId.set(null)"
   />
 }

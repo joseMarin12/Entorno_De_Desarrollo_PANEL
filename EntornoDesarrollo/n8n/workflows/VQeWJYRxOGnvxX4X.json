@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-28T09:36:53.512Z",
+  "updatedAt": "2026-04-29T11:29:20.147Z",
   "createdAt": "2026-04-27T13:15:32.879Z",
   "id": "VQeWJYRxOGnvxX4X",
   "name": "Login",
@@ -17,39 +17,26 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        0,
-        0
+        32,
+        128
       ],
-      "id": "a8024b37-0531-43ba-9e59-4357e6bb4c33",
+      "id": "6506a940-e4a3-44ec-946a-9ceaf6ee8afe",
       "name": "Webhook",
       "webhookId": "56be4f26-96d2-4249-8627-56e0dfe624c3"
     },
     {
       "parameters": {
-        "jsCode": "const inputPass = $node[\"Webhook\"].json.body.password;\n\nif (items.length === 0) {\n  return [{\n    json: {\n      success: false,\n      message: \"Usuario no encontrado\"\n    }\n  }];\n}\n\nconst usuario = items[0].json;\n\n//  BLOQUEO POR BORRADO LÓGICO\nif (usuario.enabled === false) {\n  return [{\n    json: {\n      success: false,\n      message: \"Usuario deshabilitado\"\n    }\n  }];\n}\n\n//  Validación password\nconst dbPass = String(usuario.password).trim();\nconst userPass = String(inputPass).trim();\n\nif (dbPass !== userPass) {\n  return [{\n    json: {\n      success: false,\n      message: \"Contraseña incorrecta\"\n    }\n  }];\n}\n\n//  Login correcto\nreturn [{\n  json: {\n    success: true,\n    user: {\n      id: usuario.id,\n      email: usuario.email\n    }\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        480,
-        0
-      ],
-      "id": "c3d2e6f3-5f23-43f6-bd44-eca6d26799f9",
-      "name": "verificarEmail"
-    },
-    {
-      "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, email, enabled, password \nFROM \"user\"\nwhere email = '{{ $json.body.email }}'\nLIMIT 1;",
+        "query": "SELECT id, email, enabled, password, roleid\nFROM \"user\"\nWHERE email = '{{ $json.body.email }}' \nLIMIT 1;",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        256,
-        0
+        288,
+        128
       ],
-      "id": "a703302d-eb68-4a50-866c-28a749a30961",
+      "id": "94547223-7425-4c4b-8f9d-65dfb546e31d",
       "name": "Execute a SQL query",
       "credentials": {
         "postgres": {
@@ -57,6 +44,19 @@
           "name": "Postgres account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const bcrypt = require('bcryptjs');\nconst jwt = require('jsonwebtoken');\n\nconst JWT_HASH = 'passEncriptada'; \n\n// Contraseña del body original del Webhook\nconst inputPass = $('Webhook').first().json.body.password;\n\n// Usuario devuelto por la query SQL (input de este nodo)\nconst usuario = $input.first().json;\n\n// Sin resultados = usuario no existe\nif (!usuario || !usuario.email) {\n  return [{\n    json: {\n      success: false,\n      message: \"Credenciales inválidas\"\n    }\n  }];\n}\n\n// Usuario deshabilitado\nif (!usuario.enabled) {\n  return [{\n    json: {\n      success: false,\n      message: \"Credenciales inválidas\"\n    }\n  }];\n}\n\n// Comparar contraseña con hash bcrypt\nconst isValid = await bcrypt.compare(inputPass, usuario.password);\n\nif (!isValid) {\n  return [{\n    json: {\n      success: false,\n      message: \"Credenciales inválidas\"\n    }\n  }];\n}\n\n// Generar JWT\nconst token = jwt.sign(\n  {\n    id: usuario.id,\n    email: usuario.email,\n    role: usuario.roleid\n  },\n  JWT_HASH,\n  { expiresIn: '1h' }\n);\n\n// Respuesta exitosa\nreturn [{\n  json: {\n    success: true,\n    token,\n    user: {\n      id: usuario.id,\n      email: usuario.email\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        128
+      ],
+      "id": "0008aba4-68e0-44ce-9b8a-066bf55c7dbb",
+      "name": "verificarEmail"
     },
     {
       "parameters": {
@@ -69,10 +69,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        688,
-        0
+        720,
+        128
       ],
-      "id": "efd02858-5412-4fb4-969c-f72655d724dd",
+      "id": "75251f85-2b26-4972-9b0e-895f3d393251",
       "name": "Respond to Webhook"
     }
   ],
@@ -82,17 +82,6 @@
         [
           {
             "node": "Execute a SQL query",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "verificarEmail": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook",
             "type": "main",
             "index": 0
           }
@@ -109,6 +98,17 @@
           }
         ]
       ]
+    },
+    "verificarEmail": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -120,9 +120,9 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "d2050036-fda5-4b40-9292-1d0b9fc1cd54",
-  "activeVersionId": "d2050036-fda5-4b40-9292-1d0b9fc1cd54",
-  "versionCounter": 150,
+  "versionId": "43441a69-4c65-4b2f-809c-98034c3a359b",
+  "activeVersionId": "43441a69-4c65-4b2f-809c-98034c3a359b",
+  "versionCounter": 205,
   "triggerCount": 1,
   "tags": [],
   "shared": [
@@ -145,7 +145,7 @@
     }
   ],
   "versionMetadata": {
-    "name": "Version d2050036",
+    "name": "Version 43441a69",
     "description": ""
   }
 }
