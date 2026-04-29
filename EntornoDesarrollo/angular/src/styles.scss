@@ -762,6 +762,7 @@ tbody tr:hover td {
   border-radius: 16px;
   width: 100%;
   max-width: 520px;
+  max-height: calc(100vh - 48px);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
   overflow: hidden;
   transform: translateY(20px) scale(0.97);
@@ -824,6 +825,49 @@ tbody tr:hover td {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.modal-scroll {
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.modal-wide-sm {
+  max-width: 540px;
+}
+
+.modal-wide-md {
+  max-width: 580px;
+}
+
+.modal-wide-lg {
+  max-width: 700px;
+}
+
+.modal-body-scroll {
+  max-height: calc(100vh - 240px);
+  overflow-y: auto;
+}
+
+.modal-body-tight-bottom {
+  padding-bottom: 0;
+}
+
+.modal-footer-muted {
+  background: #fafbff;
+  border-top: 1px solid var(--border);
+}
+
+.modal-form-standard {
+  max-width: 640px;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-form-standard .modal-body {
+  overflow-y: auto;
 }
 
 /* ══ FORM ══ */
@@ -1187,12 +1231,13 @@ tbody tr:hover td {
 
   .modal-overlay {
     padding: 12px;
-    align-items: flex-end;
+    align-items: center;
   }
 
   .modal {
-    border-radius: 16px 16px 0 0;
+    border-radius: 16px;
     max-width: 100%;
+    max-height: calc(100vh - 24px);
   }
 
   .form-grid {

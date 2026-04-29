@@ -1,5 +1,5 @@
 <div class="modal-overlay open">
-  <div class="modal" style="max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
+  <div class="modal modal-form-standard" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div>
         <div class="modal-title">{{ isEdit ? 'Editar Formación' : 'Nueva Formación' }}</div>
@@ -16,7 +16,7 @@
       </button>
     </div>
 
-    <div class="modal-body">
+    <div class="modal-body modal-body-scroll">
       <div class="form-grid">
 
         <div class="form-group full">
