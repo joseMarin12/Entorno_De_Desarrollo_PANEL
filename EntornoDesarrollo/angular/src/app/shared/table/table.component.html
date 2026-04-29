@@ -14,7 +14,7 @@
         </tr>
       </thead>
       <tbody>
-        @if (rows().length === 0) {
+        @if (!rows() || rows().length === 0) {
           <tr>
             <td [attr.colspan]="columns().length"
                 style="text-align:center;padding:48px 20px;color:var(--text-muted)">
