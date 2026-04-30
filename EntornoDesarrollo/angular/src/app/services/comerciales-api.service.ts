@@ -35,10 +35,12 @@ export class ComercialesApiService extends BaseCrud<Comercial> {
         inactivos: first.stats_inactivos ?? 0
       };
       const totalFiltered: number = first.total_filtered ?? raw.length;
-      const data: Comercial[] = raw.map(item => {
-        const { total_filtered, stats_total, stats_activos, stats_inactivos, ...sel } = item;
-        return sel as Comercial;
-      });
+      const data: Comercial[] = raw
+        .filter(item => item.id !== null)
+        .map(item => {
+          const { total_filtered, stats_total, stats_activos, stats_inactivos, ...sel } = item;
+          return sel as Comercial;
+        });
       return { data, totalFiltered, stats };
     }));
   }

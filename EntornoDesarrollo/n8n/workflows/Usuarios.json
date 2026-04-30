@@ -193,7 +193,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item =\u003e item.json) }) }}",
+        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item => item.json) }) }}",
         "options": {
           "responseCode": 200
         }
@@ -225,7 +225,7 @@
       "name": "getUser",
       "credentials": {
         "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
+          "id": "ko5fFqsOIauxDSEd",
           "name": "Postgres account 2"
         }
       }
@@ -347,7 +347,7 @@
       "name": "createUser",
       "credentials": {
         "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -462,7 +462,7 @@
       "name": "updateUser",
       "credentials": {
         "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -527,7 +527,7 @@
       "name": "Toogle status Usuario",
       "credentials": {
         "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
+          "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
       }
@@ -565,7 +565,7 @@
       "name": "getRole",
       "credentials": {
         "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
+          "id": "ko5fFqsOIauxDSEd",
           "name": "Postgres account 2"
         }
       }
@@ -723,20 +723,20 @@
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-04-22T09:43:05.809Z",
-      "createdAt": "2026-04-22T09:43:05.809Z",
+      "updatedAt": "2026-04-22T08:46:52.367Z",
+      "createdAt": "2026-04-22T08:46:52.367Z",
       "role": "workflow:owner",
       "workflowId": "r8k7krUdPWJ3TxuU",
-      "projectId": "scuB9Y3NwfAwv0vk",
+      "projectId": "HPNLsCxwhHCLkcBf",
       "project": {
-        "updatedAt": "2026-04-22T09:42:42.949Z",
-        "createdAt": "2026-04-22T09:42:05.392Z",
-        "id": "scuB9Y3NwfAwv0vk",
-        "name": "p v \u003cdaniel.pedrero@sgtech.tech\u003e",
+        "updatedAt": "2026-04-22T08:46:19.945Z",
+        "createdAt": "2026-04-22T08:41:51.280Z",
+        "id": "HPNLsCxwhHCLkcBf",
+        "name": "Adriano Casado Villarreal <adriano.casado@sgtech.tech>",
         "type": "personal",
         "icon": null,
         "description": null,
-        "creatorId": "06b871d4-11e0-4b54-8aa7-b150c2e36810"
+        "creatorId": "134af668-187e-480f-8edf-2641b318bfd3"
       }
     }
   ],

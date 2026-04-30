@@ -8,6 +8,7 @@ import { EmpresasContactosPageComponent } from './features/empresas/pages/empres
 import { UsuariosPageComponent } from './features/usuarios/pages/usuarios-page/usuarios-page.component';
 import { FormacionesPageComponent } from './features/formaciones/pages/formaciones-page/formaciones-page.component';
 import { autenticadorGuard } from './guards/autenticador.guard';
+import { AsignacionesPageComponent } from './features/asignaciones/pages/asignaciones-page/asignaciones-page.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
