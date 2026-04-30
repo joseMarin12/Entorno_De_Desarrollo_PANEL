@@ -14,6 +14,7 @@ export interface LoginResponse {
   success: boolean;
   message?: string;
   user?: User;
+  token?: string;
 }
 
 @Injectable({
@@ -36,6 +37,9 @@ export class AutenticadorService {
           response.user.roleid = Number(rawUser.roleid || rawUser.role_id || rawUser.id_rol || rawUser.ID_ROL || 2);
           
           this.saveUser(response.user);
+          if (response.token) {
+            sessionStorage.setItem('token', response.token);
+          }
           this.currentUser.set(response.user);
         }
       })
@@ -43,17 +47,18 @@ export class AutenticadorService {
   }
 
   logout(): void {
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('token');
     this.currentUser.set(null);
     this.router.navigate(['/login']);
   }
 
   private saveUser(user: User): void {
-    localStorage.setItem('user', JSON.stringify(user));
+    sessionStorage.setItem('user', JSON.stringify(user));
   }
 
   private getUserFromStorage(): User | null {
-    const userJson = localStorage.getItem('user');
+    const userJson = sessionStorage.getItem('user');
     if (!userJson) return null;
     
     try {
