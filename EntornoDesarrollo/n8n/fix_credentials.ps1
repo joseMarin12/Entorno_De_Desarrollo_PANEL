@@ -17,9 +17,26 @@ if (-not $runtimeFiles -or $runtimeFiles.Count -eq 0) {
 
 Write-Host "Reparando credenciales en workflows_runtime..." -ForegroundColor Cyan
 
+$preferredCredName = $env:N8N_POSTGRES_CREDENTIAL_NAME
+if ([string]::IsNullOrWhiteSpace($preferredCredName)) {
+    $templatePath = Join-Path $ScriptDir "credentials\postgres.auto.json"
+    if (Test-Path $templatePath) {
+        try {
+            $templateJson = Get-Content -LiteralPath $templatePath -Raw | ConvertFrom-Json
+            if ($templateJson.name) {
+                $preferredCredName = [string]$templateJson.name
+            }
+        }
+        catch {
+            # Ignore template parsing errors and continue with defaults.
+        }
+    }
+}
+
 $credSql = 'SELECT id, name FROM credentials_entity WHERE type = ''postgres'' ORDER BY id;'
 $credResult = docker exec postgres_db psql -U admin -d n8n -At -F "|" -c $credSql 2>$null
 $defaultPostgresCredId = ""
+$defaultPostgresCredName = ""
 $postgresCredByName = @{}
 
 if ($credResult) {
@@ -34,9 +51,10 @@ if ($credResult) {
 
         if ([string]::IsNullOrWhiteSpace($defaultPostgresCredId)) {
             $defaultPostgresCredId = $id
+            $defaultPostgresCredName = $name
         }
 
-        if (-not [string]::IsNullOrWhiteSpace($name)) {
+        if (-not [string]::IsNullOrWhiteSpace($name) -and -not $postgresCredByName.ContainsKey($name.Trim())) {
             $postgresCredByName[$name.Trim()] = $id
         }
     }
@@ -46,6 +64,20 @@ if (-not $defaultPostgresCredId) {
     Write-Host "ERROR: no se encontro credencial postgres" -ForegroundColor Red
     exit 1
 }
+
+$targetCredName = $defaultPostgresCredName
+$targetCredId = $defaultPostgresCredId
+
+if (-not [string]::IsNullOrWhiteSpace($preferredCredName) -and $postgresCredByName.ContainsKey($preferredCredName.Trim())) {
+    $targetCredName = $preferredCredName.Trim()
+    $targetCredId = $postgresCredByName[$targetCredName]
+}
+elseif ($postgresCredByName.ContainsKey("Postgres account")) {
+    $targetCredName = "Postgres account"
+    $targetCredId = $postgresCredByName[$targetCredName]
+}
+
+Write-Host "Credencial objetivo: '$targetCredName' [$targetCredId]" -ForegroundColor DarkCyan
 
 $workflows = Get-ChildItem -Path $RuntimeWorkflowsDir -Filter "*.json" -File
 $changedCount = 0
@@ -57,19 +89,28 @@ foreach ($workflow in $workflows) {
 
         if ($json.nodes) {
             foreach ($node in $json.nodes) {
-                if ($node.credentials -and $node.credentials.postgres) {
-                    $credName = ""
-                    if ($node.credentials.postgres.name) {
-                        $credName = [string]$node.credentials.postgres.name
+                $isPostgresNode = ($node.type -like "*postgres*")
+                if ($isPostgresNode -or ($node.credentials -and $node.credentials.postgres)) {
+                    if (-not $node.credentials) {
+                        $node | Add-Member -MemberType NoteProperty -Name credentials -Value ([pscustomobject]@{}) -Force
                     }
 
-                    $targetCredId = $defaultPostgresCredId
-                    if (-not [string]::IsNullOrWhiteSpace($credName) -and $postgresCredByName.ContainsKey($credName.Trim())) {
-                        $targetCredId = $postgresCredByName[$credName.Trim()]
+                    if (-not $node.credentials.postgres) {
+                        $node.credentials | Add-Member -MemberType NoteProperty -Name postgres -Value ([pscustomobject]@{
+                            id = $targetCredId
+                            name = $targetCredName
+                        }) -Force
+                        $changed = $true
+                        continue
                     }
 
                     if ($node.credentials.postgres.id -ne $targetCredId) {
                         $node.credentials.postgres.id = $targetCredId
+                        $changed = $true
+                    }
+
+                    if ($node.credentials.postgres.name -ne $targetCredName) {
+                        $node.credentials.postgres.name = $targetCredName
                         $changed = $true
                     }
                 }

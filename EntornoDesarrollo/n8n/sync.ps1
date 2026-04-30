@@ -339,6 +339,18 @@ elseif ($Action -eq "pull") {
         Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $RuntimeWorkflowsDir $_.Name) -Force
     }
 
+    # Repair runtime credential references before generating staging/import files.
+    $fixScriptPath = Join-Path $ScriptDir "fix_credentials.ps1"
+    if (Test-Path $fixScriptPath) {
+        Write-Host "Reparando credenciales en runtime antes de importar..." -ForegroundColor Cyan
+        powershell -ExecutionPolicy Bypass -File $fixScriptPath
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: fallo la reparacion automatica de credenciales durante pull." -ForegroundColor Red
+            Pop-Location
+            exit 1
+        }
+    }
+
     $stagingDir = Join-Path $env:TEMP ("n8n_import_" + [Guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $stagingDir | Out-Null
 
@@ -564,6 +576,21 @@ elseif ($Action -eq "pull") {
 elseif ($Action -eq "publish") {
     Write-Host "Republicando workflows (unpublish + publish)..." -ForegroundColor Cyan
     Push-Location $ScriptDir
+
+    # Ensure runtime workflows point to valid local postgres credentials before publish.
+    $fixScriptPath = Join-Path $ScriptDir "fix_credentials.ps1"
+    if (Test-Path $fixScriptPath) {
+        Write-Host "Reparando credenciales en runtime antes de publicar..." -ForegroundColor Cyan
+        powershell -ExecutionPolicy Bypass -File $fixScriptPath
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: fallo la reparacion automatica de credenciales. Se cancela publish." -ForegroundColor Red
+            Pop-Location
+            exit 1
+        }
+    }
+    else {
+        Write-Host "Aviso: no se encontro fix_credentials.ps1; se continua sin reparacion previa." -ForegroundColor DarkYellow
+    }
 
     $workflowFiles = Get-ChildItem -Path $RuntimeWorkflowsDir -Filter "*.json" -File
     $okCount = 0
