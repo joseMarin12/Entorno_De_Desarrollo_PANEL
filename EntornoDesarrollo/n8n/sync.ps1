@@ -2,14 +2,15 @@ param([string]$Action)
 
 $ContainerName = "n8n"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ExportDir = Join-Path $ScriptDir "workflows"
+$SourceWorkflowsDir = Join-Path $ScriptDir "workflows"
+$RuntimeWorkflowsDir = Join-Path $ScriptDir "workflows_runtime"
 $CredentialTemplatePath = Join-Path $ScriptDir "credentials\postgres.auto.json"
 $TempExportDir = "/home/node/temp_export"
 $TempImportDir = "/home/node/temp_import"
 $ProjectId = $env:N8N_PROJECT_ID
 
 function Publish-And-ActivateRepoWorkflows {
-    $workflowFiles = Get-ChildItem -Path $ExportDir -Filter "*.json" -File
+    $workflowFiles = Get-ChildItem -Path $RuntimeWorkflowsDir -Filter "*.json" -File
 
     foreach ($workflowFile in $workflowFiles) {
         try {
@@ -52,6 +53,9 @@ function Normalize-WorkflowValue {
         foreach ($propName in ($props.Name | Sort-Object)) {
             if ($propName -in $FieldsToIgnore) { continue }
 
+            # Do not compare credentials; each local environment resolves them.
+            if ($propName -eq 'credentials') { continue }
+
             # Ignore environment-specific credential ids in comparison.
             if ($propName -eq 'id' -and $Path -like '*.credentials.*') { continue }
 
@@ -61,6 +65,24 @@ function Normalize-WorkflowValue {
     }
 
     return $Value
+}
+
+function Remove-WorkflowCredentials {
+    param(
+        [object]$Workflow
+    )
+
+    if ($null -eq $Workflow) { return $Workflow }
+
+    if ($Workflow.nodes) {
+        foreach ($node in $Workflow.nodes) {
+            if ($node.PSObject.Properties.Name -contains 'credentials') {
+                $node.PSObject.Properties.Remove('credentials')
+            }
+        }
+    }
+
+    return $Workflow
 }
 
 function Get-ComparableWorkflow {
@@ -193,8 +215,12 @@ function Remove-Diacritics {
     return $builder.ToString().Normalize([System.Text.NormalizationForm]::FormC)
 }
 
-if (-not (Test-Path $ExportDir)) {
-    New-Item -ItemType Directory -Path $ExportDir | Out-Null
+if (-not (Test-Path $SourceWorkflowsDir)) {
+    New-Item -ItemType Directory -Path $SourceWorkflowsDir | Out-Null
+}
+
+if (-not (Test-Path $RuntimeWorkflowsDir)) {
+    New-Item -ItemType Directory -Path $RuntimeWorkflowsDir | Out-Null
 }
 
 $env:COMPOSE_CONVERT_WINDOWS_PATHS = 0
@@ -220,6 +246,7 @@ if ($Action -eq "push") {
         try {
             $tempRaw = Get-Content -LiteralPath $tempFile.FullName -Raw
             $tempJson = $tempRaw | ConvertFrom-Json
+            $tempSanitized = Remove-WorkflowCredentials -Workflow $tempJson
             $workflowName = [string]$tempJson.name
 
             if ([string]::IsNullOrWhiteSpace($workflowName)) {
@@ -227,9 +254,9 @@ if ($Action -eq "push") {
                 continue
             }
 
-            $localFile = Join-Path $ExportDir "$workflowName.json"
+            $localFile = Join-Path $SourceWorkflowsDir "$workflowName.json"
             $hasChanges = $true
-            $tempNormalized = Get-ComparableWorkflow -Workflow $tempJson -FieldsToIgnore $fieldsToIgnore | ConvertTo-Json -Depth 100 -Compress
+            $tempNormalized = Get-ComparableWorkflow -Workflow $tempSanitized -FieldsToIgnore $fieldsToIgnore | ConvertTo-Json -Depth 100 -Compress
 
             if (Test-Path $localFile) {
                 $localRaw = Get-Content -LiteralPath $localFile -Raw
@@ -244,9 +271,10 @@ if ($Action -eq "push") {
             }
 
             if ($hasChanges) {
-                [System.IO.File]::WriteAllText($localFile, $tempRaw, (New-Object System.Text.UTF8Encoding($false)))
+                $sanitizedText = $tempSanitized | ConvertTo-Json -Depth 100
+                [System.IO.File]::WriteAllText($localFile, $sanitizedText, (New-Object System.Text.UTF8Encoding($false)))
+                Write-Host "  Actualizado (sin credentials): $workflowName.json" -ForegroundColor Yellow
                 $copiedCount++
-                Write-Host "  Actualizado (cambios funcionales): $workflowName.json" -ForegroundColor Yellow
             }
         }
         catch {
@@ -305,10 +333,16 @@ elseif ($Action -eq "pull") {
         }
     }
 
+    # Keep runtime workflows separated from source-controlled workflows.
+    Get-ChildItem -Path $RuntimeWorkflowsDir -Filter "*.json" -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    Get-ChildItem -Path $SourceWorkflowsDir -Filter "*.json" -File -ErrorAction SilentlyContinue | ForEach-Object {
+        Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $RuntimeWorkflowsDir $_.Name) -Force
+    }
+
     $stagingDir = Join-Path $env:TEMP ("n8n_import_" + [Guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $stagingDir | Out-Null
 
-    $workflowsForImport = Get-ChildItem -Path $ExportDir -Filter "*.json" -File
+    $workflowsForImport = Get-ChildItem -Path $RuntimeWorkflowsDir -Filter "*.json" -File
     $autoNamedCount = 0
     $invalidJsonCount = 0
 
@@ -335,6 +369,77 @@ elseif ($Action -eq "pull") {
             $invalidJsonCount++
             Write-Host "  Aviso: JSON invalido, omitido en importacion: $($workflowFile.Name)" -ForegroundColor DarkYellow
         }
+    }
+
+    # Repair postgres credential ids in staging files using current n8n credentials by name.
+    $credMapSql = 'SELECT id, name FROM credentials_entity WHERE type = ''postgres'' ORDER BY id;'
+    $credMapRows = docker exec postgres_db psql -U admin -d n8n -At -F "|" -c $credMapSql 2>$null
+    $defaultPostgresCredId = $postgresCredId
+    $postgresCredByName = @{}
+
+    if ($credMapRows) {
+        foreach ($line in ($credMapRows -split "`r?`n")) {
+            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+            $parts = $line -split '\|', 2
+            $id = ""
+            $name = ""
+            if ($parts.Count -ge 1) { $id = [string]$parts[0] }
+            if ($parts.Count -ge 2) { $name = [string]$parts[1] }
+            if ([string]::IsNullOrWhiteSpace($id)) { continue }
+
+            if ([string]::IsNullOrWhiteSpace($defaultPostgresCredId)) {
+                $defaultPostgresCredId = $id
+            }
+
+            if (-not [string]::IsNullOrWhiteSpace($name)) {
+                $postgresCredByName[$name.Trim()] = $id
+            }
+        }
+    }
+
+    $fixedCredRefsCount = 0
+    if (-not [string]::IsNullOrWhiteSpace($defaultPostgresCredId)) {
+        $stagedForCredFix = Get-ChildItem -Path $stagingDir -Filter "*.json" -File
+        foreach ($sf in $stagedForCredFix) {
+            try {
+                $wfJson = Get-Content -LiteralPath $sf.FullName -Raw | ConvertFrom-Json
+                $changedCreds = $false
+
+                if ($wfJson.nodes) {
+                    foreach ($node in $wfJson.nodes) {
+                        if ($node.credentials -and $node.credentials.postgres) {
+                            $credName = ""
+                            if ($node.credentials.postgres.name) {
+                                $credName = [string]$node.credentials.postgres.name
+                            }
+
+                            $targetCredId = $defaultPostgresCredId
+                            if (-not [string]::IsNullOrWhiteSpace($credName) -and $postgresCredByName.ContainsKey($credName.Trim())) {
+                                $targetCredId = $postgresCredByName[$credName.Trim()]
+                            }
+
+                            if ($node.credentials.postgres.id -ne $targetCredId) {
+                                $node.credentials.postgres.id = $targetCredId
+                                $changedCreds = $true
+                            }
+                        }
+                    }
+                }
+
+                if ($changedCreds) {
+                    $jsonText = $wfJson | ConvertTo-Json -Depth 100
+                    [System.IO.File]::WriteAllText($sf.FullName, $jsonText, (New-Object System.Text.UTF8Encoding($false)))
+                    $fixedCredRefsCount++
+                }
+            }
+            catch {
+                Write-Host "  Aviso reparando credenciales en staging ($($sf.Name)): $_" -ForegroundColor DarkYellow
+            }
+        }
+    }
+
+    if ($fixedCredRefsCount -gt 0) {
+        Write-Host "Referencias de credenciales postgres reparadas en staging: $fixedCredRefsCount" -ForegroundColor Cyan
     }
 
     if ($autoNamedCount -gt 0) {
@@ -443,18 +548,24 @@ elseif ($Action -eq "pull") {
         Write-Host "Workflows desarchivados tras import: $unarchivedAfterImport" -ForegroundColor Yellow
     }
 
+    # Persist effective runtime JSON (including repaired credential ids) separately from source workflows.
+    Get-ChildItem -Path $RuntimeWorkflowsDir -Filter "*.json" -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    Get-ChildItem -Path $stagingDir -Filter "*.json" -File -ErrorAction SilentlyContinue | ForEach-Object {
+        Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $RuntimeWorkflowsDir $_.Name) -Force
+    }
+
     if (Test-Path $stagingDir) {
         Remove-Item -LiteralPath $stagingDir -Recurse -Force
     }
 
-    Write-Host "Importacion completada. JSON locales sin modificaciones." -ForegroundColor Cyan
+    Write-Host "Importacion completada. workflows queda intacto; runtime actualizado en workflows_runtime." -ForegroundColor Cyan
     Pop-Location
 }
 elseif ($Action -eq "publish") {
     Write-Host "Republicando workflows (unpublish + publish)..." -ForegroundColor Cyan
     Push-Location $ScriptDir
 
-    $workflowFiles = Get-ChildItem -Path $ExportDir -Filter "*.json" -File
+    $workflowFiles = Get-ChildItem -Path $RuntimeWorkflowsDir -Filter "*.json" -File
     $okCount = 0
     $errorCount = 0
 
