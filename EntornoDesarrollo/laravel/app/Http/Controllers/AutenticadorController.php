@@ -16,7 +16,9 @@ class AutenticadorController extends Controller
     }
 
     /**
-     * Proxy de Login: reenvía email y password a n8n
+     * Proxy de Login: reenvía email y password a n8n.
+     * n8n verifica credenciales con bcrypt y genera un JWT firmado.
+     * Laravel simplemente reenvía la respuesta (que incluye el token) a Angular.
      */
     public function login(Request $request)
     {
