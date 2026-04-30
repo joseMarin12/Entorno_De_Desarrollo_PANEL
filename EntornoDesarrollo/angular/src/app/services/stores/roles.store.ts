@@ -1,9 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, finalize, map, of, shareReplay, tap } from 'rxjs';
-import { Role } from '../models/usuarios.model';
-import { environment } from '../../environments/environment';
-import { RequestLoadingService } from './request-loading.service';
+import { Role } from '../../models/usuarios.model';
+import { environment } from '../../../environments/environment';
+import { RequestLoadingService } from '../request-loading.service';
 
 type RolesResponse = { data: any[] };
 
@@ -15,8 +15,8 @@ export class RolesStore {
   private readonly requestLoading = inject(RequestLoadingService);
   private readonly apiUrl = `${environment.apiUrl}/usuarios`;
   private readonly cacheTtlMs =
-    Number.isFinite(environment.rolesCacheTtlMs) && environment.rolesCacheTtlMs > 0
-      ? environment.rolesCacheTtlMs
+    Number.isFinite(environment.cacheTtlMs) && environment.cacheTtlMs > 0
+      ? environment.cacheTtlMs
       : RolesStore.DEFAULT_ROLES_TTL_MS;
 
   private readonly _roles = signal<Role[]>([]);

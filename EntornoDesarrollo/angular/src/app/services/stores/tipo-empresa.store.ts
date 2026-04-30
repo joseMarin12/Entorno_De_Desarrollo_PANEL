@@ -1,8 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, finalize, of, shareReplay, tap } from 'rxjs';
-import { TipoEmpresa } from '../models/tipo-empresa.model';
-import { EmpresasApiService } from './empresas-api.service';
-import { environment } from '../../environments/environment';
+import { TipoEmpresa } from '../../models/tipo-empresa.model';
+import { EmpresasApiService } from '../empresas-api.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class TipoEmpresaStore {
@@ -10,8 +10,8 @@ export class TipoEmpresaStore {
 
   private readonly empresasApi = inject(EmpresasApiService);
   private readonly cacheTtlMs =
-    Number.isFinite(environment.tiposEmpresaCacheTtlMs) && environment.tiposEmpresaCacheTtlMs > 0
-      ? environment.tiposEmpresaCacheTtlMs
+    Number.isFinite(environment.cacheTtlMs) && environment.cacheTtlMs > 0
+      ? environment.cacheTtlMs
       : TipoEmpresaStore.DEFAULT_TTL_MS;
 
   private readonly _tipos = signal<TipoEmpresa[]>([]);

@@ -10,7 +10,7 @@ import { UsuariosTableComponent } from '../../components/usuarios-table/usuarios
 import { UsuariosModalDetailComponent } from '../../components/modal-detail/usuarios-modal-detail.component';
 import { UsuariosModalFormComponent } from '../../components/modal-form/modal-form.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
-import { RolesStore } from '../../../../services/roles.store';
+import { RolesStore } from '../../../../services/stores/roles.store';
 
 @Component({
     selector: 'app-usuarios-page',

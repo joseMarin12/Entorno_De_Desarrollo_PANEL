@@ -6,7 +6,7 @@ import { ComercialesApiService } from '../../../../services/comerciales-api.serv
 import { Comercial, comercialFullName } from '../../../../models/comercial.model';
 import { TipoEmpresa } from '../../../../models/tipo-empresa.model';
 import { forkJoin, of, catchError, map } from 'rxjs';
-import { TipoEmpresaStore } from '../../../../services/tipo-empresa.store';
+import { TipoEmpresaStore } from '../../../../services/stores/tipo-empresa.store';
 
 @Component({
   selector: 'app-modal-edit',
