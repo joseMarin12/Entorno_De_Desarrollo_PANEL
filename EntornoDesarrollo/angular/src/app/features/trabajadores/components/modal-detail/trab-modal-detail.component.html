@@ -1,0 +1,265 @@
+<div class="modal-overlay open">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 680px;">
+
+    <!-- ═══ HEADER UNIFICADO PREMIUM ═══ -->
+    <div class="modal-header" style="padding: 32px 36px 24px; border-bottom: none; align-items: flex-start;">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <div class="avatar-large" [style.background]="colorFor(trabajador.id)" style="width: 64px; height: 64px; font-size: 22px; border-radius: 18px; box-shadow: 0 8px 16px rgba(0,0,0,0.08);">
+          {{ initials(trabajador) }}
+        </div>
+        <div>
+          <div style="font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; margin-bottom: 6px; line-height: 1.1;">
+            {{ trabajador.nombre }} {{ trabajador.primer_apellido }} {{ trabajador.segundo_apellido }}
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            @if (trabajador.freelance) {
+              <span style="background: #e3f2fd; color: #1565c0; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">FREELANCE</span>
+            } @else {
+              <span style="background: #e8eaf6; color: #3949ab; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">PLANTILLA</span>
+            }
+            <span class="badge" [class.badge-active]="trabajador.activo" [class.badge-inactive]="!trabajador.activo" style="padding: 4px 12px;">
+              {{ statusLabel | uppercase }}
+            </span>
+            @if (trabajador.dni_nif_pasaporte) {
+              <span style="color: var(--text-muted); font-size: 12px; font-weight: 500;">· DNI: {{ trabajador.dni_nif_pasaporte }}</span>
+            }
+          </div>
+        </div>
+      </div>
+      <button class="modal-close" (click)="close.emit()" style="width: 36px; height: 36px; border-radius: 10px; border: none; background: #f3f4f6; color: #6b7280; transition: all 0.2s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ═══ PESTAÑAS (Fijas arriba) ═══ -->
+    <div style="padding: 0 36px;">
+      <div class="tabs-nav" style="margin-bottom: 0;">
+        <div class="tab-item" [class.active]="activeTab() === 'datos'" (click)="setTab('datos')">
+          Datos
+        </div>
+        <div class="tab-item" [class.active]="activeTab() === 'formaciones'" (click)="setTab('formaciones')">
+          Formaciones <span class="tab-count">{{ totalFormaciones }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ BODY (Scrollable) ═══ -->
+    <div class="modal-body" style="max-height: 65vh; overflow-y: auto; padding: 24px 36px 32px;">
+
+      <!-- ═══ TAB: DATOS ═══ -->
+      @if (activeTab() === 'datos') {
+
+        <div class="section-box" style="margin-bottom: 0;">
+
+          <!-- Datos Personales -->
+          <span class="section-box-title">Datos Personales</span>
+          <div class="detail-grid" style="margin-bottom: 24px;">
+            <div class="detail-item">
+              <div class="detail-label">Nombre completo</div>
+              <div class="detail-value">{{ trabajador.nombre }} {{ trabajador.primer_apellido }} {{ trabajador.segundo_apellido }}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">DNI / NIF / Pasaporte</div>
+              <div class="detail-value">
+                @if (trabajador.dni_nif_pasaporte) { {{ trabajador.dni_nif_pasaporte }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Nacionalidad</div>
+              <div class="detail-value">
+                @if (trabajador.nacionalidad) { {{ trabajador.nacionalidad }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Fecha de nacimiento</div>
+              <div class="detail-value">
+                @if (trabajador.fecha_nacimiento) { {{ trabajador.fecha_nacimiento | date:'dd/MM/yyyy' || trabajador.fecha_nacimiento }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+          </div>
+
+          <!-- Separador -->
+          <div style="height: 1px; background: var(--border); margin-bottom: 24px;"></div>
+
+          <!-- Contacto y Dirección -->
+          <span class="section-box-title">Contacto y Dirección</span>
+          <div class="detail-grid" style="margin-bottom: 24px;">
+            <div class="detail-item">
+              <div class="detail-label">Email</div>
+              <div class="detail-value">
+                @if (trabajador.email) { {{ trabajador.email }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Teléfono</div>
+              <div class="detail-value">
+                @if (trabajador.telefono) { {{ trabajador.telefono }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Dirección</div>
+              <div class="detail-value">
+                @if (trabajador.direccion) { {{ trabajador.direccion }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Provincia / Localidad</div>
+              <div class="detail-value">
+                @if (trabajador.provincia_nombre || trabajador.localidad_nombre) {
+                  {{ trabajador.provincia_nombre || '—' }} / {{ trabajador.localidad_nombre || '—' }}
+                } @else {
+                  <span class="empty-dash">—</span>
+                }
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Código postal</div>
+              <div class="detail-value">
+                @if (trabajador.codigo_postal) { {{ trabajador.codigo_postal }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+          </div>
+
+          <!-- Separador -->
+          <div style="height: 1px; background: var(--border); margin-bottom: 24px;"></div>
+
+          <!-- Datos Laborales -->
+          <span class="section-box-title">Datos Laborales</span>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="detail-label">Tipo de contrato</div>
+              <div class="detail-value">{{ tipoLabel }}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Seleccionador</div>
+              <div class="detail-value">
+                @if (trabajador.seleccionador_nombre) { {{ trabajador.seleccionador_nombre }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Salario bruto anual</div>
+              <div class="detail-value">
+                @if (trabajador.salario) { {{ trabajador.salario | currency:'EUR':'symbol':'1.0-0' }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Fecha inicio</div>
+              <div class="detail-value">
+                @if (trabajador.fecha_ini) { {{ trabajador.fecha_ini | date:'dd/MM/yyyy' || trabajador.fecha_ini }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Cheques restaurante</div>
+              <div class="detail-value">
+                @if (trabajador.cheques_restaurante) { {{ trabajador.cheques_restaurante | currency:'EUR':'symbol':'1.0-0' }} /mes }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Cheques guardería</div>
+              <div class="detail-value">
+                @if (trabajador.cheques_guarderia) { {{ trabajador.cheques_guarderia | currency:'EUR':'symbol':'1.0-0' }} /mes }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+          </div>
+
+        </div>
+      }
+
+
+
+      <!-- ═══ TAB: FORMACIONES ═══ -->
+      @if (activeTab() === 'formaciones') {
+
+        @if (mockFormaciones.length > 0) {
+          <div class="section-box" style="margin-bottom: 0;">
+            <span class="section-box-title">Formaciones inscritas ({{ totalFormaciones }})</span>
+
+            @for (f of mockFormaciones; track f.id; let last = $last) {
+              <!-- Nombre + Estado -->
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <span style="font-size: 14px; font-weight: 600; color: var(--text);">{{ f.curso }}</span>
+                <span class="badge" [class.badge-active]="f.estado === 'Finalizada' || f.estado === 'En curso'" [class.badge-inactive]="f.estado === 'Cancelada'" [style.background]="f.estado === 'En curso' ? '#e3f2fd' : f.estado === 'Planificada' ? '#fff3e0' : ''" [style.color]="f.estado === 'En curso' ? '#1565c0' : f.estado === 'Planificada' ? '#e65100' : ''">
+                  {{ f.estado }}
+                </span>
+              </div>
+
+              <!-- Grid de detalles -->
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <div class="detail-label">Área</div>
+                  <div class="detail-value">{{ f.area }}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Modalidad</div>
+                  <div class="detail-value">{{ f.modalidad }}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Periodo</div>
+                  <div class="detail-value">{{ formatDate(f.fecha_inicio) }} → {{ formatDate(f.fecha_fin) }}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Asistencia</div>
+                  <div class="detail-value">
+                    @if (f.asistencia === true) { ✓ Asistió }
+                    @else if (f.asistencia === false) { ✗ No asistió }
+                    @else { <span class="empty-dash">Pendiente</span> }
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Eficacia</div>
+                  <div class="detail-value">
+                    @if (f.eficacia) { {{ f.eficacia }} }
+                    @else { <span class="empty-dash">Pendiente</span> }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Separador entre formaciones (no en la última) -->
+              @if (!last) {
+                <div style="height: 1px; background: var(--border); margin: 20px 0;"></div>
+              }
+            }
+          </div>
+        } @else {
+          <div class="empty-tab">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/>
+            </svg>
+            <h4>Sin formaciones</h4>
+            <p>Este trabajador no tiene formaciones asignadas todavía.</p>
+          </div>
+        }
+      }
+
+
+
+    </div>
+
+    <div class="modal-footer" style="background: #fafbff; border-top: 1px solid var(--border);">
+      <button class="btn btn-outline" (click)="close.emit()">Cerrar</button>
+      <button class="btn btn-primary" (click)="edit.emit(trabajador.id); close.emit()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Editar información
+      </button>
+    </div>
+
+  </div>
+</div>

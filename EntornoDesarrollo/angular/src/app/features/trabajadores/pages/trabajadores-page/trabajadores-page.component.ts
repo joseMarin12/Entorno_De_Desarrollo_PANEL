@@ -1,0 +1,177 @@
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TrabajadoresApiService, TrabajadorStats } from '../../../../services/trabajadores-api.service';
+import { ToastService } from '../../../../services/toast.service';
+import { Trabajador } from '../../../../models/trabajador.model';
+import { TrabStatsRowComponent } from '../../components/stats-row/trab-stats-row.component';
+import { TrabToolbarComponent, TrabFilterType, TrabFilterTipoType } from '../../components/toolbar/trab-toolbar.component';
+import { TrabModalFormComponent } from '../../components/modal-form/trab-modal-form.component';
+import { TrabModalDetailComponent } from '../../components/modal-detail/trab-modal-detail.component';
+import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
+import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
+import { TableComponent } from '../../../../shared/table/table.component';
+import { TRABAJADORES_COLUMNS } from './trabajadores-table.config';
+
+@Component({
+  selector: 'app-trabajadores-page',
+  standalone: true,
+  imports: [
+    CommonModule, TrabStatsRowComponent, TrabToolbarComponent, TableComponent,
+    TrabModalFormComponent, TrabModalDetailComponent, TopbarComponent, ConfirmationModalComponent
+  ],
+  templateUrl: './trabajadores-page.component.html',
+})
+export class TrabajadoresPageComponent implements OnInit {
+  api = inject(TrabajadoresApiService);
+  toast = inject(ToastService);
+
+  private readonly _trabajadores = signal<Trabajador[]>([]);
+  readonly trabajadores = this._trabajadores.asReadonly();
+
+  // Stats
+  private readonly _stats = signal<TrabajadorStats>({ total: 0, activos: 0, inactivos: 0, freelances: 0 });
+  readonly statsTotal = computed(() => this._stats().total);
+  readonly statsActivos = computed(() => this._stats().activos);
+  readonly statsInactivos = computed(() => this._stats().inactivos);
+  readonly statsFreelances = computed(() => this._stats().freelances);
+
+  // MOCK LOOKUPS (Para Fase de Diseño UI)
+  readonly mockSeleccionadores = [{id: 1, nombre: 'Javier Morales'}, {id: 2, nombre: 'Ana García'}];
+  readonly mockProvincias = [{id: 1, nombre: 'Madrid'}, {id: 2, nombre: 'Barcelona'}];
+  readonly mockLocalidades = [
+    {id: 1, id_provincia: 1, nombre: 'Madrid'}, {id: 2, id_provincia: 1, nombre: 'Alcalá de Henares'},
+    {id: 3, id_provincia: 2, nombre: 'Barcelona'}, {id: 4, id_provincia: 2, nombre: "L'Hospitalet"}
+  ];
+
+  // Paginación
+  readonly PAGE_SIZE = 10;
+  currentPage = signal<number>(1);
+  totalFiltered = signal<number>(0);
+
+  tableColumns = TRABAJADORES_COLUMNS;
+  selectedTrabajador: Trabajador | null = null;
+  selectedTrabajadorNombre = signal<string | null>(null);
+
+  searchQuery = signal<string>('');
+  activeFilter = signal<TrabFilterType>('');
+  typeFilter = signal<TrabFilterTipoType>('');
+
+  showForm = false;
+  showConfirm = false;
+  showDetail = false;
+  confirmMode = ConfirmMode.DESACTIVAR;
+  selectedId = signal<number | null>(null);
+  ConfirmMode = ConfirmMode;
+
+  ngOnInit(): void {
+    this.loadPage();
+  }
+
+  loadPage(): void {
+    this.api.findAll(this.currentPage(), this.PAGE_SIZE, this.searchQuery(), this.activeFilter(), this.typeFilter())
+      .subscribe({
+        next: (page) => {
+          this._trabajadores.set(page.data);
+          this.totalFiltered.set(page.totalFiltered);
+          this._stats.set(page.stats);
+        },
+        error: () => this.toast.show('error', '✗ No se pudieron cargar los datos.')
+      });
+  }
+
+  getById(id: number): Trabajador | undefined {
+    return this._trabajadores().find(t => t.id === id);
+  }
+
+  // Listas para validación UI de unicidad (Mock)
+  readonly existingEmails = computed(() => {
+    return this._trabajadores().map(t => t.email?.toLowerCase()).filter(Boolean) as string[];
+  });
+  readonly existingDnis = computed(() => {
+    return this._trabajadores().map(t => t.dni_nif_pasaporte?.trim()).filter(Boolean) as string[];
+  });
+
+  onSearchChange(q: string): void { this.searchQuery.set(q); this.currentPage.set(1); this.loadPage(); }
+  onFilterChange(f: TrabFilterType): void { this.activeFilter.set(f); this.currentPage.set(1); this.loadPage(); }
+  onTypeFilterChange(t: TrabFilterTipoType): void { this.typeFilter.set(t); this.currentPage.set(1); this.loadPage(); }
+  onPageChange(page: number): void { this.currentPage.set(page); this.loadPage(); }
+
+  onTableAction(event: { type: string; id: number }): void {
+    switch (event.type) {
+      case 'view': this.onDetailClick(event.id); break;
+      case 'edit': this.onEditClick(event.id); break;
+      case 'toggle_status': this.onToggleStatusClick(event.id); break;
+    }
+  }
+
+  openAdd(): void {
+    this.selectedId.set(null);
+    this.selectedTrabajador = null;
+    this.showForm = true;
+  }
+
+  onDetailClick(id: number): void {
+    this.selectedId.set(id);
+    this.selectedTrabajador = this.getById(id) ?? null;
+    this.showDetail = true;
+  }
+
+  onEditClick(id: number): void {
+    this.selectedId.set(id);
+    this.selectedTrabajador = this.getById(id) ?? null;
+    this.showForm = true;
+  }
+
+  onSaveForm(data: Omit<Trabajador, 'id'>): void {
+    const editId = this.selectedId();
+    if (editId != null) {
+      this.api.update(editId, data).subscribe({
+        next: () => {
+          this.toast.show('info', `✎ Trabajador actualizado`);
+          this.closeModals(); this.loadPage();
+        },
+        error: () => this.toast.show('error', '✗ Error al actualizar')
+      });
+    } else {
+      this.api.create(data).subscribe({
+        next: () => {
+          this.toast.show('success', `✓ Trabajador añadido`);
+          this.closeModals(); this.currentPage.set(1); this.loadPage();
+        },
+        error: () => this.toast.show('error', '✗ Error al crear')
+      });
+    }
+  }
+
+  closeModals(): void {
+    this.showForm = false;
+    this.showDetail = false;
+    this.selectedId.set(null);
+    this.selectedTrabajador = null;
+  }
+
+  onToggleStatusClick(id: number): void {
+    this.selectedId.set(id);
+    const t = this.getById(id);
+    this.confirmMode = t?.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR;
+    this.selectedTrabajadorNombre.set(t ? `${t.nombre} ${t.primer_apellido}` : null);
+    this.showConfirm = true;
+  }
+
+  onConfirmToggle(): void {
+    const confirmId = this.selectedId();
+    if (confirmId == null) return;
+    const t = this.getById(confirmId)!;
+    const wasActive = t.activo;
+    
+    this.api.toggleStatus(confirmId).subscribe({
+      next: () => {
+        this.showConfirm = false; this.selectedId.set(null);
+        if (wasActive) this.toast.show('warning', `⊘ Trabajador dado de baja`);
+        else this.toast.show('success', `↺ Trabajador reactivado`);
+        this.loadPage();
+      },
+      error: () => this.toast.show('error', '✗ Error al cambiar el estado')
+    });
+  }
+}

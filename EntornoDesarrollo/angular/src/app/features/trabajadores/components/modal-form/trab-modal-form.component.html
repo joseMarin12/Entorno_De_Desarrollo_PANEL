@@ -1,0 +1,303 @@
+<div class="modal-overlay open">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 640px;">
+
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">{{ title }}</div>
+        <div class="modal-subtitle">{{ subtitle }}</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">✕</button>
+    </div>
+
+    <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">
+        Los campos marcados con <em style="color:var(--danger)">*</em> son obligatorios.
+      </p>
+
+      <!-- ═══ PESTAÑAS ═══ -->
+      <div class="tabs-nav">
+        <div class="tab-item" [class.active]="activeTab() === 'personales'" (click)="setTab('personales')">
+          @if (hasPersonalesErrors) { <span class="tab-error-dot"></span> }
+          Datos Personales
+        </div>
+        <div class="tab-item" [class.active]="activeTab() === 'contacto'" (click)="setTab('contacto')">
+          @if (hasContactoErrors) { <span class="tab-error-dot"></span> }
+          Contacto
+        </div>
+        <div class="tab-item" [class.active]="activeTab() === 'laborales'" (click)="setTab('laborales')">
+          Datos Laborales
+        </div>
+      </div>
+
+      <!-- ═══ TAB: DATOS PERSONALES ═══ -->
+      @if (activeTab() === 'personales') {
+        <span class="section-title">Información personal</span>
+
+        <!-- Nombre -->
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">Nombre <em style="color:var(--danger)">*</em></label>
+          <input
+            class="form-input"
+            [class.error]="errors['nombre']"
+            type="text"
+            placeholder="Ej: Carlos"
+            [(ngModel)]="form.nombre"
+          />
+          @if (errors['nombre']) { <span class="form-hint error-msg">{{ errors['nombre'] }}</span> }
+        </div>
+
+        <!-- Apellidos -->
+        <div class="form-grid" style="margin-bottom: 16px;">
+          <div class="form-group">
+            <label class="form-label">Primer Apellido <em style="color:var(--danger)">*</em></label>
+            <input
+              class="form-input"
+              [class.error]="errors['primer_apellido']"
+              type="text"
+              placeholder="Ej: Ruiz"
+              [(ngModel)]="form.primer_apellido"
+            />
+            @if (errors['primer_apellido']) { <span class="form-hint error-msg">{{ errors['primer_apellido'] }}</span> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Segundo Apellido</label>
+            <input
+              class="form-input"
+              type="text"
+              placeholder="Opcional"
+              [(ngModel)]="form.segundo_apellido"
+            />
+          </div>
+        </div>
+
+        <!-- DNI -->
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">DNI / NIF / Pasaporte <em style="color:var(--danger)">*</em></label>
+          <input
+            class="form-input"
+            [class.error]="errors['dni_nif_pasaporte']"
+            type="text"
+            placeholder="Ej: 12345678A"
+            [(ngModel)]="form.dni_nif_pasaporte"
+          />
+          @if (errors['dni_nif_pasaporte']) { <span class="form-hint error-msg">{{ errors['dni_nif_pasaporte'] }}</span> }
+        </div>
+
+        <!-- Nacionalidad + Fecha nacimiento -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nacionalidad</label>
+            <input
+              class="form-input"
+              type="text"
+              placeholder="Ej: Española"
+              [(ngModel)]="form.nacionalidad"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha de Nacimiento</label>
+            <input
+              class="form-input"
+              type="date"
+              [(ngModel)]="form.fecha_nacimiento"
+            />
+          </div>
+        </div>
+      }
+
+      <!-- ═══ TAB: CONTACTO Y UBICACIÓN ═══ -->
+      @if (activeTab() === 'contacto') {
+        <span class="section-title">Contacto</span>
+
+        <div class="form-grid" style="margin-bottom: 16px;">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input
+              class="form-input"
+              [class.error]="errors['email']"
+              type="email"
+              placeholder="trabajador@email.com"
+              [(ngModel)]="form.email"
+            />
+            @if (errors['email']) { <span class="form-hint error-msg">{{ errors['email'] }}</span> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono</label>
+            <input
+              class="form-input"
+              [class.error]="errors['telefono']"
+              type="text"
+              placeholder="Ej: +34 612 345 678"
+              [(ngModel)]="form.telefono"
+            />
+            @if (errors['telefono']) { <span class="form-hint error-msg">{{ errors['telefono'] }}</span> }
+          </div>
+        </div>
+
+        <div style="height: 1px; background: var(--border); margin: 24px 0;"></div>
+
+        <span class="section-title">Dirección</span>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">Dirección completa</label>
+          <input
+            class="form-input"
+            type="text"
+            placeholder="Ej: Calle Mayor 10, 3ºB"
+            [(ngModel)]="form.direccion"
+          />
+        </div>
+
+        <!-- CASCADE SELECT: Provincia → Localidad -->
+        <div class="form-grid" style="margin-bottom: 16px;">
+          <div class="form-group">
+            <label class="form-label">Provincia</label>
+            <select
+              class="form-select"
+              [ngModel]="form.id_provincia"
+              (ngModelChange)="onProvinciaChange($event)"
+            >
+              <option [ngValue]="undefined">Seleccionar provincia...</option>
+              @for (prov of provincias; track prov.id) {
+                <option [value]="prov.id">{{ prov.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Localidad</label>
+            <select
+              class="form-select"
+              [ngModel]="form.id_localidad"
+              (ngModelChange)="onLocalidadChange($event)"
+              [attr.disabled]="localidadesFiltradas.length === 0 ? true : null"
+            >
+              <option [ngValue]="undefined">{{ localidadesFiltradas.length ? 'Seleccionar localidad...' : 'Selecciona primero una provincia' }}</option>
+              @for (loc of localidadesFiltradas; track loc.id) {
+                <option [value]="loc.id">{{ loc.nombre }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Código Postal</label>
+          <input
+            class="form-input"
+            type="text"
+            placeholder="Ej: 28001"
+            [(ngModel)]="form.codigo_postal"
+          />
+        </div>
+      }
+
+      <!-- ═══ TAB: DATOS LABORALES ═══ -->
+      @if (activeTab() === 'laborales') {
+        <label class="form-label" style="margin-bottom: 8px; display: block;">Tipo de contrato <em style="color:var(--danger)">*</em></label>
+        <div class="type-selector">
+          <div class="type-card" [class.active]="!form.freelance" (click)="toggleFreelance(false)">
+            <div class="type-radio"><div class="type-radio-inner"></div></div>
+            <div class="type-info">
+              <div class="type-title">Plantilla Interna</div>
+              <div class="type-desc">Trabajador asalariado de la empresa</div>
+            </div>
+          </div>
+          <div class="type-card" [class.active]="form.freelance" (click)="toggleFreelance(true)">
+            <div class="type-radio"><div class="type-radio-inner"></div></div>
+            <div class="type-info">
+              <div class="type-title">Freelance</div>
+              <div class="type-desc">Trabajador autónomo o externo</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-bottom: 16px;">
+          <div class="form-group full">
+            <label class="form-label">Seleccionador (¿Quién lo reclutó?)</label>
+            <select
+              class="form-select"
+              [ngModel]="form.id_seleccionadores"
+              (ngModelChange)="onSeleccionadorChange($event)"
+            >
+              <option [ngValue]="undefined">Seleccionar reclutador...</option>
+              @for (sel of seleccionadores; track sel.id) {
+                <option [value]="sel.id">{{ sel.nombre }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-bottom: 16px;">
+          <div class="form-group">
+            <label class="form-label">Salario bruto anual (€)</label>
+            <input
+              class="form-input"
+              [class.error]="errors['salario']"
+              type="number"
+              placeholder="Ej: 28000"
+              [(ngModel)]="form.salario"
+            />
+            @if (errors['salario']) { <span class="form-hint error-msg">{{ errors['salario'] }}</span> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha inicio</label>
+            <input
+              class="form-input"
+              type="date"
+              [(ngModel)]="form.fecha_ini"
+            />
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-bottom: 16px;">
+          <div class="form-group">
+            <label class="form-label">Cheques Restaurante (€/mes)</label>
+            <input
+              class="form-input"
+              type="number"
+              placeholder="Ej: 150"
+              [(ngModel)]="form.cheques_restaurante"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cheques Guardería (€/mes)</label>
+            <input
+              class="form-input"
+              type="number"
+              placeholder="Ej: 80"
+              [(ngModel)]="form.cheques_guarderia"
+            />
+          </div>
+        </div>
+
+        <div style="height: 1px; background: var(--border); margin: 24px 0;"></div>
+
+        <!-- Toggle estado -->
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Estado</label>
+          <div class="toggle-wrap" (click)="toggleActivo()">
+            <div class="toggle" [class.on]="form.activo"></div>
+            <div>
+              <div class="toggle-label">{{ form.activo ? 'Activo' : 'De baja' }}</div>
+              <div class="toggle-sub">
+                {{ form.activo ? 'El trabajador está operativo en el sistema' : 'El trabajador no está operativo en el sistema' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="close.emit()">Cancelar</button>
+      <button class="btn btn-primary" (click)="submit()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        {{ isEdit ? 'Guardar Cambios' : 'Guardar trabajador' }}
+      </button>
+    </div>
+
+  </div>
+</div>
