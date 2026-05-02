@@ -1,44 +1,43 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Asignacion } from '../../../../models/asignacion.model';
+import { AsignacionesService } from '../../../../services/asignaciones.service';
 import { TableComponent, ColumnDef } from '../../../../shared/table/table.component';
-import { Formacion } from '../../../../models/formacion.model';
-import { FormacionesService } from '../../../../services/formaciones.service';
 
 @Component({
-  selector: 'app-formaciones-table',
+  selector: 'app-asignaciones-table',
   standalone: true,
   imports: [CommonModule, TableComponent],
   template: `
     <app-table
       [columns]="columns"
-      [rows]="formaciones"
+      [rows]="asignaciones"
       [currentPage]="currentPage"
       [pageSize]="pageSize"
       [totalFiltered]="totalFiltered"
-      entityLabel="formaciones"
+      entityLabel="asignaciones"
       (pageChange)="pageChange.emit($event)"
       (actionClick)="onAction($event)">
     </app-table>
   `,
 })
-export class FormacionesTableComponent {
-  @Input() formaciones: Formacion[] = [];
+export class AsignacionesTableComponent {
+  @Input() asignaciones: Asignacion[] = [];
   @Input() currentPage = 1;
   @Input() pageSize = 10;
   @Input() totalFiltered = 0;
 
   @Output() editClick = new EventEmitter<number>();
   @Output() bajaClick = new EventEmitter<number>();
-  @Output() participantesClick = new EventEmitter<number>();
   @Output() pageChange = new EventEmitter<number>();
 
-  svc = inject(FormacionesService);
+  svc = inject(AsignacionesService);
 
   columns: ColumnDef[] = [
     {
-      header: 'Formacion',
+      header: 'Empresa',
       type: 'avatar-name',
-      nameFields: ['curso'],
+      nameFields: ['empresa_nombre'],
       subField: 'id',
       subPrefix: 'ID: ',
       activeField: 'activo',
@@ -46,14 +45,35 @@ export class FormacionesTableComponent {
       initialsFn: (row) => this.svc.initials(row),
     },
     {
-      header: 'Denominacion',
+      header: 'Trabajador',
       type: 'text',
-      field: 'denominacion',
+      field: 'trabajador_nombre',
     },
     {
-      header: 'Horario',
+      header: 'Comercial',
       type: 'text',
-      field: 'horario',
+      field: 'comercial_nombre',
+    },
+    {
+      header: 'Fecha Ini',
+      type: 'date',
+      field: 'fecha_ini',
+      locale: 'es-ES',
+      dateOptions: { day: '2-digit', month: '2-digit', year: 'numeric' },
+    },
+    {
+      header: 'Fecha Fin',
+      type: 'date',
+      field: 'fecha_fin',
+      locale: 'es-ES',
+      dateOptions: { day: '2-digit', month: '2-digit', year: 'numeric' },
+    },
+    {
+      header: 'Tarifa',
+      type: 'number',
+      field: 'tarifa',
+      locale: 'es-ES',
+      numberOptions: { style: 'currency', currency: 'EUR' },
     },
     {
       header: 'Estado',
@@ -89,13 +109,6 @@ export class FormacionesTableComponent {
           showWhen: 'inactive',
           activeField: 'activo',
         },
-        {
-          type: 'participantes',
-          title: 'Ver participantes',
-          icon: 'eye',
-          variant: 'view',
-          showWhen: 'always',
-        },
       ],
     },
   ];
@@ -103,6 +116,5 @@ export class FormacionesTableComponent {
   onAction(event: { type: string; id: number }): void {
     if (event.type === 'edit') this.editClick.emit(event.id);
     if (event.type === 'baja') this.bajaClick.emit(event.id);
-    if (event.type === 'participantes') this.participantesClick.emit(event.id);
   }
 }
