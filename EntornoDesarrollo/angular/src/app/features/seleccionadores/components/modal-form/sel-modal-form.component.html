@@ -1,5 +1,5 @@
 <div class="modal-overlay open">
-  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 580px;">
+  <div class="modal modal-form-standard" (click)="$event.stopPropagation()">
 
     <div class="modal-header">
       <div>
@@ -9,7 +9,7 @@
       <button class="modal-close" (click)="close.emit()">✕</button>
     </div>
 
-    <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+    <div class="modal-body">
       <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">
         Los campos marcados con <em style="color:var(--danger)">*</em> son obligatorios.
       </p>
@@ -106,10 +106,10 @@
           <div class="form-grid" style="margin-bottom: 16px;">
             <div class="form-group">
               <label class="form-label">Empresa vinculada <em style="color:var(--danger)">*</em></label>
-              <select 
-                class="form-select" 
+              <select
+                class="form-select"
                 [class.error]="errors['empresa']"
-                [ngModel]="form.id_empresa" 
+                [ngModel]="form.id_empresa"
                 (ngModelChange)="onEmpresaChange($event)"
               >
                 <option [ngValue]="undefined">Selecciona empresa...</option>

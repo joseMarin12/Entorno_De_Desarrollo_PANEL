@@ -5,7 +5,7 @@ import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { EmpresasTableComponent } from '../../components/empresas-table/empresas-table.component';
 import { Empresa } from '../../../../models/empresa.model';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
-import { EmpToolbarComponent, EmpFilterType, EmpFilterTipoType } from '../../components/toolbar/emp-toolbar.component';
+import { EmpToolbarComponent, EmpFilterType } from '../../components/toolbar/emp-toolbar.component';
 import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
 import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
@@ -16,12 +16,12 @@ import { EmpresasApiService } from '../../../../services/empresas-api.service';
   standalone: true,
   imports: [
     CommonModule,
-    TopbarComponent, 
-    EmpresasTableComponent, 
-    StatsRowComponent, 
-    EmpToolbarComponent, 
-    ModalAddComponent, 
-    ModalEditComponent, 
+    TopbarComponent,
+    EmpresasTableComponent,
+    StatsRowComponent,
+    EmpToolbarComponent,
+    ModalAddComponent,
+    ModalEditComponent,
     ConfirmationModalComponent],
   templateUrl: './empresas-page.component.html',
 })
@@ -35,11 +35,19 @@ export class EmpresasPageComponent implements OnInit {
   readonly total = computed(() => this._empresas().length);
   readonly totalActivos = computed(() => this._empresas().filter(e => e.activo).length);
   readonly totalInactivos = computed(() => this._empresas().filter(e => !e.activo).length);
+  readonly tiposDisponibles = computed(() => {
+    const unique = new Set(
+      this._empresas()
+        .map(e => (e.tipo ?? '').trim())
+        .filter(tipo => tipo.length > 0)
+    );
+    return Array.from(unique).sort((a, b) => a.localeCompare(b, 'es'));
+  });
 
   // ── Filtros ──────────────────────────────────────
   searchQuery  = '';
   activeFilter: EmpFilterType = '';
-  typeFilter: EmpFilterTipoType = '';
+  typeFilter: string = '';
   currentPage  = 1;
   readonly PAGE_SIZE = 10;
 
@@ -85,8 +93,8 @@ export class EmpresasPageComponent implements OnInit {
 
   private loadAll(searchText = '', status = ''): void {
     this.api.findAll(searchText, status).subscribe({
-      next: (list) => { 
-        this._empresas.set(list ?? []); 
+      next: (list) => {
+        this._empresas.set(list ?? []);
       },
       error: () => this.toast.show('error', '✗ No se pudo cargar las empresas. Inténtalo de nuevo.'),
     });
@@ -97,17 +105,17 @@ export class EmpresasPageComponent implements OnInit {
     this.searchQuery = q;
     this.currentPage = 1;
   }
-  
+
   onFilterChange(f: EmpFilterType): void {
     this.activeFilter = f;
     this.currentPage = 1;
   }
 
-  onTypeFilterChange(t: EmpFilterTipoType): void {
+  onTypeFilterChange(t: string): void {
     this.typeFilter = t;
     this.currentPage = 1;
   }
-  
+
   openAdd(): void {
     this.showAdd = true;
   }

@@ -14,7 +14,7 @@ export class EmpresasApiService extends BaseCrud<Empresa> {
   }
 
   findTipos(): Observable<TipoEmpresa[]> {
-    return this.http.post<{ data: TipoEmpresa[] }>(this.API_URL, { action: 'getTiposEmpresa' })
+    return this.trackRequest(this.http.post<{ data: TipoEmpresa[] }>(this.API_URL, { action: 'getTiposEmpresa' }))
       .pipe(map(res => res.data));
   }
 

@@ -1,7 +1,6 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, signal, computed } from '@angular/core';
 import { Observable, tap, map, catchError, throwError } from 'rxjs';
-import { Usuario, Role } from '../models/usuarios.model';
+import { Role, Usuario } from '../models/usuarios.model';
 import { BaseCrud } from './base.service';
 import { environment } from '../../environments/environment';
 
@@ -10,7 +9,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
 
   public override readonly API_URL = `${environment.apiUrl}/usuarios`;
 
-  private _usuarios = signal<Usuario[]>([]);
+  private readonly _usuarios = signal<Usuario[]>([]);
   readonly loading  = signal(false);
   readonly error    = signal<string | null>(null);
   readonly totalRecords = signal(0);
@@ -20,7 +19,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
   readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
   readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
 
-  private _roles = signal<Role[]>([]);
+  private readonly _roles = signal<Role[]>([]);
   readonly roles = this._roles.asReadonly();
 
   loadRoles(): void {
@@ -178,7 +177,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
   private applyRobustMerge(backendRes: any, localData: Usuario): Usuario {
     const mapped = this.mapSingleFromBackend(backendRes);
     const isReal = backendRes && (backendRes.id || backendRes.nombre || backendRes.name || backendRes.email);
-    
+
     if (isReal) {
       const cleanedMapped: any = {};
       const raw = (backendRes.json && typeof backendRes.json === 'object') ? backendRes.json : backendRes;
@@ -192,7 +191,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
       if (raw.roleid || raw.role_id || raw.ID_ROL || raw.id_rol) cleanedMapped.roleid = mapped.roleid;
 
       const merged = { ...localData, ...cleanedMapped };
-      
+
       if (!cleanedMapped.password && localData.password) {
         merged.password = localData.password;
       }
@@ -202,8 +201,8 @@ export class UsuariosService extends BaseCrud<Usuario> {
   }
 
   private mapSingleFromBackend(item: any): Usuario {
-    const d = (item && item.json && typeof item.json === 'object' && !Array.isArray(item.json)) 
-              ? item.json 
+    const d = (item && item.json && typeof item.json === 'object' && !Array.isArray(item.json))
+              ? item.json
               : item;
 
     if (!d || typeof d !== 'object') return {} as Usuario;

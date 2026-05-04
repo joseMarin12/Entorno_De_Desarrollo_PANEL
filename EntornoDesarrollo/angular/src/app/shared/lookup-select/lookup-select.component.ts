@@ -27,11 +27,11 @@ import { LookupService } from '../../services/lookup.service';
             (change)="onSelectChange()">
 
             @if (isLoading()) {
-              <option [value]="null">Cargando opciones...</option>
+              <option [ngValue]="null">Cargando opciones...</option>
             } @else {
-              <option [value]="null">{{ placeholder }}</option>
+              <option [ngValue]="null">{{ placeholder }}</option>
               @for (opt of options(); track $index) {
-                <option [value]="getValue(opt)">{{ getLabel(opt) }}</option>
+                <option [ngValue]="getValue(opt)">{{ getLabel(opt) }}</option>
               }
             }
           </select>
@@ -144,6 +144,12 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
   @Input() hasError = false;
   @Input() required = false;
   @Input() searchable = false;
+  @Input() set preloadedOptions(opts: any[] | null) {
+    if (opts != null) {
+      this.options.set(opts);
+      this.syncSearchText();
+    }
+  }
 
   // ── Estado ────────────────────────────────────────────────────────────────
   options = signal<any[]>([]);
@@ -185,7 +191,7 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
 
   // ── Carga de datos ────────────────────────────────────────────────────────
   private loadData(): void {
-    if (!this.apiUrl || !this.action) return;
+    if (!this.apiUrl || !this.action || this.options().length > 0) return;
     this.isLoading.set(true);
     this.lookupSvc.getOptions(this.apiUrl, this.action).subscribe({
       next: data => {
@@ -265,7 +271,7 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
 
   // ── ControlValueAccessor ──────────────────────────────────────────────────
   writeValue(val: any): void {
-    this.internalValue = val;
+    this.internalValue = (val == null || val === 0 || val === '') ? null : val;
     this.syncSearchText();
   }
   registerOnChange(fn: any): void { this.onChange = fn; }

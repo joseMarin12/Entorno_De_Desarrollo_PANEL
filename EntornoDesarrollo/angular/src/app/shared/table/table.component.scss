@@ -1,3 +1,33 @@
+.table-loading {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.table-loading-spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid #d6deff;
+  border-top-color: #476fab;
+  animation: table-spin 0.8s linear infinite;
+}
+
+.table-loading-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@keyframes table-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* relation-chip */
 .chip {
   display: inline-block;

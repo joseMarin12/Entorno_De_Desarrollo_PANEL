@@ -44,7 +44,7 @@
   <app-usuarios-modal-form
     [usuario]="selectedUsuario() || null"
     [emailUsuarios]="emailUsuarios()"
-    [roles]="svc.roles()"
+    [roles]="rolesStore.roles()"
     (save)="onSaveForm($event)"
     (close)="showForm = false; selectedId = null"
   />
@@ -62,7 +62,7 @@
 @if (showDetail && selectedUsuario()) {
   <app-usuarios-modal-detail
     [usuario]="selectedUsuario()!"
-    [roles]="svc.roles()"
+    [roles]="rolesStore.roles()"
     (edit)="onEditClick($event); showDetail = false"
     (close)="showDetail = false; selectedId = null"
   />

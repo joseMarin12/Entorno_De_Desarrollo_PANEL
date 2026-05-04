@@ -1,5 +1,5 @@
 <div class="modal-overlay open">
-  <div class="modal" style="max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
+  <div class="modal modal-form-standard" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div>
         <div class="modal-title">{{ isEdit ? 'Editar Formación' : 'Nueva Formación' }}</div>
@@ -16,7 +16,7 @@
       </button>
     </div>
 
-    <div class="modal-body">
+    <div class="modal-body modal-body-scroll">
       <div class="form-grid">
 
         <div class="form-group full">
@@ -34,14 +34,14 @@
         </div>
 
         <div class="form-group">
-          <app-lookup-select [apiUrl]="svc.API_URL" action="getArea" label="Área" placeholder="Seleccionar área..."
+          <app-lookup-select [preloadedOptions]="areaStore.areas()" label="Área" placeholder="Seleccionar área..."
             [(ngModel)]="form.id_area" [hasError]="!!errors['id_area']" [required]="true">
           </app-lookup-select>
           @if (errors['id_area']) { <span class="form-hint error-msg">{{ errors['id_area'] }}</span> }
         </div>
 
         <div class="form-group">
-          <app-lookup-select [apiUrl]="svc.API_URL" action="getModalidad" label="Modalidad"
+          <app-lookup-select [preloadedOptions]="modalidadStore.modalidades()" label="Modalidad"
             placeholder="Seleccionar modalidad..." [(ngModel)]="form.id_modalidad" [hasError]="!!errors['id_modalidad']"
             [required]="true">
           </app-lookup-select>
@@ -49,7 +49,7 @@
         </div>
 
         <div class="form-group">
-          <app-lookup-select [apiUrl]="svc.API_URL" action="getEjecucion" label="Ejecución"
+          <app-lookup-select [preloadedOptions]="ejecucionStore.ejecuciones()" label="Ejecución"
             placeholder="Seleccionar ejecución..." [(ngModel)]="form.id_ejecucion" [hasError]="!!errors['id_ejecucion']"
             [required]="true">
           </app-lookup-select>

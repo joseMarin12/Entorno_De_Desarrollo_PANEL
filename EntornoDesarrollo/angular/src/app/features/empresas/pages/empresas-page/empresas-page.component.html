@@ -17,7 +17,7 @@
     </div>
 
     <!-- Estadísticas -->
-    <app-stats-row 
+    <app-stats-row
       [total]="total()"
       [activos]="totalActivos()"
       [inactivos]="totalInactivos()"
@@ -25,6 +25,7 @@
 
     <!-- Toolbar: búsqueda + filtros -->
     <app-toolbar
+      [tipos]="tiposDisponibles()"
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
       (tipoFilterChange)="onTypeFilterChange($event)"

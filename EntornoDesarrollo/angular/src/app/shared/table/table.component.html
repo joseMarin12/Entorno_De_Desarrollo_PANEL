@@ -1,28 +1,34 @@
 <div class="table-card" style="margin-bottom:0">
-  <table>
-    <thead>
-      <tr>
-        @for (col of columns(); track col.header) {
-          <th>{{ col.header }}</th>
-        }
-      </tr>
-    </thead>
-    <tbody>
-      @if (rows().length === 0) {
+  @if (isLoading()) {
+    <div class="table-loading">
+      <div class="table-loading-spinner" aria-hidden="true"></div>
+      <div class="table-loading-text">Cargando datos...</div>
+    </div>
+  } @else {
+    <table>
+      <thead>
         <tr>
-          <td [attr.colspan]="columns().length"
-              style="text-align:center;padding:48px 20px;color:var(--text-muted)">
-            <div style="font-size:30px;margin-bottom:10px;opacity:.3">🔍</div>
-            <div style="font-size:13px;font-weight:600">Sin resultados</div>
-            <div style="font-size:12px;margin-top:4px">Prueba con otro nombre o filtro</div>
-          </td>
+          @for (col of columns(); track col.header) {
+            <th>{{ col.header }}</th>
+          }
         </tr>
-      } @else {
-        @for (row of rows(); track row.id) {
+      </thead>
+      <tbody>
+        @if (!rows() || rows().length === 0) {
           <tr>
-            @for (col of columns(); track col.header) {
-              <td>
-                @switch (col.type) {
+            <td [attr.colspan]="columns().length"
+                style="text-align:center;padding:48px 20px;color:var(--text-muted)">
+              <div style="font-size:30px;margin-bottom:10px;opacity:.3">🔍</div>
+              <div style="font-size:13px;font-weight:600">Sin resultados</div>
+              <div style="font-size:12px;margin-top:4px">Prueba con otro nombre o filtro</div>
+            </td>
+          </tr>
+        } @else {
+          @for (row of rows(); track row.id) {
+            <tr>
+              @for (col of columns(); track col.header) {
+                <td>
+                  @switch (col.type) {
 
                   @case ('avatar-name') {
                     <div class="avatar-cell">
@@ -230,33 +236,34 @@
                     </div>
                   }
 
-                }
-              </td>
-            }
-          </tr>
+                  }
+                </td>
+              }
+            </tr>
+          }
         }
-      }
-    </tbody>
-  </table>
+      </tbody>
+    </table>
 
-  <!-- Paginación -->
-  <div class="pagination">
-    <span>{{ paginationInfo() }}</span>
-    <div class="page-btns">
-      <button class="page-btn"
-        [disabled]="currentPage() === 1"
-        [style.opacity]="currentPage() === 1 ? '0.4' : '1'"
-        (click)="pageChange.emit(currentPage() - 1)">‹</button>
+    <!-- Paginación -->
+    <div class="pagination">
+      <span>{{ paginationInfo() }}</span>
+      <div class="page-btns">
+        <button class="page-btn"
+          [disabled]="currentPage() === 1"
+          [style.opacity]="currentPage() === 1 ? '0.4' : '1'"
+          (click)="pageChange.emit(currentPage() - 1)">‹</button>
 
-      @for (p of pages(); track p) {
-        <button class="page-btn" [class.active]="p === currentPage()"
-          (click)="pageChange.emit(p)">{{ p }}</button>
-      }
+        @for (p of pages(); track p) {
+          <button class="page-btn" [class.active]="p === currentPage()"
+            (click)="pageChange.emit(p)">{{ p }}</button>
+        }
 
-      <button class="page-btn"
-        [disabled]="currentPage() === totalPages()"
-        [style.opacity]="currentPage() === totalPages() ? '0.4' : '1'"
-        (click)="pageChange.emit(currentPage() + 1)">›</button>
+        <button class="page-btn"
+          [disabled]="currentPage() === totalPages()"
+          [style.opacity]="currentPage() === totalPages() ? '0.4' : '1'"
+          (click)="pageChange.emit(currentPage() + 1)">›</button>
+      </div>
     </div>
-  </div>
+  }
 </div>

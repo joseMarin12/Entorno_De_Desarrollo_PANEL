@@ -1,9 +1,10 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Injectable, signal } from '@angular/core';
+import { map, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 import { BaseCrud } from './base.service';
 import { Formacion } from '../models/formacion.model';
+import { KeyValue } from '../models/keyValue.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -12,7 +13,7 @@ export class FormacionesService extends BaseCrud<Formacion> {
     public readonly API_URL = `${environment.apiUrl}/formaciones`;
 
     // ── Estado reactivo ──────────────────────────────────────────────────────
-    private _formaciones = signal<Formacion[]>([]);
+    private readonly _formaciones = signal<Formacion[]>([]);
     readonly loading = signal(false);
     readonly error = signal<string | null>(null);
 
@@ -108,5 +109,21 @@ export class FormacionesService extends BaseCrud<Formacion> {
             'linear-gradient(135deg,#5a4d9a,#23b4cd)',
         ];
         return COLORS[(id - 1) % COLORS.length];
+    }
+
+    // ── Lookups ──────────────────────────────────────────────────────────────
+    findAreas(): Observable<KeyValue[]> {
+        return this.trackRequest(this.http.post<{ data: KeyValue[] }>(this.API_URL, { action: 'getArea' }))
+            .pipe(map(res => res.data));
+    }
+
+    findModalidades(): Observable<KeyValue[]> {
+        return this.trackRequest(this.http.post<{ data: KeyValue[] }>(this.API_URL, { action: 'getModalidad' }))
+            .pipe(map(res => res.data));
+    }
+
+    findEjecuciones(): Observable<KeyValue[]> {
+        return this.trackRequest(this.http.post<{ data: KeyValue[] }>(this.API_URL, { action: 'getEjecucion' }))
+            .pipe(map(res => res.data));
     }
 }

@@ -1,5 +1,5 @@
 <div class="modal-overlay open">
-  <div class="modal" (click)="$event.stopPropagation()">
+  <div class="modal modal-form-standard" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div>
         <div class="modal-title">Editar Empresa</div>
@@ -31,11 +31,11 @@
           <select class="form-input" [class.error]="errors['id_tipo_empresa']" [(ngModel)]="form.id_tipo_empresa">
             <option [ngValue]="null" disabled>Seleccionar tipo</option>
             @for (tipo of tipos(); track tipo.id) {
-               <option [ngValue]="tipo.id">{{ tipo.nombre }}</option> 
+               <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
             }
           </select>
-          @if (errors['id_tipo_empresa']) { 
-            <span class="form-hint error-msg">{{ errors['id_tipo_empresa'] }}</span> 
+          @if (errors['id_tipo_empresa']) {
+            <span class="form-hint error-msg">{{ errors['id_tipo_empresa'] }}</span>
           }
         </div>
 

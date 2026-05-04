@@ -1,5 +1,5 @@
 <div class="modal-overlay open" (click)="close.emit()">
-  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 540px;">
+  <div class="modal modal-wide-sm" (click)="$event.stopPropagation()">
 
     <div class="modal-header">
       <div>
@@ -10,7 +10,7 @@
     </div>
 
     <div class="modal-body">
-      
+
       <div style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 30px;">
         <div class="avatar-large" [style.background]="svc.colorFor(usuario.id)">
           {{ svc.initials(usuario) }}
@@ -50,7 +50,7 @@
 
     </div>
 
-    <div class="modal-footer" style="background: #fafbff; border-top: 1px solid var(--border);">
+    <div class="modal-footer modal-footer-muted">
       <button class="btn btn-primary" (click)="close.emit()">Cerrar</button>
     </div>
 
