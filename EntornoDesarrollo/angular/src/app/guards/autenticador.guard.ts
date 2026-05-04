@@ -6,7 +6,9 @@ export const autenticadorGuard: CanActivateFn = (route, state) => {
   const authService = inject(AutenticadorService);
   const router = inject(Router);
 
-  if (authService.isAuthenticated()) {
+  const hasToken = !!sessionStorage.getItem('token');
+
+  if (authService.isAuthenticated() && hasToken) {
     return true;
   }
 

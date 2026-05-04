@@ -242,4 +242,14 @@ export class UsuariosService extends BaseCrud<Usuario> {
     ];
     return COLORS[(id - 1) % COLORS.length] || COLORS[0];
   }
+
+  changePassword(id: number, password: string): Observable<any> {
+    const payload = {
+      action: 'changePassword',
+      id,
+      password
+    };
+    // Usamos el endpoint de usuarios
+    return this.http.post(this.API_URL, payload);
+  }
 }

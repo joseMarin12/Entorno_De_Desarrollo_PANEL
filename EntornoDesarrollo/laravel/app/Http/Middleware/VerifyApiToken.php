@@ -26,7 +26,8 @@ class VerifyApiToken
         $action = $request->input('action');
 
         if (!in_array($action, $publicActions)) {
-            $token = $request->input('token');
+            // Intentar obtener del header Authorization primero
+            $token = $request->bearerToken() ?: $request->input('token');
 
             if (!$token) {
                 return response()->json([
@@ -44,11 +45,12 @@ class VerifyApiToken
                 ], 401);
             }
 
-            // Inyectar datos del usuario autenticado en el request
+            // Inyectar datos del usuario autenticado y el token (para n8n) en el request
             $request->merge([
                 'authenticated_user_id' => $payload['id'] ?? null,
                 'authenticated_user_email' => $payload['email'] ?? null,
                 'authenticated_user_role' => $payload['role'] ?? null,
+                'token' => $token // Lo volvemos a poner en el body para que n8n lo reciba
             ]);
         }
 

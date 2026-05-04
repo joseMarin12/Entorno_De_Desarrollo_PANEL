@@ -31,10 +31,11 @@ CREATE TABLE "user" (
     roleid INT,
     enabled BOOLEAN DEFAULT TRUE,
     password VARCHAR(255) NOT NULL,
+    first_login BOOLEAN DEFAULT true,
     CONSTRAINT fk_user_role FOREIGN KEY (roleid) REFERENCES role(id) ON DELETE SET NULL
 );
 --Creación de usuario primera vez (Contraseña admin)
-INSERT INTO "user" (name, surname, email, roleid, enabled, password)
+INSERT INTO "user" (name, surname, email, roleid, enabled, password, first_login)
 VALUES ('admin', 'admin', 'administrador@example.com', 1, true, '$2a$10$7UKIy//QMfkq2ec2d5znR.EaOFTjzuD/CohXMHSbNw9OfMnh5zyW.');
 
 -- Localizaciones

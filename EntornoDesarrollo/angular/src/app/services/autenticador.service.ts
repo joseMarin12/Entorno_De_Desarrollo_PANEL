@@ -76,4 +76,39 @@ export class AutenticadorService {
   isAuthenticated(): boolean {
     return this.currentUser() !== null;
   }
+
+  getToken(): string | null {
+    return sessionStorage.getItem('token');
+  }
+
+  getDecodedToken(): any {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payload = token.split('.')[1];
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(atob(base64));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  getUserId(): number | null {
+    return this.getDecodedToken()?.id || null;
+  }
+
+  getUserEmail(): string | null {
+    return this.getDecodedToken()?.email || null;
+  }
+
+  private firstLoginOverridden = signal(false);
+
+  isFirstLogin(): boolean {
+    if (this.firstLoginOverridden()) return false;
+    return this.getDecodedToken()?.firstLogin === true;
+  }
+
+  completeFirstLogin(): void {
+    this.firstLoginOverridden.set(true);
+  }
 }
