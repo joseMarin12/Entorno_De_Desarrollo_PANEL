@@ -149,7 +149,7 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
   options = signal<any[]>([]);
   isLoading = signal(false);
   isOpen = signal(false);
-  searchText = signal('');   // ← signal para que computed() reaccione
+  searchText = signal('');
 
   internalValue: any = null;
   disabled = false;
@@ -157,7 +157,6 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
   onChange: any = () => { };
   onTouched: any = () => { };
 
-  // Solo filtra cuando searchText cambia (gracias a que es signal)
   filteredOptions = computed(() => {
     const q = this.searchText().toLowerCase().trim();
     const all = this.options();

@@ -6,7 +6,7 @@ import { ToastService } from '../../../../services/toast.service';
 import { Formacion } from '../../../../models/formacion.model';
 
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
-import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
+import { StatsRowComponent, StatCardConfig } from '../../../../shared/stats-row/stats-row.component';
 import { ToolbarComponent, FilterType } from '../../components/toolbar/toolbar.component';
 import { FormacionesTableComponent } from '../../components/formaciones-table/formaciones-table.component';
 import { ModalFormacionComponent } from '../../components/modal-formacion/modal-formacion.component';
@@ -32,6 +32,12 @@ export class FormacionesPageComponent implements OnInit {
   svc = inject(FormacionesService);
   toast = inject(ToastService);
   ConfirmMode = ConfirmMode;
+
+  statCards = computed<StatCardConfig[]>(() => [
+    { icon: 'users', value: this.svc.total(), label: 'Total formaciones', color: 'purple' },
+    { icon: 'check-circle', value: this.svc.totalActivos(), label: 'Activas', color: 'green' },
+    { icon: 'x-circle', value: this.svc.totalInactivos(), label: 'Dados de baja', color: 'red' },
+  ]);
 
   // ── Filtros ──────────────────────────────────────
   searchQuery = '';

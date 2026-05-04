@@ -18,7 +18,7 @@
   </div>
 
   <!-- Estadísticas -->
-  <app-stats-row [total]="svc.total()" [activas]="svc.totalActivos()" [inactivas]="svc.totalInactivos()" />
+  <app-stats-row [cards]="statCards()" />
 
   <!-- Toolbar: búsqueda + filtros -->
   <app-toolbar (searchChange)="onSearchChange($event)" (filterChange)="onFilterChange($event)" />

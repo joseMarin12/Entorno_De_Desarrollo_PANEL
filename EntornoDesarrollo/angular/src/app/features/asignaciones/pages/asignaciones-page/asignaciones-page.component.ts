@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { AsignacionesService } from '../../../../services/asignaciones.service';
@@ -6,7 +6,7 @@ import { ToastService } from '../../../../services/toast.service';
 import { Asignacion } from '../../../../models/asignacion.model';
 
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
-import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
+import { StatsRowComponent, StatCardConfig } from '../../../../shared/stats-row/stats-row.component';
 import { ToolbarComponent, FilterType } from '../../components/toolbar/toolbar.component';
 import { AsignacionesTableComponent } from '../../components/asignaciones-table/asignaciones-table.component';
 import { ModalAsignacionComponent } from '../../components/modal-asignacion/modal-asignacion.component';
@@ -32,6 +32,12 @@ export class AsignacionesPageComponent implements OnInit {
   svc = inject(AsignacionesService);
   toast = inject(ToastService);
   ConfirmMode = ConfirmMode;
+
+  statCards = computed<StatCardConfig[]>(() => [
+    { icon: 'users',        value: this.svc.total(),         label: 'Total asignaciones', color: 'purple' },
+    { icon: 'check-circle', value: this.svc.totalActivos(),  label: 'Activas',            color: 'blue'  },
+    { icon: 'x-circle',     value: this.svc.totalInactivos(),label: 'Dados de baja',      color: 'teal'  },
+  ]);
 
   // ── Filtros ──────────────────────────────────────
   searchQuery = '';
