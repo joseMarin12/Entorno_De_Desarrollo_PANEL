@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { Formacion } from '../../../../models/formacion.model';
 import { FormacionesService } from '../../../../services/formaciones.service';
 import { LookupSelectComponent } from '../../../../shared/lookup-select/lookup-select.component';
+import { AreaStore } from '../../../../services/stores/area.store';
+import { ModalidadStore } from '../../../../services/stores/modalidad.store';
+import { EjecucionStore } from '../../../../services/stores/ejecucion.store';
 
 @Component({
   selector: 'app-modal-formacion',
@@ -13,6 +16,9 @@ import { LookupSelectComponent } from '../../../../shared/lookup-select/lookup-s
 })
 export class ModalFormacionComponent implements OnInit {
   svc = inject(FormacionesService);
+  readonly areaStore = inject(AreaStore);
+  readonly modalidadStore = inject(ModalidadStore);
+  readonly ejecucionStore = inject(EjecucionStore);
 
   @Input() formacion?: Formacion; // Si se pasa, es modo edición
   @Output() close = new EventEmitter<void>();
@@ -23,6 +29,10 @@ export class ModalFormacionComponent implements OnInit {
   errors: { [key: string]: string } = {};
 
   ngOnInit(): void {
+    this.areaStore.ensureLoaded().subscribe();
+    this.modalidadStore.ensureLoaded().subscribe();
+    this.ejecucionStore.ensureLoaded().subscribe();
+
     this.isEdit = !!this.formacion;
 
     if (this.isEdit && this.formacion) {
@@ -67,7 +77,7 @@ export class ModalFormacionComponent implements OnInit {
     if (!this.form.id_modalidad) this.errors['id_modalidad'] = 'La modalidad es obligatoria';
     if (!this.form.id_ejecucion) this.errors['id_ejecucion'] = 'La ejecución es obligatoria';
     if (!this.form.id_responsable) this.errors['id_responsable'] = 'El responsable es obligatorio';
-    
+
     return Object.keys(this.errors).length === 0;
   }
 

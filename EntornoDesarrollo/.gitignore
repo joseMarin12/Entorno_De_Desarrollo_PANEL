@@ -9,6 +9,9 @@ angular/node_modules/
 angular/dist/
 angular/.angular/
 
+# n8n
+n8n/workflows_runtime/
+
 # Docker
 postgres/data/
 
