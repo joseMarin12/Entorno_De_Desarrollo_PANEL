@@ -34,9 +34,9 @@ export class AsignacionesPageComponent implements OnInit {
   ConfirmMode = ConfirmMode;
 
   statCards = computed<StatCardConfig[]>(() => [
-    { icon: 'users',        value: this.svc.total(),         label: 'Total asignaciones', color: 'purple' },
-    { icon: 'check-circle', value: this.svc.totalActivos(),  label: 'Activas',            color: 'blue'  },
-    { icon: 'x-circle',     value: this.svc.totalInactivos(),label: 'Dados de baja',      color: 'teal'  },
+    { icon: 'users', value: this.svc.total(), label: 'Total asignaciones', color: 'purple' },
+    { icon: 'check-circle', value: this.svc.totalActivos(), label: 'Activas', color: 'green' },
+    { icon: 'x-circle', value: this.svc.totalInactivos(), label: 'Dados de baja', color: 'red' },
   ]);
 
   // ── Filtros ──────────────────────────────────────
