@@ -1,0 +1,139 @@
+{
+  "name": "Trabajadores",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "gestion-trabajadores", "responseMode": "responseNode", "options": { "allowedOrigins": "*" } },
+      "id": "e1fe2baf-ac9b-4801-b934-eb655708be01", "name": "Webhook Trabajadores", "type": "n8n-nodes-base.webhook", "typeVersion": 2.1, "position": [2560, 3824], "webhookId": "b884095a-9de5-4c1b-9869-56be69f43c01"
+    },
+    {
+      "parameters": {
+        "rules": { "values": [
+          { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "getTrabajadores", "operator": { "type": "string", "operation": "equals" }, "id": "r1" }], "combinator": "and" }, "renameOutput": true, "outputKey": "getTrabajadores" },
+          { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "createTrabajador", "operator": { "type": "string", "operation": "equals" }, "id": "r2" }], "combinator": "and" }, "renameOutput": true, "outputKey": "createTrabajador" },
+          { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "updateTrabajador", "operator": { "type": "string", "operation": "equals" }, "id": "r3" }], "combinator": "and" }, "renameOutput": true, "outputKey": "updateTrabajador" },
+          { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "toggleTrabajadorStatus", "operator": { "type": "string", "operation": "equals" }, "id": "r4" }], "combinator": "and" }, "renameOutput": true, "outputKey": "toggleTrabajadorStatus" },
+          { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "getProvincias", "operator": { "type": "string", "operation": "equals" }, "id": "r5" }], "combinator": "and" }, "renameOutput": true, "outputKey": "getProvincias" },
+          { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "getLocalidades", "operator": { "type": "string", "operation": "equals" }, "id": "r6" }], "combinator": "and" }, "renameOutput": true, "outputKey": "getLocalidades" },
+          { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "getSeleccionadoresLookup", "operator": { "type": "string", "operation": "equals" }, "id": "r7" }], "combinator": "and" }, "renameOutput": true, "outputKey": "getSeleccionadoresLookup" },
+          { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "getAsignacionesByTrabajador", "operator": { "type": "string", "operation": "equals" }, "id": "r8" }], "combinator": "and" }, "renameOutput": true, "outputKey": "getAsignacionesByTrabajador" },
+          { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "getFormacionesByTrabajador", "operator": { "type": "string", "operation": "equals" }, "id": "r9" }], "combinator": "and" }, "renameOutput": true, "outputKey": "getFormacionesByTrabajador" }
+        ] },
+        "options": { "fallbackOutput": "extra" }
+      },
+      "id": "a1a27b1c-1b90-43d4-b57c-075822fe5f02", "name": "Switch Actions", "type": "n8n-nodes-base.switch", "typeVersion": 3.4, "position": [2816, 3824]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = body.page || 1;\nconst limit = body.limit || 10;\nconst offset = (page - 1) * limit;\nconst conditions = [];\nconst params = [];\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(CONCAT(t.nombre, ' ', t.primer_apellido, ' ', COALESCE(t.segundo_apellido,'')) ILIKE $${params.length + 1} OR t.email ILIKE $${params.length + 1} OR t.dni_nif_pasaporte ILIKE $${params.length + 1})`);\n  params.push(`%${filters.searchText.trim()}%`);\n}\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  const s = String(filters.status).toLowerCase();\n  if (s !== 'todos' && s !== '') { conditions.push(`t.activo = $${params.length + 1}`); params.push(s === 'activo' || s === 'activos'); }\n}\nif (filters.tipo !== undefined && filters.tipo !== null && filters.tipo !== '') {\n  const tp = String(filters.tipo).toLowerCase();\n  if (tp === 'freelance') { conditions.push(`t.freelance = $${params.length + 1}`); params.push(true); }\n  else if (tp === 'plantilla') { conditions.push(`t.freelance = $${params.length + 1}`); params.push(false); }\n}\nlet whereClause = 'WHERE 1=1';\nif (conditions.length > 0) whereClause += ' AND ' + conditions.join(' AND ');\nconst lp = params.length + 1;\nconst op = params.length + 2;\nparams.push(limit);\nparams.push(offset);\nconst query = `WITH global_stats AS (SELECT COUNT(*)::int as total, COUNT(*) FILTER (WHERE activo=true)::int as activos, COUNT(*) FILTER (WHERE activo=false)::int as inactivos, COUNT(*) FILTER (WHERE freelance=true)::int as freelances FROM trabajador), filtered_data AS (SELECT t.*, p.provincia AS provincia_nombre, l.localidad AS localidad_nombre, CONCAT(s.nombre,' ',s.primer_apellido) AS seleccionador_nombre FROM trabajador t LEFT JOIN provincia p ON t.id_provincia=p.id LEFT JOIN localidad l ON t.id_localidad=l.id LEFT JOIN seleccionadores s ON t.id_seleccionadores=s.id ${whereClause} ORDER BY t.id DESC LIMIT $${lp} OFFSET $${op}), filtered_count AS (SELECT COUNT(*)::int as total_filtered FROM trabajador t ${whereClause}) SELECT fd.*, fc.total_filtered, gs.total as stats_total, gs.activos as stats_activos, gs.inactivos as stats_inactivos, gs.freelances as stats_freelances FROM global_stats gs CROSS JOIN filtered_count fc LEFT JOIN filtered_data fd ON true`;\nreturn [{ json: { query, params } }];"
+      },
+      "id": "b1b6e1f1-c6a0-453e-abe5-a336d2fc2803", "name": "JS: Build Get Query", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [3104, 3400]
+    },
+    {
+      "parameters": { "operation": "executeQuery", "query": "{{ $json.query }}", "options": { "queryReplacement": "={{ $json.params }}" } },
+      "id": "c9ca9641-d420-46e7-997d-8313b51f0804", "name": "SQL: Get Trabajadores", "type": "n8n-nodes-base.postgres", "typeVersion": 2.6, "position": [3360, 3400],
+      "credentials": { "postgres": { "id": "AUTOPOSTGRESCRED01", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH ins AS (INSERT INTO trabajador (nombre,primer_apellido,segundo_apellido,telefono,email,dni_nif_pasaporte,salario,cheques_guarderia,cheques_restaurante,direccion,nacionalidad,fecha_nacimiento,id_seleccionadores,activo,fecha_ini,fecha_fin,codigo_postal,id_localidad,freelance,id_provincia) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING *) SELECT i.*, p.provincia AS provincia_nombre, l.localidad AS localidad_nombre, CONCAT(s.nombre,' ',s.primer_apellido) AS seleccionador_nombre FROM ins i LEFT JOIN provincia p ON i.id_provincia=p.id LEFT JOIN localidad l ON i.id_localidad=l.id LEFT JOIN seleccionadores s ON i.id_seleccionadores=s.id;",
+        "options": { "queryReplacement": "={{ [$json.body.trabajadorData.nombre||null, $json.body.trabajadorData.primer_apellido||null, $json.body.trabajadorData.segundo_apellido||null, $json.body.trabajadorData.telefono||null, $json.body.trabajadorData.email||null, $json.body.trabajadorData.dni_nif_pasaporte||null, $json.body.trabajadorData.salario||null, $json.body.trabajadorData.cheques_guarderia||null, $json.body.trabajadorData.cheques_restaurante||null, $json.body.trabajadorData.direccion||null, $json.body.trabajadorData.nacionalidad||null, $json.body.trabajadorData.fecha_nacimiento||null, $json.body.trabajadorData.id_seleccionadores||null, $json.body.trabajadorData.activo!==undefined?$json.body.trabajadorData.activo:true, $json.body.trabajadorData.fecha_ini||null, $json.body.trabajadorData.fecha_fin||null, $json.body.trabajadorData.codigo_postal||null, $json.body.trabajadorData.id_localidad||null, $json.body.trabajadorData.freelance!==undefined?$json.body.trabajadorData.freelance:false, $json.body.trabajadorData.id_provincia||null] }}" }
+      },
+      "id": "d8b6bab4-be34-41f9-b685-ef0366f17605", "name": "SQL: Create", "type": "n8n-nodes-base.postgres", "typeVersion": 2.6, "position": [3104, 3600],
+      "credentials": { "postgres": { "id": "AUTOPOSTGRESCRED01", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH upd AS (UPDATE trabajador SET nombre=COALESCE($1,nombre), primer_apellido=COALESCE($2,primer_apellido), segundo_apellido=$3, telefono=$4, email=$5, dni_nif_pasaporte=$6, salario=$7, cheques_guarderia=$8, cheques_restaurante=$9, direccion=$10, nacionalidad=$11, fecha_nacimiento=$12, id_seleccionadores=$13, activo=COALESCE($14,activo), fecha_ini=$15, fecha_fin=$16, codigo_postal=$17, id_localidad=$18, freelance=COALESCE($19,freelance), id_provincia=$20 WHERE id=$21 RETURNING *) SELECT u.*, p.provincia AS provincia_nombre, l.localidad AS localidad_nombre, CONCAT(s.nombre,' ',s.primer_apellido) AS seleccionador_nombre FROM upd u LEFT JOIN provincia p ON u.id_provincia=p.id LEFT JOIN localidad l ON u.id_localidad=l.id LEFT JOIN seleccionadores s ON u.id_seleccionadores=s.id;",
+        "options": { "queryReplacement": "={{ [$json.body.trabajadorData.nombre||null, $json.body.trabajadorData.primer_apellido||null, $json.body.trabajadorData.segundo_apellido||null, $json.body.trabajadorData.telefono||null, $json.body.trabajadorData.email||null, $json.body.trabajadorData.dni_nif_pasaporte||null, $json.body.trabajadorData.salario||null, $json.body.trabajadorData.cheques_guarderia||null, $json.body.trabajadorData.cheques_restaurante||null, $json.body.trabajadorData.direccion||null, $json.body.trabajadorData.nacionalidad||null, $json.body.trabajadorData.fecha_nacimiento||null, $json.body.trabajadorData.id_seleccionadores||null, $json.body.trabajadorData.activo!==undefined?$json.body.trabajadorData.activo:null, $json.body.trabajadorData.fecha_ini||null, $json.body.trabajadorData.fecha_fin||null, $json.body.trabajadorData.codigo_postal||null, $json.body.trabajadorData.id_localidad||null, $json.body.trabajadorData.freelance!==undefined?$json.body.trabajadorData.freelance:null, $json.body.trabajadorData.id_provincia||null, $json.body.trabajadorId] }}" }
+      },
+      "id": "e8ac1af1-50f2-4844-be19-abf92d54ac06", "name": "SQL: Update", "type": "n8n-nodes-base.postgres", "typeVersion": 2.6, "position": [3104, 3800],
+      "credentials": { "postgres": { "id": "AUTOPOSTGRESCRED01", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH upd AS (UPDATE trabajador SET activo = NOT activo WHERE id = $1 RETURNING *) SELECT u.*, p.provincia AS provincia_nombre, l.localidad AS localidad_nombre, CONCAT(s.nombre,' ',s.primer_apellido) AS seleccionador_nombre FROM upd u LEFT JOIN provincia p ON u.id_provincia=p.id LEFT JOIN localidad l ON u.id_localidad=l.id LEFT JOIN seleccionadores s ON u.id_seleccionadores=s.id;",
+        "options": { "queryReplacement": "={{ [$json.body.trabajadorId] }}" }
+      },
+      "id": "f1485e7b-8c12-47d3-a3e0-68db3fa84b07", "name": "SQL: Toggle Status", "type": "n8n-nodes-base.postgres", "typeVersion": 2.6, "position": [3104, 4000],
+      "credentials": { "postgres": { "id": "AUTOPOSTGRESCRED01", "name": "Postgres account" } }
+    },
+    {
+      "parameters": { "operation": "executeQuery", "query": "SELECT id, provincia AS nombre FROM provincia ORDER BY provincia ASC;", "options": {} },
+      "id": "a43dbf29-f81c-4a6f-9e92-3d6bb58f7808", "name": "SQL: Get Provincias", "type": "n8n-nodes-base.postgres", "typeVersion": 2.6, "position": [3104, 4200],
+      "credentials": { "postgres": { "id": "AUTOPOSTGRESCRED01", "name": "Postgres account" } }
+    },
+    {
+      "parameters": { "operation": "executeQuery", "query": "SELECT id, id_provincia, localidad AS nombre FROM localidad ORDER BY localidad ASC;", "options": {} },
+      "id": "b53dbf29-f81c-4a6f-9e92-3d6bb58f7809", "name": "SQL: Get Localidades", "type": "n8n-nodes-base.postgres", "typeVersion": 2.6, "position": [3104, 4400],
+      "credentials": { "postgres": { "id": "AUTOPOSTGRESCRED01", "name": "Postgres account" } }
+    },
+    {
+      "parameters": { "operation": "executeQuery", "query": "SELECT id, CONCAT(nombre, ' ', primer_apellido) AS nombre, tipo FROM seleccionadores WHERE activo = true ORDER BY nombre ASC;", "options": {} },
+      "id": "c63dbf29-f81c-4a6f-9e92-3d6bb58f780a", "name": "SQL: Get Seleccionadores Lookup", "type": "n8n-nodes-base.postgres", "typeVersion": 2.6, "position": [3104, 4600],
+      "credentials": { "postgres": { "id": "AUTOPOSTGRESCRED01", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT a.id, a.fecha_ini, a.fecha_fin, a.tarifa, e.nombre_empresa AS empresa_nombre, CONCAT(c.nombre,' ',c.primer_apellido) AS comercial_nombre, CASE WHEN a.fecha_fin IS NULL OR a.fecha_fin > NOW() THEN true ELSE false END AS activo FROM asignacion a JOIN empresa e ON e.id=a.id_empresa LEFT JOIN comerciales c ON c.id=a.id_comerciales WHERE a.id_trabajador=$1 ORDER BY a.fecha_ini DESC;",
+        "options": { "queryReplacement": "={{ [$json.body.trabajadorId] }}" }
+      },
+      "id": "d73dbf29-f81c-4a6f-9e92-3d6bb58f780b", "name": "SQL: Get Asignaciones By Trabajador", "type": "n8n-nodes-base.postgres", "typeVersion": 2.6, "position": [3104, 4800],
+      "credentials": { "postgres": { "id": "AUTOPOSTGRESCRED01", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT f.id, f.curso, ef.nombre AS estado, af.nombre AS area, mf.nombre AS modalidad, f.fecha_inicio, f.fecha_fin, ft.asistencia, ft.eficacia FROM formacion_trabajador ft JOIN formacion f ON f.id=ft.id_formacion LEFT JOIN estado_formacion ef ON ef.id=f.id_estado LEFT JOIN area_formacion af ON af.id=f.id_area LEFT JOIN modalidad_formacion mf ON mf.id=f.id_modalidad WHERE ft.id_trabajador=$1 ORDER BY f.fecha_inicio DESC;",
+        "options": { "queryReplacement": "={{ [$json.body.trabajadorId] }}" }
+      },
+      "id": "e83dbf29-f81c-4a6f-9e92-3d6bb58f780c", "name": "SQL: Get Formaciones By Trabajador", "type": "n8n-nodes-base.postgres", "typeVersion": 2.6, "position": [3104, 5000],
+      "credentials": { "postgres": { "id": "AUTOPOSTGRESCRED01", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { success: false, error: `Acción no válida: '${$input.item.json.body?.action || 'undefined'}'` } }];"
+      },
+      "id": "f93dbf29-f81c-4a6f-9e92-3d6bb58f780d", "name": "Invalid Action Response", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [3104, 5300]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(item => item.json) } }}", "options": {} },
+      "id": "a67772d5-d47b-4ea0-a535-6088d5a3fc0e", "name": "Respond API", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.5, "position": [3712, 3968]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ { \"success\": false, \"error\": $input.first().json.error || \"Acción no válida\" } }}", "options": { "responseCode": 400 } },
+      "id": "ba7772d5-d47b-4ea0-a535-6088d5a3fc0f", "name": "Respond Error", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.5, "position": [3360, 5300]
+    }
+  ],
+  "connections": {
+    "Webhook Trabajadores": { "main": [[{ "node": "Switch Actions", "type": "main", "index": 0 }]] },
+    "Switch Actions": { "main": [
+      [{ "node": "JS: Build Get Query", "type": "main", "index": 0 }],
+      [{ "node": "SQL: Create", "type": "main", "index": 0 }],
+      [{ "node": "SQL: Update", "type": "main", "index": 0 }],
+      [{ "node": "SQL: Toggle Status", "type": "main", "index": 0 }],
+      [{ "node": "SQL: Get Provincias", "type": "main", "index": 0 }],
+      [{ "node": "SQL: Get Localidades", "type": "main", "index": 0 }],
+      [{ "node": "SQL: Get Seleccionadores Lookup", "type": "main", "index": 0 }],
+      [{ "node": "SQL: Get Asignaciones By Trabajador", "type": "main", "index": 0 }],
+      [{ "node": "SQL: Get Formaciones By Trabajador", "type": "main", "index": 0 }],
+      [{ "node": "Invalid Action Response", "type": "main", "index": 0 }]
+    ]},
+    "JS: Build Get Query": { "main": [[{ "node": "SQL: Get Trabajadores", "type": "main", "index": 0 }]] },
+    "SQL: Get Trabajadores": { "main": [[{ "node": "Respond API", "type": "main", "index": 0 }]] },
+    "SQL: Create": { "main": [[{ "node": "Respond API", "type": "main", "index": 0 }]] },
+    "SQL: Update": { "main": [[{ "node": "Respond API", "type": "main", "index": 0 }]] },
+    "SQL: Toggle Status": { "main": [[{ "node": "Respond API", "type": "main", "index": 0 }]] },
+    "SQL: Get Provincias": { "main": [[{ "node": "Respond API", "type": "main", "index": 0 }]] },
+    "SQL: Get Localidades": { "main": [[{ "node": "Respond API", "type": "main", "index": 0 }]] },
+    "SQL: Get Seleccionadores Lookup": { "main": [[{ "node": "Respond API", "type": "main", "index": 0 }]] },
+    "SQL: Get Asignaciones By Trabajador": { "main": [[{ "node": "Respond API", "type": "main", "index": 0 }]] },
+    "SQL: Get Formaciones By Trabajador": { "main": [[{ "node": "Respond API", "type": "main", "index": 0 }]] },
+    "Invalid Action Response": { "main": [[{ "node": "Respond Error", "type": "main", "index": 0 }]] }
+  },
+  "pinData": {},
+  "meta": { "templateCredsSetupCompleted": true, "instanceId": "ce978c989ab1e23db47d18854a2aa4ec48f1cc3365db2fa6e0d1703da947a576" }
+}

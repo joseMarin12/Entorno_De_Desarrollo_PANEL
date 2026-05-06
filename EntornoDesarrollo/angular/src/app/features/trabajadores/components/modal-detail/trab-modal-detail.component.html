@@ -40,6 +40,9 @@
         <div class="tab-item" [class.active]="activeTab() === 'datos'" (click)="setTab('datos')">
           Datos
         </div>
+        <div class="tab-item" [class.active]="activeTab() === 'asignaciones'" (click)="setTab('asignaciones')">
+          Asignaciones <span class="tab-count">{{ totalAsignaciones }}</span>
+        </div>
         <div class="tab-item" [class.active]="activeTab() === 'formaciones'" (click)="setTab('formaciones')">
           Formaciones <span class="tab-count">{{ totalFormaciones }}</span>
         </div>
@@ -162,6 +165,13 @@
               </div>
             </div>
             <div class="detail-item">
+              <div class="detail-label">Fecha fin</div>
+              <div class="detail-value">
+                @if (trabajador.fecha_fin) { {{ trabajador.fecha_fin | date:'dd/MM/yyyy' || trabajador.fecha_fin }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+            <div class="detail-item">
               <div class="detail-label">Cheques restaurante</div>
               <div class="detail-value">
                 @if (trabajador.cheques_restaurante) { {{ trabajador.cheques_restaurante | currency:'EUR':'symbol':'1.0-0' }} /mes }
@@ -181,15 +191,74 @@
       }
 
 
+      <!-- ═══ TAB: ASIGNACIONES ═══ -->
+      @if (activeTab() === 'asignaciones') {
+
+        @if (asignaciones.length > 0) {
+          <div class="section-box" style="margin-bottom: 0;">
+            <span class="section-box-title">Historial de asignaciones ({{ totalAsignaciones }})</span>
+
+            @for (a of asignaciones; track a.id; let last = $last) {
+              <!-- Empresa + Estado -->
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <span style="font-size: 14px; font-weight: 600; color: var(--text);">{{ a.empresa_nombre }}</span>
+                <span class="badge" [class.badge-active]="a.activo" [class.badge-inactive]="!a.activo">
+                  {{ a.activo ? 'Activa' : 'Finalizada' }}
+                </span>
+              </div>
+
+              <!-- Grid de detalles -->
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <div class="detail-label">Comercial</div>
+                  <div class="detail-value">{{ a.comercial_nombre }}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Tarifa</div>
+                  <div class="detail-value">
+                    @if (a.tarifa) { {{ a.tarifa }} €/día }
+                    @else { <span class="empty-dash">—</span> }
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Fecha inicio</div>
+                  <div class="detail-value">{{ formatDate(a.fecha_ini) }}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Fecha fin</div>
+                  <div class="detail-value">
+                    @if (a.fecha_fin) { {{ formatDate(a.fecha_fin) }} }
+                    @else { <span class="empty-dash">En curso</span> }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Separador entre asignaciones -->
+              @if (!last) {
+                <div style="height: 1px; background: var(--border); margin: 20px 0;"></div>
+              }
+            }
+          </div>
+        } @else {
+          <div class="empty-tab">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+            <h4>Sin asignaciones</h4>
+            <p>Este trabajador no tiene asignaciones registradas todavía.</p>
+          </div>
+        }
+      }
+
 
       <!-- ═══ TAB: FORMACIONES ═══ -->
       @if (activeTab() === 'formaciones') {
 
-        @if (mockFormaciones.length > 0) {
+        @if (formaciones.length > 0) {
           <div class="section-box" style="margin-bottom: 0;">
             <span class="section-box-title">Formaciones inscritas ({{ totalFormaciones }})</span>
 
-            @for (f of mockFormaciones; track f.id; let last = $last) {
+            @for (f of formaciones; track f.id; let last = $last) {
               <!-- Nombre + Estado -->
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                 <span style="font-size: 14px; font-weight: 600; color: var(--text);">{{ f.curso }}</span>

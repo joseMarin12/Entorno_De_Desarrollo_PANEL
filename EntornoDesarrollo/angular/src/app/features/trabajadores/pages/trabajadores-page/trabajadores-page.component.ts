@@ -35,13 +35,14 @@ export class TrabajadoresPageComponent implements OnInit {
   readonly statsInactivos = computed(() => this._stats().inactivos);
   readonly statsFreelances = computed(() => this._stats().freelances);
 
-  // MOCK LOOKUPS (Para Fase de Diseño UI)
-  readonly mockSeleccionadores = [{id: 1, nombre: 'Javier Morales'}, {id: 2, nombre: 'Ana García'}];
-  readonly mockProvincias = [{id: 1, nombre: 'Madrid'}, {id: 2, nombre: 'Barcelona'}];
-  readonly mockLocalidades = [
-    {id: 1, id_provincia: 1, nombre: 'Madrid'}, {id: 2, id_provincia: 1, nombre: 'Alcalá de Henares'},
-    {id: 3, id_provincia: 2, nombre: 'Barcelona'}, {id: 4, id_provincia: 2, nombre: "L'Hospitalet"}
-  ];
+  // Lookups reales (cargados desde n8n)
+  readonly provincias = signal<{id: number, nombre: string}[]>([]);
+  readonly localidades = signal<{id: number, id_provincia: number, nombre: string}[]>([]);
+  readonly seleccionadores = signal<{id: number, nombre: string, tipo: string}[]>([]);
+
+  // Datos de relaciones para el modal de detalle
+  readonly detailAsignaciones = signal<any[]>([]);
+  readonly detailFormaciones = signal<any[]>([]);
 
   // Paginación
   readonly PAGE_SIZE = 10;
@@ -65,6 +66,7 @@ export class TrabajadoresPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPage();
+    this.loadLookups();
   }
 
   loadPage(): void {
@@ -79,11 +81,17 @@ export class TrabajadoresPageComponent implements OnInit {
       });
   }
 
+  loadLookups(): void {
+    this.api.getProvincias().subscribe({ next: (data) => this.provincias.set(data) });
+    this.api.getLocalidades().subscribe({ next: (data) => this.localidades.set(data) });
+    this.api.getSeleccionadoresLookup().subscribe({ next: (data) => this.seleccionadores.set(data) });
+  }
+
   getById(id: number): Trabajador | undefined {
     return this._trabajadores().find(t => t.id === id);
   }
 
-  // Listas para validación UI de unicidad (Mock)
+  // Listas para validación UI de unicidad
   readonly existingEmails = computed(() => {
     return this._trabajadores().map(t => t.email?.toLowerCase()).filter(Boolean) as string[];
   });
@@ -113,6 +121,15 @@ export class TrabajadoresPageComponent implements OnInit {
   onDetailClick(id: number): void {
     this.selectedId.set(id);
     this.selectedTrabajador = this.getById(id) ?? null;
+    // Cargar asignaciones y formaciones del trabajador
+    this.detailAsignaciones.set([]);
+    this.detailFormaciones.set([]);
+    this.api.getAsignacionesByTrabajador(id).subscribe({
+      next: (data) => this.detailAsignaciones.set(data)
+    });
+    this.api.getFormacionesByTrabajador(id).subscribe({
+      next: (data) => this.detailFormaciones.set(data)
+    });
     this.showDetail = true;
   }
 
@@ -148,6 +165,8 @@ export class TrabajadoresPageComponent implements OnInit {
     this.showDetail = false;
     this.selectedId.set(null);
     this.selectedTrabajador = null;
+    this.detailAsignaciones.set([]);
+    this.detailFormaciones.set([]);
   }
 
   onToggleStatusClick(id: number): void {

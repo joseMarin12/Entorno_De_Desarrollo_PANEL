@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Trabajador } from '../models/trabajador.model';
 import { BaseCrud } from './base.service';
 import { environment } from '../../environments/environment';
@@ -18,128 +18,89 @@ export interface TrabajadorPage {
   stats: TrabajadorStats;
 }
 
-// ==========================================
-// MOCK DATA PARA DESARROLLO DE UI
-// ==========================================
-const MOCK_TRABAJADORES: Trabajador[] = [
-  {
-    id: 1,
-    nombre: 'Carlos',
-    primer_apellido: 'Ruiz',
-    segundo_apellido: 'Blanco',
-    dni_nif_pasaporte: '12345678A',
-    email: 'carlos.ruiz@email.com',
-    telefono: '+34 611 111 111',
-    salario: 2800,
-    cheques_restaurante: 150,
-    nacionalidad: 'Española',
-    fecha_nacimiento: '1990-05-15',
-    activo: true,
-    freelance: false,
-    direccion: 'Calle Mayor 10',
-    codigo_postal: '28001',
-    provincia_nombre: 'Madrid',
-    localidad_nombre: 'Madrid',
-    seleccionador_nombre: 'Javier Morales',
-    fecha_ini: '2022-01-10',
-  },
-  {
-    id: 2,
-    nombre: 'Laura',
-    primer_apellido: 'Gómez',
-    dni_nif_pasaporte: '87654321B',
-    email: 'laura.gomez@email.com',
-    telefono: '+34 622 222 222',
-    salario: 0,
-    activo: true,
-    freelance: true, // Freelance
-    provincia_nombre: 'Barcelona',
-    localidad_nombre: "L'Hospitalet", 
-    fecha_ini: '2023-03-01',
-  }
- 
-];
-
-const MOCK_STATS: TrabajadorStats = {
-  total: 2,
-  activos: 1,
-  inactivos: 1,
-  freelances: 1
-};
-
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   protected readonly API_URL = `${environment.apiUrl}/trabajadores`;
 
-  // Mantenemos en memoria temporalmente para que se vea el efecto de crear/editar/eliminar
-  private localData = [...MOCK_TRABAJADORES];
-  private currentId = 4;
-
+  // ── GET (paginado + stats + JOINs) ─────────────────────────────────────────
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
-    console.log('[Mock API] findAll', { page, limit, searchText, status, tipo });
-    
-    // Simular filtrado
-    let filtered = [...this.localData];
-    
-    if (searchText) {
-      const lower = searchText.toLowerCase();
-      filtered = filtered.filter(t => 
-        t.nombre.toLowerCase().includes(lower) || 
-        t.primer_apellido.toLowerCase().includes(lower) ||
-        t.email?.toLowerCase().includes(lower) ||
-        t.dni_nif_pasaporte?.toLowerCase().includes(lower)
-      );
-    }
+    return this.http.post<{ data: any[] }>(this.API_URL, {
+      action: 'getTrabajadores', page, limit, filters: { searchText, status, tipo }
+    }).pipe(map(res => {
+      const raw = res.data ?? [];
 
-    if (status === 'activo') filtered = filtered.filter(t => t.activo === true);
-    if (status === 'inactivo') filtered = filtered.filter(t => t.activo === false);
-    
-    if (tipo === 'plantilla') filtered = filtered.filter(t => t.freelance === false);
-    if (tipo === 'freelance') filtered = filtered.filter(t => t.freelance === true);
+      if (raw.length === 0) {
+        return { data: [], totalFiltered: 0, stats: { total: 0, activos: 0, inactivos: 0, freelances: 0 } };
+      }
 
-    // Calcular stats de lo que quedó activo/inactivo/freelance del total de localData
-    const stats: TrabajadorStats = {
-      total: this.localData.length,
-      activos: this.localData.filter(t => t.activo).length,
-      inactivos: this.localData.filter(t => !t.activo).length,
-      freelances: this.localData.filter(t => t.freelance).length,
-    };
+      const first = raw[0];
+      const stats: TrabajadorStats = {
+        total: first.stats_total ?? 0,
+        activos: first.stats_activos ?? 0,
+        inactivos: first.stats_inactivos ?? 0,
+        freelances: first.stats_freelances ?? 0
+      };
 
-    // Paginación
-    const startIndex = (page - 1) * limit;
-    const paginated = filtered.slice(startIndex, startIndex + limit);
+      // Si el CTE devolvió stats pero sin registros filtrados
+      if (raw.length === 1 && first.id == null) {
+        return { data: [], totalFiltered: 0, stats };
+      }
 
-    return of({
-      data: paginated,
-      totalFiltered: filtered.length,
-      stats
-    }).pipe(delay(600)); // Simular latencia de red
+      // Limpiar campos de stats de cada registro
+      const data: Trabajador[] = raw.map(item => {
+        const { total_filtered, stats_total, stats_activos, stats_inactivos, stats_freelances, ...cleanItem } = item;
+        return cleanItem as Trabajador;
+      });
+
+      return { data, totalFiltered: first.total_filtered ?? raw.length, stats };
+    }));
   }
 
+  // ── CREATE ─────────────────────────────────────────────────────────────────
   create(data: Omit<Trabajador, 'id'>): Observable<Trabajador> {
-    console.log('[Mock API] create', data);
-    const newWorker = { ...data, id: this.currentId++ } as Trabajador;
-    this.localData.unshift(newWorker);
-    return of(newWorker).pipe(delay(500));
+    const trabajadorData = Object.fromEntries(
+      Object.entries(data).map(([key, val]) => [key, val === undefined ? null : val])
+    );
+    return this._create({ action: 'createTrabajador', trabajadorData });
   }
 
+  // ── UPDATE ─────────────────────────────────────────────────────────────────
   update(id: number, data: Partial<Trabajador>): Observable<Trabajador> {
-    console.log('[Mock API] update', id, data);
-    const index = this.localData.findIndex(t => t.id === id);
-    if (index > -1) {
-      this.localData[index] = { ...this.localData[index], ...data };
-      return of(this.localData[index]).pipe(delay(500));
-    }
-    return throwError(() => new Error('Trabajador no encontrado'));
+    const trabajadorData = Object.fromEntries(
+      Object.entries(data).map(([key, val]) => [key, val === undefined ? null : val])
+    );
+    return this._update({ action: 'updateTrabajador', trabajadorId: id, trabajadorData });
   }
 
+  // ── TOGGLE STATUS ──────────────────────────────────────────────────────────
   toggleStatus(id: number): Observable<Trabajador> {
-    console.log('[Mock API] toggleStatus', id);
-    const index = this.localData.findIndex(t => t.id === id);
-    if (index > -1) {
-      this.localData[index].activo = !this.localData[index].activo;
-      return of(this.localData[index]).pipe(delay(500));
-    }
-    return throwError(() => new Error('Trabajador no encontrado'));
+    return this._toggleStatus({ action: 'toggleTrabajadorStatus', trabajadorId: id });
+  }
+
+  // ── LOOKUPS ────────────────────────────────────────────────────────────────
+  getProvincias(): Observable<{id: number, nombre: string}[]> {
+    return this.http.post<{data: {id: number, nombre: string}[]}>(this.API_URL, { action: 'getProvincias' })
+      .pipe(map(res => res.data ?? []));
+  }
+
+  getLocalidades(): Observable<{id: number, id_provincia: number, nombre: string}[]> {
+    return this.http.post<{data: {id: number, id_provincia: number, nombre: string}[]}>(this.API_URL, { action: 'getLocalidades' })
+      .pipe(map(res => res.data ?? []));
+  }
+
+  getSeleccionadoresLookup(): Observable<{id: number, nombre: string, tipo: string}[]> {
+    return this.http.post<{data: {id: number, nombre: string, tipo: string}[]}>(this.API_URL, { action: 'getSeleccionadoresLookup' })
+      .pipe(map(res => res.data ?? []));
+  }
+
+  // ── RELACIONES POR TRABAJADOR ──────────────────────────────────────────────
+  getAsignacionesByTrabajador(trabajadorId: number): Observable<any[]> {
+    return this.http.post<{data: any[]}>(this.API_URL, { action: 'getAsignacionesByTrabajador', trabajadorId })
+      .pipe(map(res => res.data ?? []));
+  }
+
+  getFormacionesByTrabajador(trabajadorId: number): Observable<any[]> {
+    return this.http.post<{data: any[]}>(this.API_URL, { action: 'getFormacionesByTrabajador', trabajadorId })
+      .pipe(map(res => res.data ?? []));
   }
 }

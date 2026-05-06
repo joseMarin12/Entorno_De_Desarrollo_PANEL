@@ -92,7 +92,7 @@ export class TrabModalFormComponent implements OnChanges {
   // Form state (ngModel-driven, same pattern as Seleccionadores)
   form: Omit<Trabajador, 'id'> = this.getDefaultForm();
   errors: Record<string, string> = {};
-  activeTab = signal<'personales' | 'contacto' | 'laborales'>('personales');
+  activeTab = signal<'personales' | 'laborales'>('personales');
   localidadesFiltradas: {id: number, nombre: string}[] = [];
 
   get isEdit(): boolean { return this.trabajador !== null; }
@@ -147,7 +147,7 @@ export class TrabModalFormComponent implements OnChanges {
     };
   }
 
-  setTab(tab: 'personales' | 'contacto' | 'laborales'): void {
+  setTab(tab: 'personales' | 'laborales'): void {
     this.activeTab.set(tab);
   }
 
@@ -181,10 +181,10 @@ export class TrabModalFormComponent implements OnChanges {
 
   // TABS CON ERRORES
   get hasPersonalesErrors(): boolean {
-    return !!(this.errors['nombre'] || this.errors['primer_apellido'] || this.errors['dni_nif_pasaporte']);
+    return !!(this.errors['nombre'] || this.errors['primer_apellido'] || this.errors['dni_nif_pasaporte'] || this.errors['email'] || this.errors['telefono']);
   }
-  get hasContactoErrors(): boolean {
-    return !!(this.errors['email'] || this.errors['telefono']);
+  get hasLaboralesErrors(): boolean {
+    return !!(this.errors['salario']);
   }
 
   submit(): void {
@@ -243,8 +243,8 @@ export class TrabModalFormComponent implements OnChanges {
     if (Object.keys(this.errors).length > 0) {
       if (this.hasPersonalesErrors) {
         this.activeTab.set('personales');
-      } else if (this.hasContactoErrors) {
-        this.activeTab.set('contacto');
+      } else if (this.hasLaboralesErrors) {
+        this.activeTab.set('laborales');
       }
       this.toast.show('warning', 'Hay campos con errores. Revisa las alertas en rojo.');
       return;

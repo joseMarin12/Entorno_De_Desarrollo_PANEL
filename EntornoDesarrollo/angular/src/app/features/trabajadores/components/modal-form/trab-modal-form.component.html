@@ -1,52 +1,70 @@
 <div class="modal-overlay open">
-  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 640px;">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 680px;">
 
-    <div class="modal-header">
+    <!-- ═══ HEADER PREMIUM ═══ -->
+    <div class="modal-header" style="padding: 28px 36px 20px; border-bottom: none;">
       <div>
-        <div class="modal-title">{{ title }}</div>
+        <div class="modal-title" style="font-size: 18px; font-weight: 800; letter-spacing: -0.3px;">{{ title }}</div>
         <div class="modal-subtitle">{{ subtitle }}</div>
       </div>
-      <button class="modal-close" (click)="close.emit()">✕</button>
+      <button class="modal-close" (click)="close.emit()" style="width: 36px; height: 36px; border-radius: 10px; border: none; background: #f3f4f6; color: #6b7280; transition: all 0.2s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
 
-    <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
-      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">
-        Los campos marcados con <em style="color:var(--danger)">*</em> son obligatorios.
-      </p>
-
-      <!-- ═══ PESTAÑAS ═══ -->
-      <div class="tabs-nav">
+    <!-- ═══ PESTAÑAS (Fijas) ═══ -->
+    <div style="padding: 0 36px;">
+      <div class="tabs-nav" style="margin-bottom: 0;">
         <div class="tab-item" [class.active]="activeTab() === 'personales'" (click)="setTab('personales')">
           @if (hasPersonalesErrors) { <span class="tab-error-dot"></span> }
-          Datos Personales
-        </div>
-        <div class="tab-item" [class.active]="activeTab() === 'contacto'" (click)="setTab('contacto')">
-          @if (hasContactoErrors) { <span class="tab-error-dot"></span> }
-          Contacto
+          Información Personal
         </div>
         <div class="tab-item" [class.active]="activeTab() === 'laborales'" (click)="setTab('laborales')">
+          @if (hasLaboralesErrors) { <span class="tab-error-dot"></span> }
           Datos Laborales
         </div>
       </div>
+    </div>
 
-      <!-- ═══ TAB: DATOS PERSONALES ═══ -->
+    <!-- ═══ BODY (Scrollable) ═══ -->
+    <div class="modal-body" style="max-height: 60vh; overflow-y: auto; padding: 24px 36px 32px;">
+
+      <!-- ═══════════════════════════════════════════════════════════ -->
+      <!-- TAB: INFORMACIÓN PERSONAL                                 -->
+      <!-- ═══════════════════════════════════════════════════════════ -->
       @if (activeTab() === 'personales') {
-        <span class="section-title">Información personal</span>
 
-        <!-- Nombre -->
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label class="form-label">Nombre <em style="color:var(--danger)">*</em></label>
-          <input
-            class="form-input"
-            [class.error]="errors['nombre']"
-            type="text"
-            placeholder="Ej: Carlos"
-            [(ngModel)]="form.nombre"
-          />
-          @if (errors['nombre']) { <span class="form-hint error-msg">{{ errors['nombre'] }}</span> }
+        <!-- ── Datos Personales ── -->
+        <span class="section-title">Datos personales</span>
+
+        <div class="form-grid" style="margin-bottom: 16px;">
+          <div class="form-group">
+            <label class="form-label">Nombre <em style="color:var(--danger)">*</em></label>
+            <input
+              class="form-input"
+              [class.error]="errors['nombre']"
+              type="text"
+              placeholder="Ej: Carlos"
+              [(ngModel)]="form.nombre"
+            />
+            @if (errors['nombre']) { <span class="form-hint error-msg">{{ errors['nombre'] }}</span> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">DNI / NIF / Pasaporte <em style="color:var(--danger)">*</em></label>
+            <input
+              class="form-input"
+              [class.error]="errors['dni_nif_pasaporte']"
+              type="text"
+              placeholder="Ej: 12345678A"
+              [(ngModel)]="form.dni_nif_pasaporte"
+            />
+            @if (errors['dni_nif_pasaporte']) { <span class="form-hint error-msg">{{ errors['dni_nif_pasaporte'] }}</span> }
+          </div>
         </div>
 
-        <!-- Apellidos -->
         <div class="form-grid" style="margin-bottom: 16px;">
           <div class="form-group">
             <label class="form-label">Primer Apellido <em style="color:var(--danger)">*</em></label>
@@ -70,21 +88,7 @@
           </div>
         </div>
 
-        <!-- DNI -->
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label class="form-label">DNI / NIF / Pasaporte <em style="color:var(--danger)">*</em></label>
-          <input
-            class="form-input"
-            [class.error]="errors['dni_nif_pasaporte']"
-            type="text"
-            placeholder="Ej: 12345678A"
-            [(ngModel)]="form.dni_nif_pasaporte"
-          />
-          @if (errors['dni_nif_pasaporte']) { <span class="form-hint error-msg">{{ errors['dni_nif_pasaporte'] }}</span> }
-        </div>
-
-        <!-- Nacionalidad + Fecha nacimiento -->
-        <div class="form-grid">
+        <div class="form-grid" style="margin-bottom: 16px;">
           <div class="form-group">
             <label class="form-label">Nacionalidad</label>
             <input
@@ -103,10 +107,11 @@
             />
           </div>
         </div>
-      }
 
-      <!-- ═══ TAB: CONTACTO Y UBICACIÓN ═══ -->
-      @if (activeTab() === 'contacto') {
+        <!-- ── Divisor ── -->
+        <div style="height: 1px; background: var(--border); margin: 24px 0;"></div>
+
+        <!-- ── Contacto ── -->
         <span class="section-title">Contacto</span>
 
         <div class="form-grid" style="margin-bottom: 16px;">
@@ -134,9 +139,11 @@
           </div>
         </div>
 
+        <!-- ── Divisor ── -->
         <div style="height: 1px; background: var(--border); margin: 24px 0;"></div>
 
-        <span class="section-title">Dirección</span>
+        <!-- ── Ubicación ── -->
+        <span class="section-title">Ubicación</span>
 
         <div class="form-group" style="margin-bottom: 16px;">
           <label class="form-label">Dirección completa</label>
@@ -185,13 +192,18 @@
             class="form-input"
             type="text"
             placeholder="Ej: 28001"
+            maxlength="5"
             [(ngModel)]="form.codigo_postal"
           />
         </div>
       }
 
-      <!-- ═══ TAB: DATOS LABORALES ═══ -->
+      <!-- ═══════════════════════════════════════════════════════════ -->
+      <!-- TAB: DATOS LABORALES                                      -->
+      <!-- ═══════════════════════════════════════════════════════════ -->
       @if (activeTab() === 'laborales') {
+
+        <!-- ── Tipo de contrato ── -->
         <label class="form-label" style="margin-bottom: 8px; display: block;">Tipo de contrato <em style="color:var(--danger)">*</em></label>
         <div class="type-selector">
           <div class="type-card" [class.active]="!form.freelance" (click)="toggleFreelance(false)">
@@ -210,21 +222,26 @@
           </div>
         </div>
 
-        <div class="form-grid" style="margin-bottom: 16px;">
-          <div class="form-group full">
-            <label class="form-label">Seleccionador (¿Quién lo reclutó?)</label>
-            <select
-              class="form-select"
-              [ngModel]="form.id_seleccionadores"
-              (ngModelChange)="onSeleccionadorChange($event)"
-            >
-              <option [ngValue]="undefined">Seleccionar reclutador...</option>
-              @for (sel of seleccionadores; track sel.id) {
-                <option [value]="sel.id">{{ sel.nombre }}</option>
-              }
-            </select>
-          </div>
+        <!-- ── Seleccionador ── -->
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">Seleccionador (¿Quién lo reclutó?)</label>
+          <select
+            class="form-select"
+            [ngModel]="form.id_seleccionadores"
+            (ngModelChange)="onSeleccionadorChange($event)"
+          >
+            <option [ngValue]="undefined">Seleccionar reclutador...</option>
+            @for (sel of seleccionadores; track sel.id) {
+              <option [value]="sel.id">{{ sel.nombre }}</option>
+            }
+          </select>
         </div>
+
+        <!-- ── Divisor ── -->
+        <div style="height: 1px; background: var(--border); margin: 24px 0;"></div>
+
+        <!-- ── Condiciones económicas ── -->
+        <span class="section-title">Condiciones económicas</span>
 
         <div class="form-grid" style="margin-bottom: 16px;">
           <div class="form-group">
@@ -239,17 +256,6 @@
             @if (errors['salario']) { <span class="form-hint error-msg">{{ errors['salario'] }}</span> }
           </div>
           <div class="form-group">
-            <label class="form-label">Fecha inicio</label>
-            <input
-              class="form-input"
-              type="date"
-              [(ngModel)]="form.fecha_ini"
-            />
-          </div>
-        </div>
-
-        <div class="form-grid" style="margin-bottom: 16px;">
-          <div class="form-group">
             <label class="form-label">Cheques Restaurante (€/mes)</label>
             <input
               class="form-input"
@@ -258,18 +264,44 @@
               [(ngModel)]="form.cheques_restaurante"
             />
           </div>
-          <div class="form-group">
-            <label class="form-label">Cheques Guardería (€/mes)</label>
-            <input
-              class="form-input"
-              type="number"
-              placeholder="Ej: 80"
-              [(ngModel)]="form.cheques_guarderia"
-            />
-          </div>
         </div>
 
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">Cheques Guardería (€/mes)</label>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="Ej: 80"
+            [(ngModel)]="form.cheques_guarderia"
+            style="max-width: calc(50% - 8px);"
+          />
+        </div>
+
+        <!-- ── Divisor ── -->
         <div style="height: 1px; background: var(--border); margin: 24px 0;"></div>
+
+        <!-- ── Fechas y estado ── -->
+        <span class="section-title">Fechas y estado</span>
+
+        <div class="form-grid" style="margin-bottom: 16px;">
+          <div class="form-group">
+            <label class="form-label">Fecha de inicio</label>
+            <input
+              class="form-input"
+              type="date"
+              [(ngModel)]="form.fecha_ini"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha de fin</label>
+            <input
+              class="form-input"
+              type="date"
+              [(ngModel)]="form.fecha_fin"
+            />
+            <span class="form-hint">Solo si el contrato tiene fecha de finalización</span>
+          </div>
+        </div>
 
         <!-- Toggle estado -->
         <div class="form-group" style="margin-bottom:0">
@@ -287,7 +319,8 @@
       }
     </div>
 
-    <div class="modal-footer">
+    <!-- ═══ FOOTER ═══ -->
+    <div class="modal-footer" style="padding: 16px 36px 22px; background: #fafbff; border-top: 1px solid var(--border);">
       <button class="btn btn-outline" (click)="close.emit()">Cancelar</button>
       <button class="btn btn-primary" (click)="submit()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
