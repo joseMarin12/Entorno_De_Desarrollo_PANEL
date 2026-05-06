@@ -1,0 +1,81 @@
+<app-topbar pageTitle="Direcciones de Empresas" />
+
+<section class="page-content">
+
+    <!-- Cabecera -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Direcciones de {{ nombreEmpresa }}</div>
+        <div class="page-subtitle">Gestión de las direcciones</div>
+      </div>
+      <button class="btn btn-primary" (click)="openAdd()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nueva Dirección
+      </button>
+    </div>
+
+    <!-- Empresa -->
+    <div>
+      <button class="btn" style="margin-bottom:16px" [style]=" 'background-color: #fffcfc; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid #c5cae9;' " (click)="goToEmpresas()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Volver a Empresas
+      </button>
+    </div>
+
+    <!-- Estadísticas -->
+    <app-stats-row 
+      [total]="total()"
+      [activos]="totalActivos()"
+      [inactivos]="totalInactivos()"
+    />
+
+    <!-- Toolbar: búsqueda + filtros -->
+    <app-toolbar
+      (searchChange)="onSearchChange($event)"
+      (filterChange)="onFilterChange($event)"
+      (paisFilterChange)="onPaisFilterChange($event)"
+    /> 
+
+    <!-- Tabla -->
+    <app-table
+      [columns]="tableColumns"
+      [rows]="paginatedDirecciones"
+      [currentPage]="currentPage()"
+      [pageSize]="PAGE_SIZE"
+      [totalFiltered]="filtered.length"
+      [entityLabel]="'direcciones de empresas'"
+      (actionClick)="onTableAction($event)"
+      (pageChange)="onPageChange($event)"
+    />
+     
+</section>
+
+<!-- Modales -->
+@if (showAdd) {
+  <app-modal-add
+    [idEmpresa]="empresaId!"
+    (save)="onSaveAdd($event)"
+    (close)="showAdd = false"
+  />
+}
+
+@if (showEdit && selectedDireccion) {
+  <app-modal-edit
+    [dirEmpresa]="selectedDireccion"
+    (save)="onSaveEdit($event)"
+    (close)="showEdit = false; selectedId = null"
+  />
+}
+
+@if (showBaja && selectedDireccion) {
+  <app-confirmation-modal
+    [name]="selectedDireccion ? selectedDireccion.direccion : ''"
+    [mode]="selectedDireccion.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
+    (confirm)="onConfirmBaja()"
+    (closed)="showBaja = false; selectedId = null"
+  />
+}

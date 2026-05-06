@@ -1,0 +1,89 @@
+<div class="modal-overlay open">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Añadir Dirección</div>
+        <div class="modal-subtitle">Rellena los datos de la nueva dirección</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Dirección <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['direccion']" type="text" placeholder="Ej: Calle Principal 123" [(ngModel)]="form.direccion">
+          @if (errors['direccion']) { <span class="form-hint error-msg">{{ errors['direccion'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Código Postal <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['codigoPostal']" type="text" placeholder="Ej: 28001" [(ngModel)]="form.codigoPostal">
+          @if (errors['codigoPostal']) { <span class="form-hint error-msg">{{ errors['codigoPostal'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">País <span class="req">*</span></label>
+          <select class="form-input" [class.error]="errors['id_pais']" [(ngModel)]="selectedPaisId" (ngModelChange)="onPaisChange($event)">
+            <option [ngValue]="null" disabled>Selecciona un país</option>
+            @for (p of paises(); track p.id) {
+              <option [ngValue]="p.id">{{ p.pais }}</option>
+            }
+          </select>
+          @if (errors['id_pais']) { 
+            <span class="form-hint error-msg">{{ errors['id_pais'] }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Provincia <span class="req">*</span></label>
+          <select class="form-input" [class.error]="errors['id_provincia']" [(ngModel)]="selectedProvinciaId" (ngModelChange)="onProvinciaChange($event)" [disabled]="!selectedPaisId">
+            <option [ngValue]="null" disabled>Selecciona una provincia</option>
+            @for (prov of provincias(); track prov.id) {
+              <option [ngValue]="prov.id">{{ prov.provincia }}</option>
+            }
+          </select>
+          @if (errors['id_provincia']) { <span class="form-hint error-msg">{{ errors['id_provincia'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Localidad <span class="req">*</span></label>
+          <select class="form-input" [class.error]="errors['id_localidad']" [(ngModel)]="form.id_localidad" [disabled]="!selectedProvinciaId">
+            <option [ngValue]="null" disabled>Selecciona una localidad</option>
+            @for (loc of localidades(); track loc.id) {
+              <option [ngValue]="loc.id">{{ loc.localidad }}</option>
+            }
+          </select>
+          @if (errors['id_localidad']) { <span class="form-hint error-msg">{{ errors['id_localidad'] }}</span> }
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Estado inicial</label>
+          <div class="toggle-wrap" (click)="toggleActivo()">
+            <div class="toggle" [class.on]="form.activo"></div>
+            <div>
+              <div class="toggle-label">{{ form.activo ? 'Activa' : 'Inactiva' }}</div>
+              <div class="toggle-sub">
+                {{ form.activo ? 'La empresa está activa' : 'La empresa está dada de baja' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="close.emit()">Cancelar</button>
+      <button class="btn btn-primary" (click)="submit()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Añadir Dirección
+      </button>
+    </div>
+  </div>
+</div>
