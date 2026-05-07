@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, forwardRef, inject, signal, computed, HostListener, ElementRef } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, forwardRef, inject, signal, computed, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 import { LookupService } from '../../services/lookup.service';
@@ -129,7 +129,12 @@ import { LookupService } from '../../services/lookup.service';
       useExisting: forwardRef(() => LookupSelectComponent),
       multi: true
     }
-  ]
+  ],
+  host: {
+    '(document:click)': 'onClickOutside($event)',
+    '(keydown.escape)': 'closeDropdown()',
+    '(focusout)': 'onFocusOut($event)'
+  }
 })
 export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAccessor {
   private lookupSvc = inject(LookupService);
@@ -166,9 +171,14 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
   });
 
   // ── Ciclo de vida ─────────────────────────────────────────────────────────
-  @HostListener('document:click', ['$event'])
   onClickOutside(event: Event) {
-    if (this.searchable && !this.elRef.nativeElement.contains(event.target)) {
+    if (this.searchable && !this.elRef.nativeElement.contains(event.target as Node)) {
+      this.closeDropdown();
+    }
+  }
+
+  onFocusOut(event: FocusEvent) {
+    if (this.searchable && !this.elRef.nativeElement.contains(event.relatedTarget as Node)) {
       this.closeDropdown();
     }
   }
@@ -246,6 +256,7 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
   }
 
   closeDropdown(): void {
+    if (!this.isOpen()) return;
     this.isOpen.set(false);
     this.syncSearchText();
     this.onTouched();
