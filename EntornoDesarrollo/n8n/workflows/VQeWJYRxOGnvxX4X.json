@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-29T13:23:59.100Z",
+  "updatedAt": "2026-05-04T10:50:34.198Z",
   "createdAt": "2026-04-27T13:15:32.879Z",
   "id": "VQeWJYRxOGnvxX4X",
   "name": "Login",
@@ -17,26 +17,26 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        32,
-        128
+        1072,
+        304
       ],
-      "id": "6506a940-e4a3-44ec-946a-9ceaf6ee8afe",
+      "id": "544d7f56-8dc3-4a8a-95de-66af2706bda0",
       "name": "Webhook",
       "webhookId": "56be4f26-96d2-4249-8627-56e0dfe624c3"
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, email, enabled, password, roleid\nFROM \"user\"\nWHERE email = '{{ $json.body.email }}' \nLIMIT 1;",
+        "query": "SELECT id, email, enabled, password, roleid, first_login\nFROM \"user\"\nWHERE email = '{{ $json.body.email }}'\nLIMIT 1;",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        288,
-        128
+        1328,
+        304
       ],
-      "id": "94547223-7425-4c4b-8f9d-65dfb546e31d",
+      "id": "d33f9365-587d-4a33-a0ca-50539628a404",
       "name": "Execute a SQL query",
       "credentials": {
         "postgres": {
@@ -47,15 +47,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const bcrypt = require('bcryptjs');\nconst jwt = require('jsonwebtoken');\n\nconst JWT_HASH = 'passEncriptada'; \n\n// Contraseña del body original del Webhook\nconst inputPass = $('Webhook').first().json.body.password;\n\n// Usuario devuelto por la query SQL (input de este nodo)\nconst usuario = $input.first().json;\n\n// Sin resultados = usuario no existe\nif (!usuario || !usuario.email) {\n  return [{\n    json: {\n      success: false,\n      message: \"Credenciales inválidas\"\n    }\n  }];\n}\n\n// Usuario deshabilitado\nif (!usuario.enabled) {\n  return [{\n    json: {\n      success: false,\n      message: \"Credenciales inválidas\"\n    }\n  }];\n}\n\n// Comparar contraseña con hash bcrypt\nconst isValid = await bcrypt.compare(inputPass, usuario.password);\n\nif (!isValid) {\n  return [{\n    json: {\n      success: false,\n      message: \"Credenciales inválidas\"\n    }\n  }];\n}\n\n// Generar JWT\nconst token = jwt.sign(\n  {\n    id: usuario.id,\n    email: usuario.email,\n    role: usuario.roleid\n  },\n  JWT_HASH,\n  { expiresIn: '1h' }\n);\n\n// Respuesta exitosa\nreturn [{\n  json: {\n    success: true,\n    token,\n    user: {\n      id: usuario.id,\n      email: usuario.email\n    }\n  }\n}];"
+        "jsCode": "const bcrypt = require('bcryptjs');\nconst jwt = require('jsonwebtoken');\n\nconst JWT_HASH = 'passEncriptada';\n\nconst inputPass = $('Webhook').first().json.body.password;\nconst usuario = $input.first().json;\n\nif (!usuario || !usuario.email) {\n  return [{ json: { success: false, message: 'Credenciales inválidas' } }];\n}\n\nif (!usuario.enabled) {\n  return [{ json: { success: false, message: 'Credenciales inválidas' } }];\n}\n\nconst isValid = await bcrypt.compare(inputPass, usuario.password);\n\nif (!isValid) {\n  return [{ json: { success: false, message: 'Credenciales inválidas' } }];\n}\n\nconst JWTexpired = '1h';\n\nconst token = jwt.sign(\n  {\n    id: usuario.id,\n    email: usuario.email,\n    role: usuario.roleid,\n    firstLogin: usuario.first_login\n  },\n  JWT_HASH,\n  { expiresIn: JWTexpired }\n);\n\nreturn [{\n  json: {\n    success: true,\n    token,\n    firstLogin: usuario.first_login,\n    user: {\n      id: usuario.id,\n      email: usuario.email\n    }\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        512,
-        128
+        1552,
+        304
       ],
-      "id": "0008aba4-68e0-44ce-9b8a-066bf55c7dbb",
+      "id": "12ca2347-8a3b-4990-858f-a0a810bfbf3c",
       "name": "verificarEmail"
     },
     {
@@ -69,10 +69,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        720,
-        128
+        1760,
+        304
       ],
-      "id": "75251f85-2b26-4972-9b0e-895f3d393251",
+      "id": "d3b9e5d1-8318-4749-8bef-f028e56bb6da",
       "name": "Respond to Webhook"
     }
   ],
@@ -120,9 +120,9 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "ac187f02-96ca-4041-905a-7996222171e4",
-  "activeVersionId": "ac187f02-96ca-4041-905a-7996222171e4",
-  "versionCounter": 209,
+  "versionId": "f3ecba09-04f6-45cc-b8d8-423acab7f1f5",
+  "activeVersionId": "f3ecba09-04f6-45cc-b8d8-423acab7f1f5",
+  "versionCounter": 227,
   "triggerCount": 1,
   "tags": [],
   "shared": [
@@ -145,7 +145,7 @@
     }
   ],
   "versionMetadata": {
-    "name": "Version ac187f02",
+    "name": "Version f3ecba09",
     "description": ""
   }
 }
