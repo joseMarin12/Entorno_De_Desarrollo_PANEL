@@ -38,8 +38,9 @@ export class EmpresasDireccionesPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly _direcciones = signal<DireccionEmpresa[]>([]);
+  private readonly _total = signal(10);
   readonly direcciones = this._direcciones.asReadonly();
-  readonly total = computed(() => this._direcciones().length);
+  readonly total = this._total.asReadonly();
   readonly totalActivos = computed(() => this._direcciones().filter(d => d.activo).length);
   readonly totalInactivos = computed(() => this._direcciones().filter(d => !d.activo).length);
 
@@ -47,7 +48,7 @@ export class EmpresasDireccionesPageComponent implements OnInit {
   searchQuery  = '';
   activeFilter: DirFilterType = '';
   typeFilter: DirFilterPaisType = '';
-  currentPage = signal<number>(1);
+  currentPage = signal(1);
   totalFiltered = signal<number>(0);
   readonly PAGE_SIZE = 10;
   
@@ -101,10 +102,11 @@ export class EmpresasDireccionesPageComponent implements OnInit {
     return this.getById(this.selectedId) ?? null;
   }
 
-  private loadAll(searchText = '', status = '', empresaId = this.empresaId): void {
-    this.api.findAll(searchText, status, empresaId!).subscribe({
-      next: (list) => { 
-        this._direcciones.set(list ?? []); 
+  private loadAll(searchText = '', status = '', pais = '', empresaId = this.empresaId): void {
+    this.api.findAll(searchText, status, pais, this.currentPage(), this.PAGE_SIZE, empresaId!).subscribe({
+      next: (res) => { 
+        this._direcciones.set(res.data ?? []);
+        this._total.set(res.total ?? 0) 
       },
       error: () => this.toast.show('error', '✗ No se pudo cargar las direcciones. Inténtalo de nuevo.'),
     });
@@ -125,21 +127,25 @@ export class EmpresasDireccionesPageComponent implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage.set(page);
+    this.loadAll(this.searchQuery, this.activeFilter);
   }
 
   onSearchChange(q: string): void {
     this.searchQuery = q;
     this.currentPage.set(1);
+    this.loadAll(q, this.activeFilter, this.typeFilter);
   }
   
   onFilterChange(f: DirFilterType): void {
     this.activeFilter = f;
     this.currentPage.set(1);
+    this.loadAll(this.searchQuery, f, this.typeFilter);
   }
 
   onPaisFilterChange(p: DirFilterPaisType): void {
     this.typeFilter = p;
     this.currentPage.set(1);
+    this.loadAll(this.searchQuery, this.activeFilter, p);
   }
 
   openAdd(): void {

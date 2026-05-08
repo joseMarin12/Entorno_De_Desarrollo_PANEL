@@ -43,10 +43,10 @@
     <!-- Tabla -->
     <app-table
       [columns]="tableColumns"
-      [rows]="paginatedDirecciones"
+      [rows]="direcciones()"
       [currentPage]="currentPage()"
       [pageSize]="PAGE_SIZE"
-      [totalFiltered]="filtered.length"
+      [totalFiltered]="total()"
       [entityLabel]="'direcciones de empresas'"
       (actionClick)="onTableAction($event)"
       (pageChange)="onPageChange($event)"
