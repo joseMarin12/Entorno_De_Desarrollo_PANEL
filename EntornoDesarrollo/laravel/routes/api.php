@@ -5,27 +5,11 @@ use App\Http\Controllers\SeleccionadorController;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\FormacionController;
 use App\Http\Controllers\EmpresaController;
+use App\Http\Controllers\DocumentoFirmaController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes - Comerciales
-|--------------------------------------------------------------------------
-| Laravel actúa como proxy: recibe la petición de Angular y la reenvía
-| al webhook de n8n que gestiona el CRUD contra PostgreSQL.
-|
-| Endpoint único:
-|   POST /api/comerciales
-|   Body: { action: string, ...datos }
-|
-| Acciones soportadas (las maneja n8n):
-|   - getComerciales
-|   - createComercial
-|   - updateComercial
-|   - toggleComercialStatus
-*/
-
 Route::post('/comerciales', [ComercialController::class, 'proxy']);
+Route::post('/documentos-firma/solicitar-firma-proxy', [DocumentoFirmaController::class, 'solicitarFirmaProxy']);
 
 /*
 |--------------------------------------------------------------------------

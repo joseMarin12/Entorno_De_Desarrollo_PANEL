@@ -311,8 +311,15 @@ CREATE TABLE documento_firma (
     link_sharepoint VARCHAR(500),
     estado VARCHAR(45),
     fecha_asignacion DATE,
+    signaturit_id VARCHAR(100) UNIQUE,
+    requiere_firma_rrhh BOOLEAN DEFAULT FALSE,
+    id_user_rrhh INT,
+    fecha_firma_trabajador TIMESTAMP,
+    fecha_firma_rrhh TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_tipo_documento) REFERENCES tipo_documento_firma(id) ON DELETE SET NULL,
-    FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE
+    FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_user_rrhh) REFERENCES "user"(id) ON DELETE SET NULL
 );
 
 CREATE TABLE documento_firma_historial (

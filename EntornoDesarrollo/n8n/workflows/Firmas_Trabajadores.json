@@ -1,0 +1,580 @@
+{
+  "name": "Firmas Trabajadores",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "firmas-trabajadores",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e4f0a0d9-b0d3-455b-b9d9-2e11894a4c4a",
+      "name": "Webhook Firmas",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -600,
+        280
+      ],
+      "webhookId": "firmas-trabajadores-webhook-uuid"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "solicitarFirma",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Solicitar"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "callbackSignaturit",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Callback"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Inválido"
+        }
+      },
+      "id": "a9313a01-e94d-45db-9c31-3dc1dc70ed1d",
+      "name": "Route by Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -380,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body || {};\nconst recipients = [];\n\n// 1. Trabajador\nrecipients.push({\n  name: body.trabajador_nombre,\n  email: body.trabajador_email,\n  type: \"signer\",\n  delivery_type: \"url\" \n});\n\n// 2. RRHH (Si aplica)\nif (body.requiere_rrhh) {\n  recipients.push({\n    name: \"Recursos Humanos\",\n    email: body.rrhh_email || \"rrhh@sgtech.tech\",\n    type: \"signer\",\n    delivery_type: \"url\"\n  });\n}\n\nreturn [{ json: { recipients, body } }];"
+      },
+      "id": "4b7b2fb0-2ed5-4303-ac80-cf5272a9e3cb",
+      "name": "Preparar Destinatarios",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.signaturit.com/v3/signatures.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SIGNATURIT_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipients",
+              "value": "={{ $json.recipients }}"
+            },
+            {
+              "name": "files",
+              "value": "=[\"{{ $json.body.url_pdf }}\"]"
+            },
+            {
+              "name": "subject",
+              "value": "=Solicitud de firma de documento"
+            },
+            {
+              "name": "expiration_time",
+              "value": "7"
+            },
+            {
+              "name": "send_reminders",
+              "value": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "422ffb7b-2856-42d8-958b-fba031572c69",
+      "name": "Enviar a Signaturit",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        40,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "email_html",
+              "name": "email_html",
+              "value": "=<!DOCTYPE html>\n<html lang=\"es\">\n<head><meta charset=\"UTF-8\"><title>Solicitud de firma · Sg Tech</title></head>\n<body style=\"font-family:Arial,sans-serif;color:#18192e;\">\n<p>Buen día, <strong>{{ $('Webhook Firmas').item.json.body.trabajador_nombre }}</strong>,</p>\n<p>El equipo de <strong>RRHH de Sg Tech</strong> solicita tu firma en el siguiente documento:</p>\n<p style=\"background:#f7f8fc;border:1px solid #e3e6f0;border-radius:8px;padding:12px 16px;\">\n  📄 <strong>{{ $('Webhook Firmas').item.json.body.documento_nombre || 'Documento Pendiente' }}</strong>\n</p>\n<p style=\"text-align:center;margin:28px 0;\">\n  <a href=\"{{ $json.recipients[0].link_id ? 'https://api.signaturit.com/v3/sign/' + $json.recipients[0].link_id : $json.signing_url }}\" target=\"_blank\"\n     style=\"background:linear-gradient(135deg,#5a4d9a,#3198bf);color:#fff;padding:13px 36px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;\">\n    ✍&nbsp;&nbsp;Firmar documento\n  </a>\n</p>\n<p style=\"font-size:11px;color:#9098b1;text-align:center;\">El enlace expira en <strong>7 días</strong> · rrhh@sgtech.tech</p>\n<p>Saludos cordiales,<br><strong>RRHH · Sg Tech</strong></p>\n</body>\n</html>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-html",
+      "name": "Construir HTML Email",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook Firmas').item.json.body.trabajador_email }}",
+        "subject": "=Solicitud de firma: {{ $('Webhook Firmas').item.json.body.documento_nombre || 'Documento' }} · Sg Tech",
+        "message": "={{ $json.email_html }}",
+        "options": {}
+      },
+      "id": "node-gmail",
+      "name": "Gmail - Enviar Correo",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        480,
+        140
+      ],
+      "webhookId": "gmail-webhook-uuid"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE documento_firma SET signaturit_id = $1, estado = 'pendiente_trabajador', updated_at = NOW() WHERE id = $2 RETURNING id, signaturit_id, estado",
+        "options": {
+          "queryReplacement": "={{ $('Enviar a Signaturit').item.json.id }},={{ $('Webhook Firmas').item.json.body.documento_id }}"
+        }
+      },
+      "id": "2bc0148e-28b9-43c2-a4aa-a82f3d611f7c",
+      "name": "Guardar en BD",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        700,
+        140
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "vy4robgpSgTKBK8g",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Proceso completado\", \"data\": $json } }}",
+        "options": {}
+      },
+      "id": "90595304-49c0-420a-bcc6-6136ee5eb7ce",
+      "name": "Responder Éxito",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        920,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "document_signed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Firma Parcial"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "signature_completed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Firma Completa"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Ignorar"
+        }
+      },
+      "id": "9eb5a8f4-272e-4bce-ad0c-03d3bc1a8db0",
+      "name": "Route by Event",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE documento_firma SET estado = 'pendiente_rrhh', fecha_firma_trabajador = NOW(), updated_at = NOW() WHERE signaturit_id = $1 RETURNING id, estado",
+        "options": {
+          "queryReplacement": "={{ $json.body.document.id }}"
+        }
+      },
+      "id": "9ca196ba-a10a-42cd-9bc6-e7e8b61e2fbc",
+      "name": "Act a Pendiente RRHH",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        80,
+        340
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "vy4robgpSgTKBK8g",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.signaturit.com/v3/signatures/{{ $json.body.document.id }}/download",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SIGNATURIT_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "559bb084-282d-45fc-aeaa-04ca75a896d8",
+      "name": "Descargar Documento Final",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE documento_firma SET estado = 'completado', fecha_firma_trabajador = COALESCE(fecha_firma_trabajador, NOW()), fecha_firma_rrhh = CASE WHEN estado = 'pendiente_rrhh' THEN NOW() ELSE NULL END, updated_at = NOW() WHERE signaturit_id = $1 RETURNING id, estado",
+        "options": {
+          "queryReplacement": "={{ $('Route by Event').item.json.body.document.id }}"
+        }
+      },
+      "id": "d057a6e1-dfaf-48b2-b13a-5cc6df993478",
+      "name": "Act a Completado",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        280,
+        500
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "vy4robgpSgTKBK8g",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO documento_firma_historial (id_documento_firma, nombre_fichero, fecha_subida) VALUES ($1, 'Documento_Final_Firmado.pdf', NOW()) RETURNING id",
+        "options": {
+          "queryReplacement": "={{ $json.id }}"
+        }
+      },
+      "id": "f55c5c99-1a43-4b67-a22c-a2b842cd5600",
+      "name": "Guardar en Historial",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        500,
+        500
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "vy4robgpSgTKBK8g",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true } }}",
+        "options": {}
+      },
+      "id": "8aa18cf4-7667-4bb9-bf39-ab9c90351f38",
+      "name": "Responder Éxito Callback",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        720,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true } }}",
+        "options": {}
+      },
+      "id": "06b0b2e3-6c0b-48d6-a212-e5659858a7ab",
+      "name": "Respond OK Ignorado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        80,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": \"Acción no válida\" } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "5863cff5-a0c6-4318-aebe-8e01e6eeeb7c",
+      "name": "Responder Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -160,
+        640
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Firmas": {
+      "main": [
+        [
+          {
+            "node": "Route by Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Action": {
+      "main": [
+        [
+          {
+            "node": "Preparar Destinatarios",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Route by Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Destinatarios": {
+      "main": [
+        [
+          {
+            "node": "Enviar a Signaturit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar a Signaturit": {
+      "main": [
+        [
+          {
+            "node": "Construir HTML Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir HTML Email": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Enviar Correo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Enviar Correo": {
+      "main": [
+        [
+          {
+            "node": "Guardar en BD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en BD": {
+      "main": [
+        [
+          {
+            "node": "Responder Éxito",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Event": {
+      "main": [
+        [
+          {
+            "node": "Act a Pendiente RRHH",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Descargar Documento Final",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond OK Ignorado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Act a Pendiente RRHH": {
+      "main": [
+        [
+          {
+            "node": "Responder Éxito",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar Documento Final": {
+      "main": [
+        [
+          {
+            "node": "Act a Completado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Act a Completado": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Historial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en Historial": {
+      "main": [
+        [
+          {
+            "node": "Responder Éxito Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

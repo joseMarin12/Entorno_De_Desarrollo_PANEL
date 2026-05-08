@@ -1,0 +1,72 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+  <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" (click)="close.emit()"></div>
+
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden relative z-10 animate-fade-in-up">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="text-lg font-bold text-gray-800">Solicitar Nueva Firma</h3>
+      <button (click)="close.emit()" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <i class="feather icon-x text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6 space-y-5">
+      <div class="bg-blue-50 text-blue-800 p-4 rounded-lg text-sm mb-4 border border-blue-100">
+        <p class="font-medium">Modo Prueba (Simulación)</p>
+        <p class="mt-1 opacity-90">Como tu equipo aún no ha integrado la subida real de PDFs, usaremos un documento PDF temporal de prueba para que evalúes cómo funciona Signaturit.</p>
+      </div>
+
+      <!-- Nombre del documento -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre del Documento</label>
+        <input type="text" [(ngModel)]="form.documento_nombre"
+          class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3198bf]/20 focus:border-[#3198bf] transition-all"
+          [class.border-red-400]="errors['documento_nombre']" [class.focus:ring-red-400]="errors['documento_nombre']">
+        <p *ngIf="errors['documento_nombre']" class="text-red-500 text-xs mt-1">{{ errors['documento_nombre'] }}</p>
+      </div>
+
+      <!-- Nombre Trabajador -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre del Trabajador</label>
+        <input type="text" [(ngModel)]="form.trabajador_nombre"
+          class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3198bf]/20 focus:border-[#3198bf] transition-all">
+      </div>
+
+      <!-- Email Trabajador -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Email del Trabajador (A dónde se enviará)</label>
+        <input type="email" [(ngModel)]="form.trabajador_email"
+          class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3198bf]/20 focus:border-[#3198bf] transition-all"
+          [class.border-red-400]="errors['trabajador_email']" [class.focus:ring-red-400]="errors['trabajador_email']">
+        <p *ngIf="errors['trabajador_email']" class="text-red-500 text-xs mt-1">{{ errors['trabajador_email'] }}</p>
+      </div>
+
+      <!-- Requiere RRHH (Toggle) -->
+      <div class="flex items-center justify-between pt-2">
+        <div>
+          <h4 class="text-sm font-semibold text-gray-800">¿Requiere firma de RRHH?</h4>
+          <p class="text-xs text-gray-500">Si se activa, el documento se enviará a Recursos Humanos después de que el trabajador firme.</p>
+        </div>
+        <button type="button" (click)="toggleRrhh()"
+          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+          [ngClass]="form.requiere_rrhh ? 'bg-gradient-to-r from-[#5a4d9a] to-[#3198bf]' : 'bg-gray-200'">
+          <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+            [ngClass]="form.requiere_rrhh ? 'translate-x-5' : 'translate-x-0'"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 rounded-b-2xl">
+      <button (click)="close.emit()"
+        class="px-5 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors">
+        Cancelar
+      </button>
+      <button (click)="submit()"
+        class="px-5 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#5a4d9a] to-[#3198bf] hover:shadow-lg rounded-lg transition-all">
+        Enviar Solicitud
+      </button>
+    </div>
+  </div>
+</div>

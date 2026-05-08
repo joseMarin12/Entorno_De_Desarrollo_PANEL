@@ -1,0 +1,32 @@
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+  <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+    <div>
+      <h3 class="text-lg font-bold text-gray-800">Documentos del Trabajador</h3>
+      <p class="text-sm text-gray-500 mt-1">Gestión de firmas electrónicas con Signaturit</p>
+    </div>
+    <button 
+      (click)="openAddModal()"
+      class="px-4 py-2 bg-gradient-to-r from-[#5a4d9a] to-[#3198bf] text-white rounded-lg shadow-md hover:shadow-lg transition-all text-sm font-medium flex items-center gap-2">
+      <i class="feather icon-plus"></i>
+      Añadir Documento
+    </button>
+  </div>
+  
+  <!-- Usando tu componente compartido app-table -->
+  <app-table
+    [columns]="columns"
+    [rows]="documentos()"
+    [currentPage]="1"
+    [pageSize]="10"
+    [totalFiltered]="documentos().length"
+    entityLabel="documentos"
+    (actionClick)="onActionClick($event)">
+  </app-table>
+
+  <!-- Modal para solicitar firma -->
+  <app-firma-request-modal
+    *ngIf="showAddModal"
+    (close)="showAddModal = false"
+    (submitRequest)="onSubmitRequest($event)">
+  </app-firma-request-modal>
+</div>

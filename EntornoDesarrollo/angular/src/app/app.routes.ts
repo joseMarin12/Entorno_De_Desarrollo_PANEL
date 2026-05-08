@@ -7,6 +7,7 @@ import { EmpresasContactosPageComponent } from './features/empresas/pages/empres
 import { UsuariosPageComponent } from './features/usuarios/pages/usuarios-page/usuarios-page.component';
 import { FormacionesPageComponent } from './features/formaciones/pages/formaciones-page/formaciones-page.component';
 import { AsignacionesPageComponent } from './features/asignaciones/pages/asignaciones-page/asignaciones-page.component';
+import { FirmasTestPageComponent } from './features/firmas/pages/firmas-test-page/firmas-test-page.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'comerciales', pathMatch: 'full' },
@@ -18,4 +19,5 @@ export const routes: Routes = [
   { path: 'usuarios', component: UsuariosPageComponent },
   { path: 'formaciones', component: FormacionesPageComponent },
   { path: 'asignaciones', component: AsignacionesPageComponent },
+  { path: 'test-firmas', component: FirmasTestPageComponent },
 ];
