@@ -20,8 +20,7 @@ import { EmpresasModalComponent } from "../../components/empresas-modal/empresas
     StatsRowComponent,
     EmpToolbarComponent,
     EmpresasModalComponent,
-    ConfirmationModalComponent,
-    EmpresasModalComponent
+    ConfirmationModalComponent
 ],
   templateUrl: './empresas-page.component.html',
 })

@@ -2,8 +2,8 @@
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div>
-        <div class="modal-title">Añadir Dirección</div>
-        <div class="modal-subtitle">Rellena los datos de la nueva dirección</div>
+        <div class="modal-title">{{ title }}</div>
+        <div class="modal-subtitle">{{ subtitle }}</div>
       </div>
       <button class="modal-close" (click)="close.emit()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -59,16 +59,16 @@
             }
           </select>
           @if (errors['id_localidad']) { <span class="form-hint error-msg">{{ errors['id_localidad'] }}</span> }
-        </div>
+        </div>    
 
         <div class="form-group full">
-          <label class="form-label">Estado inicial</label>
+          <label class="form-label">Estado {{ isEditMode ? '' : 'inicial' }}</label>
           <div class="toggle-wrap" (click)="toggleActivo()">
             <div class="toggle" [class.on]="form.activo"></div>
             <div>
               <div class="toggle-label">{{ form.activo ? 'Activa' : 'Inactiva' }}</div>
               <div class="toggle-sub">
-                {{ form.activo ? 'La empresa está activa' : 'La empresa está dada de baja' }}
+                {{ form.activo ? 'La dirección está activa' : 'La dirección está dada de baja' }}
               </div>
             </div>
           </div>
@@ -79,10 +79,17 @@
     <div class="modal-footer">
       <button class="btn btn-outline" (click)="close.emit()">Cancelar</button>
       <button class="btn btn-primary" (click)="submit()">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        Añadir Dirección
+        @if (isEditMode) {
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+            </svg>
+        } @else {
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+        }
+        {{ buttonLabel }}
       </button>
     </div>
   </div>

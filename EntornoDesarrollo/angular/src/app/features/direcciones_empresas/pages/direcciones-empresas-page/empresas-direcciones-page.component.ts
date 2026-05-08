@@ -8,12 +8,11 @@ import { ToastService } from '../../../../services/toast.service';
 import { DireccionEmpresa } from '../../../../models/direccion-empresa.model';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
 import { DirFilterPaisType, DirFilterType, ToolbarComponent } from '../../components/toolbar/toolbar.component';
-import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
-import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { TableComponent } from "../../../../shared/table/table.component";
 import { tableColumns } from './direcciones-table.config';
 import { ConfirmationModalComponent } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 import { EmpresasApiService } from '../../../../services/empresas-api.service';
+import { DireccionesModalComponent } from "../../components/direcciones-modal/direcciones-modal.component";
 
 @Component({
   selector: 'app-empresas-direcciones-page',
@@ -23,10 +22,10 @@ import { EmpresasApiService } from '../../../../services/empresas-api.service';
     TopbarComponent,
     StatsRowComponent,
     ToolbarComponent,
-    ModalAddComponent,
-    ModalEditComponent,
+    DireccionesModalComponent,
     TableComponent,
-    ConfirmationModalComponent
+    ConfirmationModalComponent,
+    DireccionesModalComponent
 ],
   templateUrl: './empresas-direcciones-page.component.html',
 })
@@ -148,7 +147,6 @@ export class EmpresasDireccionesPageComponent implements OnInit {
   }
 
   onSaveAdd(data: Omit<DireccionEmpresa, 'id'>): void {
-    console.log('data recibida en onSaveAdd:', JSON.stringify(data));
     this.api.create({ ...data }).subscribe({
       next: (created) => {
         this._direcciones.set([...this.direcciones(), created]);

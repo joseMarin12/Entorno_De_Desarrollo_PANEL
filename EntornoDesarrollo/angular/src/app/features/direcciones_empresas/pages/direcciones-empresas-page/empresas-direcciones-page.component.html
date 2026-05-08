@@ -56,17 +56,17 @@
 
 <!-- Modales -->
 @if (showAdd) {
-  <app-modal-add
+  <app-modal-direcciones
     [idEmpresa]="empresaId!"
-    (save)="onSaveAdd($event)"
+    (saveAdd)="onSaveAdd($event)"
     (close)="showAdd = false"
   />
 }
 
 @if (showEdit && selectedDireccion) {
-  <app-modal-edit
-    [dirEmpresa]="selectedDireccion"
-    (save)="onSaveEdit($event)"
+  <app-modal-direcciones
+    [direccion]="selectedDireccion"
+    (saveEdit)="onSaveEdit($event)"
     (close)="showEdit = false; selectedId = null"
   />
 }

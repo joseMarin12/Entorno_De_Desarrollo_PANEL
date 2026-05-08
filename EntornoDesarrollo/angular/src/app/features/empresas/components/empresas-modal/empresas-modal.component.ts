@@ -48,7 +48,7 @@ export class EmpresasModalComponent implements OnInit, OnChanges {
     }
 
     get title() {
-        return this.isEditMode ? 'Editar Empresa' : 'Nueva Empresa';
+        return this.isEditMode ? 'Editar Empresa' : 'Añadir Empresa';
     }
 
     get subtitle() {
