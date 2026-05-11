@@ -23,7 +23,7 @@ export class AsignacionesService extends BaseCrud<Asignacion> {
     readonly totalFiltered = signal(0);
 
     // ── Carga inicial ────────────────────────────────────────────────────────
-    loadAll(searchText = '', filterType = 'todos', page = 1, pageSize = 10): Observable<Asignacion[]> {
+    loadAll(searchText = '', searchField = '', filterType = 'todos', page = 1, pageSize = 10): Observable<Asignacion[]> {
         this.loading.set(true);
         this.error.set(null);
         
@@ -31,7 +31,7 @@ export class AsignacionesService extends BaseCrud<Asignacion> {
         if (filterType === 'activos') activo = true;
         if (filterType === 'baja') activo = false;
 
-        return this._findAll({ action: 'getAsignaciones', filters: { searchText, activo }, page, pageSize }).pipe(
+        return this._findAll({ action: 'getAsignaciones', filters: { searchText, searchField, activo }, page, pageSize }).pipe(
             tap({
                 next: list => {
                     this._asignaciones.set(list);

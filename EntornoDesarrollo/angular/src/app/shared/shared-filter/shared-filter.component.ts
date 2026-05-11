@@ -1,11 +1,15 @@
-import { Component, EventEmitter, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 export type FilterType = 'todos' | 'activos' | 'baja';
 
+export interface SearchEvent {
+  text: string;
+}
+
 @Component({
-  selector: 'app-toolbar',
+  selector: 'app-shared-filter',
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
@@ -17,9 +21,9 @@ export type FilterType = 'todos' | 'activos' | 'baja';
         <input
           class="search-input"
           type="text"
-          placeholder="Buscar..."
-          [(ngModel)]="searchValue"
-          (ngModelChange)="searchChange.emit($event)"
+          [placeholder]="placeholder"
+          [(ngModel)]="searchText"
+          (ngModelChange)="emitSearch()"
         />
       </div>
 
@@ -40,16 +44,21 @@ export type FilterType = 'todos' | 'activos' | 'baja';
           (click)="setFilter('baja')"
         >Dados de baja</button>
       </div>
-
     </div>
-  `,
+  `
 })
-export class ToolbarComponent {
+export class SharedFilterComponent {
+  @Input() placeholder = 'Buscar por nombre, email…';
+
   @Output() searchChange = new EventEmitter<string>();
   @Output() filterChange = new EventEmitter<FilterType>();
 
-  searchValue = '';
+  searchText = '';
   activeFilter = signal<FilterType>('todos');
+
+  emitSearch(): void {
+    this.searchChange.emit(this.searchText);
+  }
 
   setFilter(f: FilterType): void {
     this.activeFilter.set(f);

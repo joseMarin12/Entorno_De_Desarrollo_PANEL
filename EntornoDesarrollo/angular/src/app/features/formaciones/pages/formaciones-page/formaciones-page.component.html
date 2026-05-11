@@ -21,7 +21,11 @@
   <app-stats-row [total]="svc.total()" [activas]="svc.totalActivos()" [inactivas]="svc.totalInactivos()" />
 
   <!-- Toolbar: búsqueda + filtros -->
-  <app-toolbar (searchChange)="onSearchChange($event)" (filterChange)="onFilterChange($event)" />
+  <app-shared-filter 
+    placeholder="Buscar por curso o denominación..."
+    (searchChange)="onSearchChange($event)" 
+    (filterChange)="onFilterChange($event)" 
+  />
 
   <!-- Tabla -->
   <app-formaciones-table [formaciones]="svc.formaciones()" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"

@@ -7,7 +7,7 @@ import { Asignacion } from '../../../../models/asignacion.model';
 
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
-import { ToolbarComponent, FilterType } from '../../components/toolbar/toolbar.component';
+import { SharedFilterComponent } from '../../../../shared/shared-filter/shared-filter.component';
 import { AsignacionesTableComponent } from '../../components/asignaciones-table/asignaciones-table.component';
 import { ModalAsignacionComponent } from '../../components/modal-asignacion/modal-asignacion.component';
 import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
@@ -21,7 +21,7 @@ import { FormsModule } from '@angular/forms';
     FormsModule,
     TopbarComponent,
     StatsRowComponent,
-    ToolbarComponent,
+    SharedFilterComponent,
     AsignacionesTableComponent,
     ModalAsignacionComponent,
     ConfirmationModalComponent,
@@ -35,7 +35,8 @@ export class AsignacionesPageComponent implements OnInit {
 
   // ── Filtros ──────────────────────────────────────
   searchQuery = '';
-  activeFilter: FilterType = 'todos';
+  searchField = '';
+  activeFilter: string = 'todos';
   currentPage = 1;
   readonly PAGE_SIZE = 10;
 
@@ -50,7 +51,7 @@ export class AsignacionesPageComponent implements OnInit {
   }
 
   loadData(): void {
-    this.svc.loadAll(this.searchQuery, this.activeFilter, this.currentPage, this.PAGE_SIZE).subscribe();
+    this.svc.loadAll(this.searchQuery, this.searchField, this.activeFilter, this.currentPage, this.PAGE_SIZE).subscribe();
   }
 
   // ── Getters para la vista ─────────────────────────
@@ -59,20 +60,20 @@ export class AsignacionesPageComponent implements OnInit {
   }
 
   // ── Handlers ──────────────────────────────────────
-  onSearchChange(q: string): void {
-    this.searchQuery = q;
+  onSearchChange(text: string): void {
+    this.searchQuery = text;
     this.currentPage = 1;
     this.loadData();
   }
 
-  onFilterChange(f: FilterType): void {
+  onFilterChange(f: string): void {
+    this.currentPage = 1;
     this.activeFilter = f;
-    this.currentPage = 1;
     this.loadData();
   }
 
-  onPageChange(page: number): void {
-    this.currentPage = page;
+  onPageChange(p: number): void {
+    this.currentPage = p;
     this.loadData();
   }
 
