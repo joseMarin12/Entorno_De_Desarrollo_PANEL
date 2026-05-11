@@ -175,15 +175,28 @@ CREATE TABLE trabajador (
 
 CREATE TABLE tipoDoc (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    tipo VARCHAR(45) NOT NULL
+    tipo VARCHAR(100) NOT NULL
 );
+
+INSERT INTO tipoDoc (tipo) VALUES 
+    ('Identificación (DNI/Pasaporte)'),
+    ('Certificado Bancario'),
+    ('Certificado Médico'),
+    ('Contrato Laboral'),
+    ('Acuerdo de Confidencialidad (NDA)'),
+    ('Curriculum Vitae (CV)'),
+    ('Títulos o Diplomas'),
+    ('Otros Documentos');
 
 CREATE TABLE documentacion (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_trabajador INT,
     id_tipoDoc INT,
+    nombre_fichero VARCHAR(255),
     doc BYTEA,
     descripcion TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE,
     FOREIGN KEY (id_tipoDoc) REFERENCES tipoDoc(id) ON DELETE CASCADE
 );
