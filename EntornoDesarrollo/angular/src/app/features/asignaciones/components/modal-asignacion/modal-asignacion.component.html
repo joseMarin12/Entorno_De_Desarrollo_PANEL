@@ -43,8 +43,9 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Fecha de Inicio</label>
-          <input class="form-input" type="date" [(ngModel)]="form.fecha_ini">
+          <label class="form-label" [class.text-error]="errors['fecha_ini']">Fecha de Inicio <span class="text-error">*</span></label>
+          <input class="form-input" [class.border-error]="errors['fecha_ini']" type="date" [(ngModel)]="form.fecha_ini">
+          @if (errors['fecha_ini']) { <span class="form-hint error-msg">{{ errors['fecha_ini'] }}</span> }
         </div>
 
         <div class="form-group">
@@ -53,8 +54,9 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Tarifa (€)</label>
-          <input class="form-input" type="number" step="0.01" [(ngModel)]="form.tarifa">
+          <label class="form-label" [class.text-error]="errors['tarifa']">Tarifa (€) <span class="text-error">*</span></label>
+          <input class="form-input" [class.border-error]="errors['tarifa']" type="number" step="0.01" [(ngModel)]="form.tarifa">
+          @if (errors['tarifa']) { <span class="form-hint error-msg">{{ errors['tarifa'] }}</span> }
         </div>
 
       </div>

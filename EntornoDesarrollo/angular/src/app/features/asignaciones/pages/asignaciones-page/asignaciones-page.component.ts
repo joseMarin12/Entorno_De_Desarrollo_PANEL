@@ -94,7 +94,10 @@ export class AsignacionesPageComponent implements OnInit {
           this.selectedId = null;
           this.toast.show('info', `✎ Asignación actualizada correctamente.`);
         },
-        error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
+        error: (err) => {
+          const msg = err?.error?.message || 'No se pudo guardar los cambios. Inténtalo de nuevo.';
+          this.toast.show('error', `✗ ${msg}`);
+        },
       });
     } else {
       this.svc.add(data).subscribe({
@@ -102,7 +105,10 @@ export class AsignacionesPageComponent implements OnInit {
           this.showForm = false;
           this.toast.show('success', `✓ Asignación añadida correctamente.`);
         },
-        error: () => this.toast.show('error', `✗ No se pudo añadir la asignación. Inténtalo de nuevo.`),
+        error: (err) => {
+          const msg = err?.error?.message || 'No se pudo añadir la asignación. Inténtalo de nuevo.';
+          this.toast.show('error', `✗ ${msg}`);
+        },
       });
     }
   }
@@ -126,7 +132,10 @@ export class AsignacionesPageComponent implements OnInit {
           this.toast.show('success', `↺ Asignación reactivada.`);
         }
       },
-      error: () => this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`),
+      error: (err) => {
+        const msg = err?.error?.message || 'No se pudo cambiar el estado. Inténtalo de nuevo.';
+        this.toast.show('error', `✗ ${msg}`);
+      },
     });
   }
 }

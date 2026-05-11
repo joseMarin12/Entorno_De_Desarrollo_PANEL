@@ -98,7 +98,10 @@ export class FormacionesPageComponent implements OnInit {
           this.selectedId.set(null);
           this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
         },
-        error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
+        error: (err) => {
+          const msg = err?.error?.message || 'No se pudo guardar los cambios. Inténtalo de nuevo.';
+          this.toast.show('error', `✗ ${msg}`);
+        },
       });
     } else {
       // Añadir
@@ -107,7 +110,10 @@ export class FormacionesPageComponent implements OnInit {
           this.showForm = false;
           this.toast.show('success', `✓ Formación <strong>${data.curso}</strong> añadida correctamente`);
         },
-        error: () => this.toast.show('error', `✗ No se pudo añadir la formación. Inténtalo de nuevo.`),
+        error: (err) => {
+          const msg = err?.error?.message || 'No se pudo añadir la formación. Inténtalo de nuevo.';
+          this.toast.show('error', `✗ ${msg}`);
+        },
       });
     }
   }
@@ -137,7 +143,10 @@ export class FormacionesPageComponent implements OnInit {
           this.toast.show('success', `↺ Formación <strong>${this.svc.title(c)}</strong> reactivada`);
         }
       },
-      error: () => this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`),
+      error: (err) => {
+        const msg = err?.error?.message || 'No se pudo cambiar el estado. Inténtalo de nuevo.';
+        this.toast.show('error', `✗ ${msg}`);
+      },
     });
   }
 }
