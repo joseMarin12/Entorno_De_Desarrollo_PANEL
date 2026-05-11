@@ -56,6 +56,7 @@
     [seleccionadores]="seleccionadores()"
     [provincias]="provincias()"
     [localidadesTodas]="localidades()"
+    [tiposDoc]="tiposDoc()"
     (save)="onSaveForm($event)"
     (close)="closeModals()"
   />
@@ -67,6 +68,13 @@
     [trabajador]="selectedTrabajador"
     [asignaciones]="detailAsignaciones()"
     [formaciones]="detailFormaciones()"
+    [documentos]="detailDocumentos()"
+    [tiposDoc]="tiposDoc()"
+    (viewDoc)="onViewDoc($event)"
+    (downloadDoc)="onDownloadDoc($event)"
+    (deleteDoc)="onDeleteDoc($event)"
+    (uploadNewDoc)="onUploadNewDoc($event)"
+    (updateDoc)="onUpdateDoc($event)"
     (edit)="onEditClick($event); showDetail = false"
     (close)="closeModals()"
   />

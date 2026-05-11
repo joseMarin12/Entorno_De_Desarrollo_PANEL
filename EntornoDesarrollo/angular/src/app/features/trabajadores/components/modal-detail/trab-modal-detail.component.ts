@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Trabajador, getColorFor, getInitials } from '../../../../models/trabajador.model';
 
 @Component({
   selector: 'app-trab-modal-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './trab-modal-detail.component.html',
   styles: [`
     .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
@@ -64,48 +65,162 @@ import { Trabajador, getColorFor, getInitials } from '../../../../models/trabaja
   `]
 })
 export class TrabModalDetailComponent {
+
+  // ── Inputs / Outputs ──────────────────────────────────────────────────────
   @Input({ required: true }) trabajador!: Trabajador;
   @Input() asignaciones: any[] = [];
   @Input() formaciones: any[] = [];
+  @Input() documentos: any[] = [];
+  @Input() tiposDoc: {id: number, tipo: string}[] = [];
+  
   @Output() close = new EventEmitter<void>();
   @Output() edit = new EventEmitter<number>();
 
-  activeTab = signal<'datos' | 'asignaciones' | 'formaciones'>('datos');
+  // Eventos de gestión documental
+  @Output() viewDoc = new EventEmitter<any>();
+  @Output() downloadDoc = new EventEmitter<any>();
+  @Output() deleteDoc = new EventEmitter<any>();
+  @Output() uploadNewDoc = new EventEmitter<any>();
+  @Output() updateDoc = new EventEmitter<any>();
 
+  // ── Tabs ───────────────────────────────────────────────────────────────────
+  activeTab = signal<'datos' | 'asignaciones' | 'formaciones' | 'documentos'>('datos');
+
+  // ── Plantillas disponibles ──────────────────────────
+  plantillas = [
+    { id: 'contrato', nombre: 'Contrato Laboral (Estándar)' },
+    { id: 'nda', nombre: 'Contrato de Confidencialidad (NDA)' },
+    { id: 'autorizacion_datos', nombre: 'Autorización Tratamiento de Datos' }
+  ];
+
+  // ── Estado del formulario unificado de agregar ─────────────────────────────
+  newDocSelection = '';
+  isDocDropdownOpen = false;
+  newDocDesc = '';
+  newDocFile: File | null = null;
+
+  get isSelectedPlantilla(): boolean { return this.newDocSelection.startsWith('plantilla:'); }
+  get isSelectedManual(): boolean { return this.newDocSelection.startsWith('manual:'); }
+
+  get selectedDocName(): string {
+    if (!this.newDocSelection) return 'Selecciona un documento...';
+    if (this.isSelectedPlantilla) {
+      const p = this.plantillas.find(x => 'plantilla:' + x.id === this.newDocSelection);
+      return p ? '⚡ ' + p.nombre : '';
+    } else {
+      const m = this.tiposDoc.find(x => 'manual:' + x.id === this.newDocSelection);
+      return m ? '📄 ' + m.tipo : '';
+    }
+  }
+
+  // ── Estado de edición inline ───────────────────────────────────────────────
+  editingDocId: number | null = null;
+  editDocDesc = '';
+  editDocFile: File | null = null;
+
+  // ── Helpers de datos ───────────────────────────────────────────────────────
   colorFor = getColorFor;
   initials = getInitials;
 
-  setTab(tab: 'datos' | 'asignaciones' | 'formaciones') {
-    this.activeTab.set(tab);
-  }
+  get statusLabel(): string { return this.trabajador.activo ? 'Activo' : 'De baja'; }
+  get tipoLabel(): string { return this.trabajador.freelance ? 'Freelance' : 'Plantilla'; }
 
-  get statusLabel(): string {
-    return this.trabajador.activo ? 'Activo' : 'De baja';
-  }
-
-  get tipoLabel(): string {
-    return this.trabajador.freelance ? 'Freelance' : 'Plantilla';
-  }
-
-  // Helpers para formaciones
   get totalFormaciones(): number { return this.formaciones.length; }
-  get finalizadas(): number { return this.formaciones.filter(f => f.estado === 'Finalizada').length; }
-  get enCurso(): number { return this.formaciones.filter(f => f.estado === 'En curso').length; }
-
-  // Helpers para asignaciones
   get totalAsignaciones(): number { return this.asignaciones.length; }
-  get asignacionesActivas(): number { return this.asignaciones.filter(a => a.activo).length; }
+  get totalDocumentos(): number { return this.documentos.length; }
 
-  getEstadoClass(estado: string): string {
-    const map: Record<string, string> = {
-      'Finalizada': 'estado-finalizada',
-      'En curso': 'estado-en-curso',
-      'Planificada': 'estado-planificada',
-      'Cancelada': 'estado-cancelada'
-    };
-    return map[estado] ?? 'estado-default';
+  // ── Métodos de navegación ──────────────────────────────────────────────────
+  setTab(tab: 'datos' | 'asignaciones' | 'formaciones' | 'documentos') {
+    this.activeTab.set(tab);
+    this.resetDocForm();
+    this.cancelEdit();
   }
 
+  // ── Métodos para agregar documentos ────────────────────────────────────────
+  onNewFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) this.newDocFile = file;
+  }
+
+  addDoc(): void {
+    if (!this.newDocSelection) return;
+
+    if (this.isSelectedManual) {
+      if (!this.newDocFile) return;
+      const tipoId = this.newDocSelection.replace('manual:', '');
+      const reader = new FileReader();
+      reader.readAsDataURL(this.newDocFile);
+      reader.onload = () => {
+        this.uploadNewDoc.emit({
+          origen: 'subir',
+          tipoId,
+          descripcion: this.newDocDesc,
+          fileName: this.newDocFile!.name,
+          base64: (reader.result as string).split(',')[1]
+        });
+        this.resetDocForm();
+      };
+    } else if (this.isSelectedPlantilla) {
+      const templateId = this.newDocSelection.replace('plantilla:', '');
+      this.uploadNewDoc.emit({
+        origen: 'plantilla',
+        templateId,
+        descripcion: this.newDocDesc
+      });
+      this.resetDocForm();
+    }
+  }
+
+  private resetDocForm(): void {
+    this.newDocSelection = '';
+    this.isDocDropdownOpen = false;
+    this.newDocDesc = '';
+    this.newDocFile = null;
+    const input = document.getElementById('detailFileInput') as HTMLInputElement;
+    if (input) input.value = '';
+  }
+
+  // ── Métodos para edición inline ────────────────────────────────────────────
+  startEdit(doc: any): void {
+    this.editingDocId = doc.id;
+    this.editDocDesc = doc.descripcion || '';
+    this.editDocFile = null;
+  }
+
+  cancelEdit(): void {
+    this.editingDocId = null;
+    this.editDocDesc = '';
+    this.editDocFile = null;
+  }
+
+  onEditFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) this.editDocFile = file;
+  }
+
+  saveEdit(doc: any): void {
+    if (this.editDocFile) {
+      const reader = new FileReader();
+      reader.readAsDataURL(this.editDocFile);
+      reader.onload = () => {
+        this.updateDoc.emit({
+          id: doc.id,
+          descripcion: this.editDocDesc,
+          fileName: this.editDocFile!.name,
+          base64: (reader.result as string).split(',')[1]
+        });
+        this.cancelEdit();
+      };
+    } else {
+      this.updateDoc.emit({
+        id: doc.id,
+        descripcion: this.editDocDesc
+      });
+      this.cancelEdit();
+    }
+  }
+
+  // ── Helpers de formato ─────────────────────────────────────────────────────
   formatDate(dateStr: string): string {
     if (!dateStr) return '—';
     const d = new Date(dateStr);

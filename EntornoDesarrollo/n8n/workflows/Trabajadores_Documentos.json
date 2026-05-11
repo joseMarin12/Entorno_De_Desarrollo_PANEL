@@ -1,0 +1,272 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "d5158408-4802-4cc3-a858-fa998401a700",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getDocumentosByTrabajador",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "get"
+            },
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "deleteDocumento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "delete"
+            },
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "updateDocumento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "update"
+            },
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "uploadDocumento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "upload"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "ba6406af-1ddb-4731-bf13-1fdb7b605684",
+      "name": "Switch Sub-Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT d.id, d.id_tipoDoc, t.tipo AS tipo_nombre, d.nombre_fichero, ENCODE(d.doc, 'base64') AS doc, d.descripcion, d.created_at as fecha_creacion FROM documentacion d LEFT JOIN tipoDoc t ON t.id = d.id_tipoDoc WHERE d.id_trabajador = $1 ORDER BY d.created_at DESC;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.trabajadorId] }}"
+        }
+      },
+      "id": "06d32af6-8e98-46b3-87bf-68151485d2ed",
+      "name": "SQL: Get Documentos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        320,
+        384
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "mPfszXAIIX9ayVGQ",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM documentacion WHERE id = $1 RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.documentoId] }}"
+        }
+      },
+      "id": "a2608e5b-701e-4a45-9a17-8101da98c6d3",
+      "name": "SQL: Delete Documento",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        320,
+        592
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "mPfszXAIIX9ayVGQ",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE documentacion SET descripcion = COALESCE($1, descripcion), doc = CASE WHEN $2 != '' THEN DECODE($2, 'base64') ELSE doc END, nombre_fichero = CASE WHEN $3 != '' THEN $3 ELSE nombre_fichero END, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.data.descripcion || null, $json.body.data.base64 || '', $json.body.data.fileName || '', $json.body.data.id] }}"
+        }
+      },
+      "id": "fcb09407-ceea-41ab-999b-1a4570408747",
+      "name": "SQL: Update Documento",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        320,
+        784
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "mPfszXAIIX9ayVGQ",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nlet results = [];\n\nfor (const item of items) {\n  let payload = item.json.body.data || item.json.body;\n  if (payload.origen === 'plantilla') {\n    const worker = payload.trabajadorData || {};\n    const name = worker.nombre ? `${worker.nombre}_${worker.primer_apellido || ''}`.trim() : 'Trabajador';\n    const dni = worker.dni_nif_pasaporte || 'ID';\n    const dummyB64 = 'JVBERi0xLjQKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSL0ZpbHRlci9GbGF0ZURlY29kZT4+CnN0cmVhbQp4nDPQM1Qo5ypUMFAwALJMLU31jBQsTAz1LBSKikB8p9xchZJUhZLU4uLEvBIAh44KRQplbmRzdHJlYW0KZW5kb2JqCgozIDAgb2JqCjQ0CmVuZG9iagoKMSAwIG9iago8PC9QYWdlcyA0IDAgUi9UeXBlL0NhdGFsb2c+PgplbmRvYmoKCjUgMCBvYmoKPDwvQ3JlYXRpb25EYXRlKEQ6MjAyMzA2MTQxMjAwMDBaKS9DcmVhdG9yKFBERkNyZWF0b3IpL1Byb2R1Y2VyKFBERkNyZWF0b3IpPj4KZW5kb2JqCgo2IDAgb2JqCjw8L0ZvbnQ8PC9GMSA3IDAgUj4+Pj4KZW5kb2JqCgo3IDAgb2JqCjw8L0Jhc2VGb250L0hlbHZldGljYS9FbmNvZGluZy9XaW5BbnNpRW5jb2RpbmcvU3VidHlwZS9UeXBlMS9UeXBlL0ZvbnQ+PgplbmRvYmoKCjggMCBvYmoKPDwvQ29udGVudHMgMiAwIFIvTWVkaWFCb3hbMCAwIDU5NS4yNzYgODQxLjg5XS9QYXJlbnQgNCAwIFIvUmVzb3VyY2VzIDYgMCBSL1R5cGUvUGFnZT4+CmVuZG9iagoKNCAwIG9iago8PC9Db3VudCAxL0tpZHNbOCAwIFJdL1R5cGUvUGFnZXM+PgplbmRvYmoKCnhyZWYKMCA5CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDEzNyAwMDAwMCBuIAowMDAwMDAwMDE5IDAwMDAwIG4gCjAwMDAwMDAxMTYgMDAwMDAgbiAKMDAwMDAwMDUyMyAwMDAwMCBuIAowMDAwMDAwMTg1IDAwMDAwIG4gCjAwMDAwMDAyODAgMDAwMDAgbiAKMDAwMDAwMDMyNCAwMDAwMCBuIAowMDAwMDAwNDEyIDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA5L1Jvb3QgMSAwIFIvSW5mbyA1IDAgUj4+CnN0YXJ0eHJlZgo1ODQKJSVFT0YK';\n    payload.base64 = dummyB64;\n    payload.nombre = `Plantilla_${payload.templateId || 'Auto'}_${name}_${dni}.pdf`.replace(/ /g, '_');\n    payload.tipoId = 8;\n    payload.descripcion = payload.descripcion || ``;\n  }\n  results.push({ json: { payload } });\n}\nreturn results;"
+      },
+      "id": "f31b0819-c0fb-450b-8e82-e740c9485ea0",
+      "name": "JS: Upload Documento Router",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        992
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO documentacion (id_trabajador, id_tipoDoc, nombre_fichero, descripcion, doc) VALUES ($1, $2, $3, $4, DECODE($5, 'base64')) RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [$json.payload.trabajadorId || $json.payload.id_trabajador, $json.payload.tipoId || null, $json.payload.nombre || $json.payload.fileName || 'documento.bin', $json.payload.descripcion || '', $json.payload.base64 || ''] }}"
+        }
+      },
+      "id": "881f6f11-10e2-42ff-ab83-9da1fdc7d985",
+      "name": "SQL: Insert Documento",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        640,
+        1008
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "mPfszXAIIX9ayVGQ",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch Sub-Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Sub-Action": {
+      "main": [
+        [
+          {
+            "node": "SQL: Get Documentos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL: Delete Documento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL: Update Documento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "JS: Upload Documento Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JS: Upload Documento Router": {
+      "main": [
+        [
+          {
+            "node": "SQL: Insert Documento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce978c989ab1e23db47d18854a2aa4ec48f1cc3365db2fa6e0d1703da947a576"
+  }
+}

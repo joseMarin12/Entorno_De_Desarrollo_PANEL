@@ -39,10 +39,12 @@ export class TrabajadoresPageComponent implements OnInit {
   readonly provincias = signal<{id: number, nombre: string}[]>([]);
   readonly localidades = signal<{id: number, id_provincia: number, nombre: string}[]>([]);
   readonly seleccionadores = signal<{id: number, nombre: string, tipo: string}[]>([]);
+  readonly tiposDoc = signal<{id: number, tipo: string}[]>([]);
 
   // Datos de relaciones para el modal de detalle
   readonly detailAsignaciones = signal<any[]>([]);
   readonly detailFormaciones = signal<any[]>([]);
+  readonly detailDocumentos = signal<any[]>([]);
 
   // Paginación
   readonly PAGE_SIZE = 10;
@@ -52,6 +54,7 @@ export class TrabajadoresPageComponent implements OnInit {
   tableColumns = TRABAJADORES_COLUMNS;
   selectedTrabajador: Trabajador | null = null;
   selectedTrabajadorNombre = signal<string | null>(null);
+  selectedDocumentoToDelete: any = null;
 
   searchQuery = signal<string>('');
   activeFilter = signal<TrabFilterType>('');
@@ -85,6 +88,7 @@ export class TrabajadoresPageComponent implements OnInit {
     this.api.getProvincias().subscribe({ next: (data) => this.provincias.set(data) });
     this.api.getLocalidades().subscribe({ next: (data) => this.localidades.set(data) });
     this.api.getSeleccionadoresLookup().subscribe({ next: (data) => this.seleccionadores.set(data) });
+    this.api.getTiposDoc().subscribe({ next: (data) => this.tiposDoc.set(data) });
   }
 
   getById(id: number): Trabajador | undefined {
@@ -124,11 +128,15 @@ export class TrabajadoresPageComponent implements OnInit {
     // Cargar asignaciones y formaciones del trabajador
     this.detailAsignaciones.set([]);
     this.detailFormaciones.set([]);
+    this.detailDocumentos.set([]);
     this.api.getAsignacionesByTrabajador(id).subscribe({
       next: (data) => this.detailAsignaciones.set(data)
     });
     this.api.getFormacionesByTrabajador(id).subscribe({
       next: (data) => this.detailFormaciones.set(data)
+    });
+    this.api.getDocumentosByTrabajador(id).subscribe({
+      next: (data) => this.detailDocumentos.set(data)
     });
     this.showDetail = true;
   }
@@ -139,7 +147,7 @@ export class TrabajadoresPageComponent implements OnInit {
     this.showForm = true;
   }
 
-  onSaveForm(data: Omit<Trabajador, 'id'>): void {
+  onSaveForm(data: any): void {
     const editId = this.selectedId();
     if (editId != null) {
       this.api.update(editId, data).subscribe({
@@ -167,6 +175,7 @@ export class TrabajadoresPageComponent implements OnInit {
     this.selectedTrabajador = null;
     this.detailAsignaciones.set([]);
     this.detailFormaciones.set([]);
+    this.detailDocumentos.set([]);
   }
 
   onToggleStatusClick(id: number): void {
@@ -178,6 +187,19 @@ export class TrabajadoresPageComponent implements OnInit {
   }
 
   onConfirmToggle(): void {
+    if (this.confirmMode === ConfirmMode.ELIMINAR && this.selectedDocumentoToDelete) {
+      this.api.deleteDocumento(this.selectedDocumentoToDelete.id).subscribe({
+        next: () => {
+          this.toast.show('success', '✓ Documento eliminado');
+          this.showConfirm = false;
+          this.selectedDocumentoToDelete = null;
+          this.api.getDocumentosByTrabajador(this.selectedId()!).subscribe(data => this.detailDocumentos.set(data));
+        },
+        error: () => this.toast.show('error', '✗ Error al eliminar')
+      });
+      return;
+    }
+
     const confirmId = this.selectedId();
     if (confirmId == null) return;
     const t = this.getById(confirmId)!;
@@ -191,6 +213,61 @@ export class TrabajadoresPageComponent implements OnInit {
         this.loadPage();
       },
       error: () => this.toast.show('error', '✗ Error al cambiar el estado')
+    });
+  }
+
+  // ── GESTIÓN DOCUMENTAL ───────────────────────────────────────────────────────
+  onViewDoc(doc: any): void {
+    // Si tienes un base64 o una URL directa del backend
+    if (doc.doc) {
+      // Simular apertura en nueva pestaña si es base64 
+      // o redirigir si el backend devuelve un endpoint de visualización
+      const w = window.open();
+      if (w) w.document.write(`<iframe width="100%" height="100%" src="data:application/pdf;base64,${doc.doc}"></iframe>`);
+    } else {
+      this.toast.show('warning', 'Visualización no disponible');
+    }
+  }
+
+  onDownloadDoc(doc: any): void {
+    if (doc.doc) {
+      const a = document.createElement('a');
+      a.href = `data:application/octet-stream;base64,${doc.doc}`;
+      a.download = doc.nombre_fichero || 'documento';
+      a.click();
+    } else {
+      this.toast.show('warning', 'Descarga no disponible');
+    }
+  }
+
+  onDeleteDoc(doc: any): void {
+    this.selectedDocumentoToDelete = doc;
+    this.confirmMode = ConfirmMode.ELIMINAR;
+    this.selectedTrabajadorNombre.set(doc.nombre_fichero || 'este documento');
+    this.showConfirm = true;
+  }
+
+  onUploadNewDoc(data: any): void {
+    const payload = {
+      ...data,
+      id_trabajador: this.selectedId()
+    };
+    this.api.uploadDocumento(payload).subscribe({
+      next: () => {
+        this.toast.show('success', '✓ Documento añadido');
+        this.api.getDocumentosByTrabajador(this.selectedId()!).subscribe(res => this.detailDocumentos.set(res));
+      },
+      error: () => this.toast.show('error', '✗ Error al añadir documento')
+    });
+  }
+
+  onUpdateDoc(data: any): void {
+    this.api.updateDocumento(data).subscribe({
+      next: () => {
+        this.toast.show('info', '✎ Documento actualizado');
+        this.api.getDocumentosByTrabajador(this.selectedId()!).subscribe(res => this.detailDocumentos.set(res));
+      },
+      error: () => this.toast.show('error', '✗ Error al actualizar documento')
     });
   }
 }

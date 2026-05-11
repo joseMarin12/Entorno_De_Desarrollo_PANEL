@@ -57,15 +57,16 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   }
 
   // ── CREATE ─────────────────────────────────────────────────────────────────
-  create(data: Omit<Trabajador, 'id'>): Observable<Trabajador> {
+  create(data: any): Observable<Trabajador> {
+    const { documentos, ...rest } = data;
     const trabajadorData = Object.fromEntries(
-      Object.entries(data).map(([key, val]) => [key, val === undefined ? null : val])
+      Object.entries(rest).map(([key, val]) => [key, val === undefined ? null : val])
     );
-    return this._create({ action: 'createTrabajador', trabajadorData });
+    return this._create({ action: 'createTrabajador', trabajadorData, documentos });
   }
 
   // ── UPDATE ─────────────────────────────────────────────────────────────────
-  update(id: number, data: Partial<Trabajador>): Observable<Trabajador> {
+  update(id: number, data: any): Observable<Trabajador> {
     const trabajadorData = Object.fromEntries(
       Object.entries(data).map(([key, val]) => [key, val === undefined ? null : val])
     );
@@ -93,6 +94,11 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
       .pipe(map(res => res.data ?? []));
   }
 
+  getTiposDoc(): Observable<{id: number, tipo: string}[]> {
+    return this.http.post<{data: {id: number, tipo: string}[]}>(this.API_URL, { action: 'getTiposDoc' })
+      .pipe(map(res => res.data ?? []));
+  }
+
   // ── RELACIONES POR TRABAJADOR ──────────────────────────────────────────────
   getAsignacionesByTrabajador(trabajadorId: number): Observable<any[]> {
     return this.http.post<{data: any[]}>(this.API_URL, { action: 'getAsignacionesByTrabajador', trabajadorId })
@@ -102,5 +108,25 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   getFormacionesByTrabajador(trabajadorId: number): Observable<any[]> {
     return this.http.post<{data: any[]}>(this.API_URL, { action: 'getFormacionesByTrabajador', trabajadorId })
       .pipe(map(res => res.data ?? []));
+  }
+
+  getDocumentosByTrabajador(trabajadorId: number): Observable<any[]> {
+    return this.http.post<{data: any[]}>(this.API_URL, { action: 'getDocumentosByTrabajador', trabajadorId })
+      .pipe(map(res => res.data ?? []));
+  }
+
+  uploadDocumento(data: any): Observable<any> {
+    return this.http.post<{data: any}>(this.API_URL, { action: 'uploadDocumento', data })
+      .pipe(map(res => res.data));
+  }
+
+  updateDocumento(data: any): Observable<any> {
+    return this.http.post<{data: any}>(this.API_URL, { action: 'updateDocumento', data })
+      .pipe(map(res => res.data));
+  }
+
+  deleteDocumento(documentoId: number): Observable<any> {
+    return this.http.post<{data: any}>(this.API_URL, { action: 'deleteDocumento', documentoId })
+      .pipe(map(res => res.data));
   }
 }
