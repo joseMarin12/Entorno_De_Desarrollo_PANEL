@@ -7,7 +7,7 @@ import { Formacion } from '../../../../models/formacion.model';
 
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
-import { ToolbarComponent, FilterType } from '../../components/toolbar/toolbar.component';
+import { SharedFilterComponent } from '../../../../shared/shared-filter/shared-filter.component';
 import { FormacionesTableComponent } from '../../components/formaciones-table/formaciones-table.component';
 import { ModalFormacionComponent } from '../../components/modal-formacion/modal-formacion.component';
 import { ModalParticipantesComponent } from '../../components/modal-participantes/modal-participantes.component';
@@ -20,7 +20,7 @@ import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/conf
     CommonModule,
     TopbarComponent,
     StatsRowComponent,
-    ToolbarComponent,
+    SharedFilterComponent,
     FormacionesTableComponent,
     ModalFormacionComponent,
     ModalParticipantesComponent,
@@ -35,7 +35,8 @@ export class FormacionesPageComponent implements OnInit {
 
   // ── Filtros ──────────────────────────────────────
   searchQuery = '';
-  activeFilter: FilterType = 'todos';
+  searchField = '';
+  activeFilter: string = 'todos';
   currentPage = 1;
   readonly PAGE_SIZE = 10; // Actualizado a 10 según petición
 
@@ -51,7 +52,7 @@ export class FormacionesPageComponent implements OnInit {
   }
 
   loadData(): void {
-    this.svc.loadAll(this.searchQuery, this.activeFilter, this.currentPage, this.PAGE_SIZE).subscribe();
+    this.svc.loadAll(this.searchQuery, this.searchField, this.activeFilter, this.currentPage, this.PAGE_SIZE).subscribe();
   }
 
   // ── Getters para la vista ─────────────────────────
@@ -61,13 +62,13 @@ export class FormacionesPageComponent implements OnInit {
   });
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-  onSearchChange(q: string): void {
-    this.searchQuery = q;
+  onSearchChange(text: string): void {
+    this.searchQuery = text;
     this.currentPage = 1;
     this.loadData();
   }
 
-  onFilterChange(f: FilterType): void {
+  onFilterChange(f: string): void {
     this.activeFilter = f;
     this.currentPage = 1;
     this.loadData();
@@ -98,7 +99,10 @@ export class FormacionesPageComponent implements OnInit {
           this.selectedId.set(null);
           this.toast.show('info', `✎ Formación <strong>${data.curso}</strong> actualizada`);
         },
-        error: () => this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`),
+        error: (err) => {
+          const msg = err?.error?.message || 'No se pudo guardar los cambios. Inténtalo de nuevo.';
+          this.toast.show('error', `✗ ${msg}`);
+        },
       });
     } else {
       // Añadir
@@ -107,7 +111,10 @@ export class FormacionesPageComponent implements OnInit {
           this.showForm = false;
           this.toast.show('success', `✓ Formación <strong>${data.curso}</strong> añadida correctamente`);
         },
-        error: () => this.toast.show('error', `✗ No se pudo añadir la formación. Inténtalo de nuevo.`),
+        error: (err) => {
+          const msg = err?.error?.message || 'No se pudo añadir la formación. Inténtalo de nuevo.';
+          this.toast.show('error', `✗ ${msg}`);
+        },
       });
     }
   }
@@ -137,7 +144,10 @@ export class FormacionesPageComponent implements OnInit {
           this.toast.show('success', `↺ Formación <strong>${this.svc.title(c)}</strong> reactivada`);
         }
       },
-      error: () => this.toast.show('error', `✗ No se pudo cambiar el estado. Inténtalo de nuevo.`),
+      error: (err) => {
+        const msg = err?.error?.message || 'No se pudo cambiar el estado. Inténtalo de nuevo.';
+        this.toast.show('error', `✗ ${msg}`);
+      },
     });
   }
 }

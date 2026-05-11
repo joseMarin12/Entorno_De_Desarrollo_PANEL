@@ -29,10 +29,11 @@ class AsignacionController extends Controller
 
         $response = Http::post($this->n8nUrl, $payload);
 
-        if ($response->failed()) {
-            return response()->json(['error' => 'Error de respuesta en n8n'], 500);
+        $json = $response->json();
+        if ($json !== null) {
+            return response()->json($json, $response->status());
         }
 
-        return response()->json($response->json(), $response->status());
+        return response()->json(['error' => 'Error de conexión con n8n'], 500);
     }
 }
