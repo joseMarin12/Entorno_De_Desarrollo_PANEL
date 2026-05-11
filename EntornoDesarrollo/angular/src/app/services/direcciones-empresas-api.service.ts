@@ -11,8 +11,8 @@ import { Localidad } from "../models/localidad.model";
 export class DireccionesEmpresasApiService extends BaseCrud<DireccionEmpresa> {
     protected readonly API_URL = `${environment.apiUrl}/direcciones-empresas`;
 
-     findAll(searchText = '', status = '', pais = '', page = 1, limit = 10, idEmpresa: number): Observable<{ data: DireccionEmpresa[], total: number }> {
-        return this.http.post<{ data: DireccionEmpresa[], total: number }>(this.API_URL, {
+     findAll(searchText = '', status = '', pais = '', page = 1, limit = 10, idEmpresa: number): Observable<{ data: DireccionEmpresa[], total: number, totalActivos: number, totalInactivos: number }> {
+        return this.http.post<{ data: DireccionEmpresa[], total: number, totalActivos: number, totalInactivos: number }>(this.API_URL, {
             action: 'getDirecciones',
             idEmpresa: idEmpresa,
             filters: {searchText, status, pais },

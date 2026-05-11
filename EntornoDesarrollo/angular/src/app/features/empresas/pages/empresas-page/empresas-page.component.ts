@@ -31,10 +31,13 @@ export class EmpresasPageComponent implements OnInit {
 
   private readonly _empresas = signal<Empresa[]>([]);
   readonly empresas = this._empresas.asReadonly();
+
   private readonly _total = signal(0);
+  private readonly _totalActivos = signal(0);
+  private readonly _totalInactivos = signal(0);
   readonly total = this._total.asReadonly();
-  readonly totalActivos = computed(() => this._empresas().filter(e => e.activo).length);
-  readonly totalInactivos = computed(() => this._empresas().filter(e => !e.activo).length);
+  readonly totalActivos = this._totalActivos.asReadonly();
+  readonly totalInactivos = this._totalInactivos.asReadonly();
 
   // ── Filtros ──────────────────────────────────────
   searchQuery  = '';
@@ -66,6 +69,8 @@ export class EmpresasPageComponent implements OnInit {
       next: (res) => { 
         this._empresas.set(res.data ?? []);
         this._total.set(res.total ?? 0);
+        this._totalActivos.set(res.totalActivos ?? 0);
+        this._totalInactivos.set(res.totalInactivos ?? 0);
       },
       error: () => this.toast.show('error', '✗ No se pudo cargar las empresas. Inténtalo de nuevo.'),
     });

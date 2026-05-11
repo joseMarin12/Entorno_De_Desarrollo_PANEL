@@ -39,10 +39,12 @@ export class EmpresasDireccionesPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly _direcciones = signal<DireccionEmpresa[]>([]);
   private readonly _total = signal(10);
+  private readonly _totalActivos = signal(0);
+  private readonly _totalInactivos = signal(0);
   readonly direcciones = this._direcciones.asReadonly();
   readonly total = this._total.asReadonly();
-  readonly totalActivos = computed(() => this._direcciones().filter(d => d.activo).length);
-  readonly totalInactivos = computed(() => this._direcciones().filter(d => !d.activo).length);
+  readonly totalActivos = this._totalActivos.asReadonly();
+  readonly totalInactivos = this._totalInactivos.asReadonly();
 
   // ── Filtros ──────────────────────────────────────
   searchQuery  = '';
@@ -106,7 +108,9 @@ export class EmpresasDireccionesPageComponent implements OnInit {
     this.api.findAll(searchText, status, pais, this.currentPage(), this.PAGE_SIZE, empresaId!).subscribe({
       next: (res) => { 
         this._direcciones.set(res.data ?? []);
-        this._total.set(res.total ?? 0) 
+        this._total.set(res.total ?? 0);
+        this._totalActivos.set(res.totalActivos ?? 0);
+        this._totalInactivos.set(res.totalInactivos ?? 0);
       },
       error: () => this.toast.show('error', '✗ No se pudo cargar las direcciones. Inténtalo de nuevo.'),
     });

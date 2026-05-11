@@ -9,8 +9,8 @@ import { TipoEmpresa } from '../models/tipo-empresa.model';
 export class EmpresasApiService extends BaseCrud<Empresa> {
   protected readonly API_URL = `${environment.apiUrl}/empresas`;
 
-  findAll(searchText = '', status = '', tipo = '', page = 1, limit = 10): Observable<{ data: Empresa[], total: number }> {
-    return this.http.post<{ data: Empresa[], total: number }>(this.API_URL, {
+  findAll(searchText = '', status = '', tipo = '', page = 1, limit = 10): Observable<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }> {
+    return this.http.post<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }>(this.API_URL, {
       action: 'getEmpresas',
       filters: { searchText, status, tipo },
       page,
