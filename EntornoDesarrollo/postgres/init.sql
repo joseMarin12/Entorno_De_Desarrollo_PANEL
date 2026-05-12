@@ -150,6 +150,9 @@ CREATE TABLE direccion_empresa (
     codigo_postal VARCHAR(10),
     id_empresa INT,
     id_localidad INT,
+    activo BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE CASCADE,
     FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE CASCADE
 );
