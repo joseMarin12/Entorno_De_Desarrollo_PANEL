@@ -44,12 +44,13 @@ Route::middleware('verify.token')->group(function () {
     Route::post('/comerciales', [ComercialController::class, 'proxy']);
 
 
-Route::post('/seleccionadores', [SeleccionadorController::class, 'proxy']);
+    Route::post('/seleccionadores', [SeleccionadorController::class, 'proxy']);
 
-Route::post('/usuarios', [UsuariosController::class, 'proxy']);
-Route::post('/formaciones', [FormacionController::class, 'proxy']);
-Route::post('/empresas', [EmpresaController::class, 'proxy']);
-Route::post('/direcciones-empresas', [DireccionesEmpresaController::class, 'proxy']);
-Route::post('/asignaciones', [\App\Http\Controllers\AsignacionController::class, 'proxy']);
-Route::post('/trabajadores', [TrabajadorController::class, 'proxy']);
+    Route::post('/usuarios', [UsuariosController::class, 'proxy']);
+    Route::post('/formaciones', [FormacionController::class, 'proxy']);
+    Route::post('/empresas', [EmpresaController::class, 'proxy']);
+    Route::post('/direcciones-empresas', [DireccionesEmpresaController::class, 'proxy']);
+    Route::post('/asignaciones', [\App\Http\Controllers\AsignacionController::class, 'proxy']);
+    Route::post('/trabajadores', [TrabajadorController::class, 'proxy']);
 
+});
