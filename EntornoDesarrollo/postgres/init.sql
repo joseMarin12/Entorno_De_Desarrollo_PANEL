@@ -94,6 +94,11 @@ CREATE TABLE pais (
     pais VARCHAR(45) NOT NULL
 );
 
+INSERT INTO pais (pais) VALUES 
+    ('Argentina'),
+    ('España'),
+    ('México');
+
 CREATE TABLE provincia (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_pais INT,
@@ -101,12 +106,43 @@ CREATE TABLE provincia (
     FOREIGN KEY (id_pais) REFERENCES pais(id) ON DELETE CASCADE
 );
 
+INSERT INTO provincia (id_pais, provincia) VALUES
+    (1, 'Buenos Aires'),
+    (1, 'Córdoba'),
+    (1, 'Mendoza'),
+    (2, 'Madrid'),
+    (2, 'Barcelona'),
+    (2, 'A Coruña'),
+    (3, 'Jalisco'),
+    (3, 'Nuevo León'),
+    (3, 'Yucatán');
+
 CREATE TABLE localidad (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_provincia INT,
     localidad VARCHAR(100) NOT NULL,
     FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE CASCADE
 );
+
+INSERT INTO localidad (id_provincia, localidad) VALUES
+    (1, 'La Plata'),
+    (1, 'Mar del Plata'),
+    (2, 'Villa Carlos Paz'),
+    (2, 'Río Cuarto'),
+    (3, 'Godoy Cruz'),
+    (3, 'San Rafael'),
+    (4, 'Alcalá de Henares'),
+    (4, 'Móstoles'),
+    (5, 'Hospitalet de Llobregat'),
+    (5, 'Badalona'),
+    (6, 'Santiago de Compostela'),
+    (6, 'A Coruña'),
+    (7, 'Guadalajara'),
+    (7, 'Puerto Vallarta'),
+    (8, 'Monterrey'),
+    (8, 'San Nicolás de los Garza'),
+    (9, 'Mérida'),
+    (9, 'Valladolid');
 
 CREATE TABLE direccion_empresa (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
