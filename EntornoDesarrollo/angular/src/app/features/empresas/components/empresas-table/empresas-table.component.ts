@@ -21,6 +21,8 @@ export class EmpresasTableComponent {
   @Output() bajaClick  = new EventEmitter<number>();
   @Output() pageChange = new EventEmitter<number>();
 
+  readonly empresa = (id: number) => this.empresas.find(e => e.id === id);
+
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.totalFiltered / this.pageSize));
   }
@@ -45,7 +47,10 @@ export class EmpresasTableComponent {
   }  
 
   goToDirecciones(id: number): void {
-    this.router.navigate(['/empresas', id, 'direcciones']);
+    const empresa = this.empresa(id);
+    this.router.navigate(['/empresas', id, 'direcciones'], {
+      state: { nombreEmpresa: this.fullName(empresa!) }
+    });
   }
 
   goToContactos(id: number): void {

@@ -32,28 +32,30 @@
 
     <!-- Tabla -->
     <app-empresas-table
-      [empresas]="paginatedEmpresas"
-      [currentPage]="currentPage"
+      [empresas]="empresas()"
+      [currentPage]="currentPage()"
       [pageSize]="PAGE_SIZE"
-      [totalFiltered]="filtered.length"
+      [totalFiltered]="total()"
       (editClick)="onEditClick($event)"
       (bajaClick)="onBajaClick($event)"
-      (pageChange)="currentPage = $event"
+      (pageChange)="onPageChange($event)"
     />
 </section>
 
 <!-- Modales -->
 @if (showAdd) {
-  <app-modal-add
-    (save)="onSaveAdd($event)"
+  <app-modal-empresas
+    [existingCIFs]="getExistingCIFs"
+    (saveAdd)="onSaveAdd($event)"
     (close)="showAdd = false"
   />
 }
 
 @if (showEdit && selectedEmpresa) {
-  <app-modal-edit
+  <app-modal-empresas
     [empresa]="selectedEmpresa"
-    (save)="onSaveEdit($event)"
+    [existingCIFs]="existingCIFsForEdit"
+    (saveEdit)="onSaveEdit($event)"
     (close)="showEdit = false; selectedId = null"
   />
 }

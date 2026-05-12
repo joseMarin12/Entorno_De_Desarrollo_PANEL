@@ -24,7 +24,7 @@ export class FormacionesService extends BaseCrud<Formacion> {
     readonly totalFiltered = signal(0);
 
     // ── Carga inicial ────────────────────────────────────────────────────────
-    loadAll(searchText = '', filterType = 'todos', page = 1, pageSize = 10): Observable<Formacion[]> {
+    loadAll(searchText = '', searchField = '', filterType = 'todos', page = 1, pageSize = 10): Observable<Formacion[]> {
         this.loading.set(true);
         this.error.set(null);
 
@@ -32,17 +32,18 @@ export class FormacionesService extends BaseCrud<Formacion> {
         if (filterType === 'activos') activo = true;
         if (filterType === 'baja') activo = false;
 
-        return this._findAll({ action: 'getFormaciones', filters: { searchText, activo }, page, pageSize }).pipe(
+        return this._findAll({ action: 'getFormaciones', filters: { searchText, searchField, activo }, page, pageSize }).pipe(
             tap({
                 next: list => {
-                    this._formaciones.set(list);
-                    if (list && list.length > 0) {
+                    if (list && list.length > 0 && list[0].id !== undefined && list[0].id !== null) {
+                        this._formaciones.set(list);
                         const first = list[0] as any;
                         this.totalFiltered.set(Number(first.total_records) || list.length);
                         this.total.set(Number(first.total_global) || 0);
                         this.totalActivos.set(Number(first.total_activos) || 0);
                         this.totalInactivos.set(Number(first.total_inactivos) || 0);
                     } else {
+                        this._formaciones.set([]);
                         this.totalFiltered.set(0);
                     }
                     this.loading.set(false);

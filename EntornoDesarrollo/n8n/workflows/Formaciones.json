@@ -1,11 +1,5 @@
 {
-  "updatedAt": "2026-04-27T13:36:39.735Z",
-  "createdAt": "2026-04-20T08:43:55.636Z",
-  "id": "R5yHppLWfre3MYim",
   "name": "Formaciones",
-  "description": null,
-  "active": true,
-  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -260,7 +254,7 @@
                   {
                     "id": "e64d30af-361a-49b3-be64-060ebca83b9b",
                     "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "getEjecución",
+                    "rightValue": "getEjecucion",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -312,7 +306,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\n\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 10;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (\n  filters.searchText &&\n  typeof filters.searchText === 'string' &&\n  filters.searchText.trim() !== ''\n) {\n  whereClause += `\n    AND (\n      f.curso ILIKE $${paramIndex}\n      OR f.denominacion ILIKE $${paramIndex}\n    )\n  `;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (\n  filters.id_estado !== undefined &&\n  filters.id_estado !== null &&\n  filters.id_estado !== ''\n) {\n  whereClause += ` AND f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\nif (\n  filters.activo !== undefined &&\n  filters.activo !== null &&\n  filters.activo !== ''\n) {\n  whereClause += ` AND f.activo = $${paramIndex}`;\n  params.push(filters.activo);\n  paramIndex++;\n}\n\n// Paginación\nparams.push(pageSize);\nconst limitParam = paramIndex++;\n\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\n// Query principal\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) AS total\n  FROM formacion f\n  ${whereClause}\n),\nglobal_counts AS (\n  SELECT \n    COUNT(*) AS total_global,\n    SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) AS total_activos,\n    SUM(CASE WHEN activo = false THEN 1 ELSE 0 END) AS total_inactivos\n  FROM formacion\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre AS estado_nombre,\n    af.nombre AS area_nombre,\n    mf.nombre AS modalidad_nombre,\n    exe.nombre AS ejecucion_nombre,\n    COUNT(ft.id_trabajador) AS num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY \n    f.id,\n    ef.nombre,\n    af.nombre,\n    mf.nombre,\n    exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\n\nSELECT \n  paginado.*,\n  total_count.total AS total_records,\n  global_counts.total_global,\n  global_counts.total_activos,\n  global_counts.total_inactivos\nFROM paginado, total_count, global_counts;\n`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      pageSize,\n    },\n  },\n];"
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\n\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 10;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (\n  filters.searchText &&\n  typeof filters.searchText === 'string' &&\n  filters.searchText.trim() !== ''\n) {\n  if (filters.searchField === 'curso') {\n    whereClause += \\ AND curso ILIKE {paramIndex}\\;\n  } else if (filters.searchField === 'denominacion') {\n    whereClause += \\ AND denominacion ILIKE {paramIndex}\\;\n  } else {\n    whereClause +=       AND (\n        curso ILIKE {paramIndex}\n        OR denominacion ILIKE {paramIndex}\n      )\n    \\;\n  }\n  params.push(\\%%\\);\n  paramIndex++;\n}\n\nif (\n  filters.id_estado !== undefined &&\n  filters.id_estado !== null &&\n  filters.id_estado !== ''\n) {\n  whereClause += ` AND f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\nif (\n  filters.activo !== undefined &&\n  filters.activo !== null &&\n  filters.activo !== ''\n) {\n  whereClause += ` AND f.activo = $${paramIndex}`;\n  params.push(filters.activo);\n  paramIndex++;\n}\n\n// Paginación\nparams.push(pageSize);\nconst limitParam = paramIndex++;\n\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\n// Query principal\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) AS total\n  FROM formacion f\n  ${whereClause}\n),\nglobal_counts AS (\n  SELECT \n    COUNT(*) AS total_global,\n    SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) AS total_activos,\n    SUM(CASE WHEN activo = false THEN 1 ELSE 0 END) AS total_inactivos\n  FROM formacion\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre AS estado_nombre,\n    af.nombre AS area_nombre,\n    mf.nombre AS modalidad_nombre,\n    exe.nombre AS ejecucion_nombre,\n    COUNT(ft.id_trabajador) AS num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY \n    f.id,\n    ef.nombre,\n    af.nombre,\n    mf.nombre,\n    exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\n\nSELECT \n  paginado.*,\n  total_count.total AS total_records,\n  global_counts.total_global,\n  global_counts.total_activos,\n  global_counts.total_inactivos\nFROM paginado, total_count, global_counts;\n`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      pageSize,\n    },\n  },\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -367,9 +361,9 @@
         "postgres": {
           "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -392,7 +386,8 @@
           "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -415,11 +410,12 @@
           "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst idFormacion = body.id_formacion;\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT\n  t.id,\n  t.nombre,\n  t.primer_apellido,\n  t.segundo_apellido,\n  t.dni_nif_pasaporte,\n  t.email,\n  t.telefono,\n  t.activo,\n  CASE WHEN ft.id IS NOT NULL THEN true ELSE false END as asignado\nFROM trabajador t\nLEFT JOIN formacion_trabajador ft\n  ON ft.id_trabajador = t.id AND ft.id_formacion = $${paramIndex}\nWHERE t.activo = true`;\nparams.push(idFormacion);\nparamIndex++;\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  query += ` AND (CONCAT(t.nombre, ' ', t.primer_apellido, ' ', COALESCE(t.segundo_apellido,'')) ILIKE $${paramIndex} OR t.dni_nif_pasaporte ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.soloDisponibles === true) {\n  query += ' AND ft.id IS NULL';\n}\n\nquery += ' ORDER BY t.primer_apellido, t.nombre';\n\nreturn [{ json: { query, params } }];"
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst idFormacion = body.id_formacion;\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT\n  t.id,\n  t.nombre,\n  t.primer_apellido,\n  t.segundo_apellido,\n  t.dni_nif_pasaporte,\n  t.email,\n  t.telefono,\n  t.activo,\n  CASE WHEN ft.id IS NOT NULL THEN true ELSE false END as asignado\nFROM trabajador t\nLEFT JOIN formacion_trabajador ft\n  ON ft.id_trabajador = t.id AND ft.id_formacion = $${paramIndex}\nWHERE t.activo = true`;\nparams.push(idFormacion);\nparamIndex++;\n\nif (\n  filters.searchText &&\n  typeof filters.searchText === 'string' &&\n  filters.searchText.trim() !== ''\n) {\n  if (filters.searchField === 'curso') {\n    whereClause += \\ AND curso ILIKE {paramIndex}\\;\n  } else if (filters.searchField === 'denominacion') {\n    whereClause += \\ AND denominacion ILIKE {paramIndex}\\;\n  } else {\n    whereClause +=       AND (\n        curso ILIKE {paramIndex}\n        OR denominacion ILIKE {paramIndex}\n      )\n    \\;\n  }\n  params.push(\\%%\\);\n  paramIndex++;\n}\n\nif (filters.soloDisponibles === true) {\n  query += ' AND ft.id IS NULL';\n}\n\nquery += ' ORDER BY t.primer_apellido, t.nombre';\n\nreturn [{ json: { query, params } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -474,7 +470,8 @@
           "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -497,7 +494,8 @@
           "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -548,16 +546,16 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ $json }}",
+        "responseBody": "={{ JSON.stringify({ status: $json.status, error: $json.error, message: $json.message, code: $json.code }) }}",
         "options": {
-          "responseCode": 400
+          "responseCode": "={{ $json.status }}"
         }
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        320,
-        1360
+        960,
+        800
       ],
       "id": "a1bc5a54-8833-46d0-bfa8-ea68c4523e60",
       "name": "Respond Error"
@@ -645,8 +643,22 @@
           "name": "Postgres account 2"
         }
       }
+    },
+    {
+      "id": "a9f3c821-1234-4abc-bdef-000000000001",
+      "name": "Handle DB Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        800
+      ],
+      "parameters": {
+        "jsCode": "\nconst firstItem = $input.first() || {};\nconst errorObj = firstItem.error || {};\nconst cause = errorObj.cause || {};\nconst jsonObj = firstItem.json || {};\nconst nestedError = jsonObj.error || {};\nconst nestedCause = nestedError.cause || {};\n\nconst pgCode = String(\n  cause.code || errorObj.code || \n  nestedCause.code || nestedError.code || \n  jsonObj.code || ''\n);\n\nconst rawMessage = String(\n  jsonObj.message || \n  cause.message || errorObj.message || errorObj.description || \n  nestedCause.message || nestedError.message || nestedError.description || \n  'Error desconocido'\n);\n\nlet status = 500;\nlet errorType = 'Internal Server Error';\nlet message = rawMessage;\nlet code = 'DB_ERROR';\n\nif (pgCode === '23505' || rawMessage.includes('unique constraint')) {\n  // Unique constraint violation\n  status = 409;\n  errorType = 'Conflict';\n  code = 'DUPLICATE_ENTRY';\n  if (rawMessage.toLowerCase().includes('email')) {\n    message = 'El correo electrónico ya se encuentra registrado.';\n    code = 'EMAIL_ALREADY_EXISTS';\n  } else {\n    const match = rawMessage.match(/unique constraint \"(.+?)\"/i);\n    message = match\n      ? `Ya existe un registro que viola la restricción: ${match[1]}.`\n      : 'Ya existe un registro con esos datos.';\n  }\n} else if (pgCode === '23502' || rawMessage.includes('not-null constraint') || rawMessage.includes('violates not-null')) {\n  // NOT NULL violation\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'MISSING_REQUIRED_FIELD';\n  const match = rawMessage.match(/column \"(.+?)\"/);\n  const field = match ? match[1] : 'desconocido';\n  message = `El campo \"${field}\" es obligatorio y no puede estar vacío.`;\n} else if (pgCode === '23503' || rawMessage.includes('foreign key constraint')) {\n  // Foreign key violation\n  status = 409;\n  errorType = 'Conflict';\n  code = 'FOREIGN_KEY_VIOLATION';\n  message = 'El registro referenciado no existe o ha sido eliminado.';\n} else if (pgCode === '23514' || rawMessage.includes('check constraint')) {\n  // Check constraint violation\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'CHECK_VIOLATION';\n  message = 'Los datos enviados no cumplen las restricciones requeridas.';\n} else if (rawMessage.includes('invalid input syntax for type date')) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'INVALID_DATE_FORMAT';\n  message = 'El formato de fecha introducido no es válido o está vacío.';\n} else if (rawMessage.includes('invalid input syntax')) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'INVALID_INPUT_FORMAT';\n  message = 'Uno de los campos introducidos tiene un formato incorrecto (ej: texto en lugar de número).';\n}\n\nreturn [{ json: { status, error: errorType, message, code } }];\n"
+      }
     }
   ],
+  "pinData": {},
   "connections": {
     "API Gestión Formaciones": {
       "main": [
@@ -777,6 +789,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -788,6 +807,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -796,6 +822,13 @@
         [
           {
             "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
             "type": "main",
             "index": 0
           }
@@ -832,6 +865,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -840,6 +880,13 @@
         [
           {
             "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
             "type": "main",
             "index": 0
           }
@@ -900,66 +947,29 @@
           }
         ]
       ]
+    },
+    "Handle DB Error": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "staticData": null,
+  "versionId": "8752c031-3ddd-40f4-aeb6-4a7cd44c0311",
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "68406e238b7dc5bdce60068f923199f237e1a3d96b618bf2b35e1281a86e782f"
   },
-  "pinData": {},
-  "versionId": "918d34e1-a3d1-478b-a505-40b856d71559",
-  "activeVersionId": "918d34e1-a3d1-478b-a505-40b856d71559",
-  "versionCounter": 144,
-  "triggerCount": 1,
-  "tags": [],
-  "shared": [
-    {
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
-<<<<<<< HEAD
-      "updatedAt": "2026-04-22T09:43:05.809Z",
-      "createdAt": "2026-04-22T09:43:05.809Z",
-      "role": "workflow:owner",
-      "workflowId": "R5yHppLWfre3MYim",
-      "projectId": "scuB9Y3NwfAwv0vk",
-      "project": {
-        "updatedAt": "2026-04-22T09:42:42.949Z",
-        "createdAt": "2026-04-22T09:42:05.392Z",
-        "id": "scuB9Y3NwfAwv0vk",
-        "name": "p v <daniel.pedrero@sgtech.tech>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "creatorId": "06b871d4-11e0-4b54-8aa7-b150c2e36810"
-=======
-========
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-      "updatedAt": "2026-04-22T08:46:52.367Z",
-      "createdAt": "2026-04-22T08:46:52.367Z",
-      "role": "workflow:owner",
-      "workflowId": "R5yHppLWfre3MYim",
-      "projectId": "HPNLsCxwhHCLkcBf",
-      "project": {
-        "updatedAt": "2026-04-22T08:46:19.945Z",
-        "createdAt": "2026-04-22T08:41:51.280Z",
-        "id": "HPNLsCxwhHCLkcBf",
-        "name": "Adriano Casado Villarreal <adriano.casado@sgtech.tech>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "creatorId": "134af668-187e-480f-8edf-2641b318bfd3"
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
->>>>>>> origin/feature/lookup-select
-========
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-      }
-    }
-  ],
-  "versionMetadata": {
-    "name": "Version 918d34e1",
-    "description": ""
-  }
+  "id": "R5yHppLWfre3MYim",
+  "tags": []
 }

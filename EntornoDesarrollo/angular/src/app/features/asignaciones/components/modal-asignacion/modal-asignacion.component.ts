@@ -51,6 +51,8 @@ export class ModalAsignacionComponent implements OnInit {
     if (!this.form.id_empresa) this.errors['id_empresa'] = 'La empresa es obligatoria';
     if (!this.form.id_trabajador) this.errors['id_trabajador'] = 'El trabajador es obligatorio';
     if (!this.form.id_comerciales) this.errors['id_comerciales'] = 'El comercial es obligatorio';
+    if (!this.form.fecha_ini) this.errors['fecha_ini'] = 'La fecha de inicio es obligatoria';
+    if (this.form.tarifa == null || this.form.tarifa.toString().trim() === '') this.errors['tarifa'] = 'La tarifa es obligatoria';
 
     if (Object.keys(this.errors).length > 0) return;
 

@@ -1,0 +1,423 @@
+{
+  "name": "Seleccionadores",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gestion-seleccionadores",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e0fe2baf-ac9b-4801-b934-eb655708bec8",
+      "name": "Webhook Seleccionadores",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2560,
+        3824
+      ],
+      "webhookId": "a884095a-9de5-4c1b-9869-56be69f43cca"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getSeleccionadores",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "57b0dce7-128e-4390-b9c3-94d053326f6e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getSeleccionadores"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getEmpresas",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e0776c5a-5f17-469d-a584-ed6c3f164935"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getEmpresas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "createSeleccionador",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b87b3a1c-238a-4999-87ef-c091d7e52b44"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "createSeleccionador"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "updateSeleccionador",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "9dbecf0a-f539-498a-ae06-8bf24c00122e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "updateSeleccionador"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "toggleSeleccionadorStatus",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8e5f1621-af1b-4c52-b40b-c364f538645d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "toggleSeleccionadorStatus"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6a27b1c9-1b90-43d4-b57c-075822fe5f7a",
+      "name": "Switch Actions",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2816,
+        3824
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = body.page || 1;\nconst limit = body.limit || 10;\nconst offset = (page - 1) * limit;\nconst conditions = [];\nconst params = [];\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(CONCAT(s.nombre, ' ', s.primer_apellido, ' ', COALESCE(s.segundo_apellido,'')) ILIKE $${params.length + 1} OR s.email ILIKE $${params.length + 1})`);\n  params.push(`%${filters.searchText.trim()}%`);\n}\n\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  const statusStr = String(filters.status).toLowerCase();\n  if (statusStr !== 'todos' && statusStr !== 'todos los estados') {\n    conditions.push(`s.activo = $${params.length + 1}`);\n    params.push(statusStr === 'activos' || statusStr === 'activo');\n  }\n}\n\nif (filters.tipo !== undefined && filters.tipo !== null && filters.tipo !== '') {\n  const tipoStr = String(filters.tipo).toLowerCase();\n  if (tipoStr !== 'todos' && tipoStr !== 'todos los tipos') {\n    conditions.push(`s.tipo = $${params.length + 1}`);\n    params.push(tipoStr);\n  }\n}\n\nlet whereClause = 'WHERE 1=1';\nif (conditions.length > 0) {\n  whereClause += ' AND ' + conditions.join(' AND ');\n}\n\nconst limitParam = params.length + 1;\nconst offsetParam = params.length + 2;\nparams.push(limit);\nparams.push(offset);\n\nconst query = `WITH global_stats AS (\n  SELECT\n    COUNT(*)::int as total,\n    COUNT(*) FILTER (WHERE activo = true)::int as activos,\n    COUNT(*) FILTER (WHERE activo = false)::int as inactivos,\n    COUNT(*) FILTER (WHERE tipo = 'externo')::int as externos\n  FROM seleccionadores\n),\nfiltered_data AS (\n  SELECT\n    s.*,\n    (CASE WHEN e.id IS NOT NULL THEN json_build_object('id', e.id, 'nombre', e.nombre_empresa) ELSE NULL END) as empresa\n  FROM seleccionadores s\n  LEFT JOIN empresa e ON s.id_empresa = e.id\n  ${whereClause}\n  ORDER BY s.created_at DESC\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n),\nfiltered_count AS (\n  SELECT COUNT(*)::int as total_filtered\n  FROM seleccionadores s\n  ${whereClause}\n)\nSELECT\n  fd.*,\n  fc.total_filtered,\n  gs.total as stats_total,\n  gs.activos as stats_activos,\n  gs.inactivos as stats_inactivos,\n  gs.externos as stats_externos\nFROM global_stats gs\nCROSS JOIN filtered_count fc\nLEFT JOIN filtered_data fd ON true`;\n\nreturn [{ json: { query, params } }];\n"
+      },
+      "id": "71b6e1f1-c6a0-453e-abe5-a336d2fc28e4",
+      "name": "JS: Build Get Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3104,
+        3568
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "id": "79ca9641-d420-46e7-997d-8313b51f08ee",
+      "name": "SQL: Get Seleccionadores",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3360,
+        3568
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, nombre_empresa AS nombre FROM empresa ORDER BY nombre_empresa ASC;",
+        "options": {}
+      },
+      "id": "43dbf29c-f81c-4a6f-9e92-3d6bb58f784c",
+      "name": "SQL: Get Empresas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3104,
+        3776
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH inserted AS (\n  INSERT INTO seleccionadores \n  (nombre, primer_apellido, segundo_apellido, telefono, email, tipo, activo, id_empresa, fecha_ini, salario, fee, created_at, updated_at) \n  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()) \n  RETURNING *\n)\nSELECT i.*, (CASE WHEN e.id IS NOT NULL THEN json_build_object(\u0027id\u0027, e.id, \u0027nombre\u0027, e.nombre_empresa) ELSE NULL END) as empresa \nFROM inserted i LEFT JOIN empresa e ON i.id_empresa = e.id;",
+        "options": {
+          "queryReplacement": "={{ [\n  $json.body.seleccionadorData.nombre || null,\n  $json.body.seleccionadorData.primer_apellido || null,\n  $json.body.seleccionadorData.segundo_apellido || null,\n  $json.body.seleccionadorData.telefono || null,\n  $json.body.seleccionadorData.email || null,\n  ($json.body.seleccionadorData.tipo || \u0027interno\u0027).toLowerCase().trim(),\n  $json.body.seleccionadorData.activo !== undefined ? $json.body.seleccionadorData.activo : true,\n  $json.body.seleccionadorData.id_empresa || null,\n  $json.body.seleccionadorData.fecha_ini || null,\n  $json.body.seleccionadorData.salario || null,\n  $json.body.seleccionadorData.fee || null\n] }}"
+        }
+      },
+      "id": "8b6bab49-be34-41f9-b685-ef0366f1762e",
+      "name": "SQL: Create",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3104,
+        3968
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH updated AS (\n  UPDATE seleccionadores \n  SET nombre = COALESCE($1, nombre), primer_apellido = COALESCE($2, primer_apellido), segundo_apellido = $3, telefono = $4, email = $5, tipo = COALESCE($6, tipo), activo = COALESCE($7, activo), id_empresa = $8, fecha_ini = $9, salario = $10, fee = $11, updated_at = NOW() \n  WHERE id = $12 \n  RETURNING *\n)\nSELECT u.*, (CASE WHEN e.id IS NOT NULL THEN json_build_object(\u0027id\u0027, e.id, \u0027nombre\u0027, e.nombre_empresa) ELSE NULL END) as empresa \nFROM updated u LEFT JOIN empresa e ON u.id_empresa = e.id;",
+        "options": {
+          "queryReplacement": "={{ [\n  $json.body.seleccionadorData.nombre || null,\n  $json.body.seleccionadorData.primer_apellido || null,\n  $json.body.seleccionadorData.segundo_apellido || null,\n  $json.body.seleccionadorData.telefono || null,\n  $json.body.seleccionadorData.email || null,\n  $json.body.seleccionadorData.tipo ? $json.body.seleccionadorData.tipo.toLowerCase().trim() : null,\n  $json.body.seleccionadorData.activo !== undefined ? $json.body.seleccionadorData.activo : null,\n  $json.body.seleccionadorData.id_empresa || null,\n  $json.body.seleccionadorData.fecha_ini || null,\n  $json.body.seleccionadorData.salario || null,\n  $json.body.seleccionadorData.fee || null,\n  $json.body.seleccionadorId\n] }}"
+        }
+      },
+      "id": "8ac1af1e-50f2-4844-be19-abf92d54ac5d",
+      "name": "SQL: Update",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3104,
+        4176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH updated AS (\n  UPDATE seleccionadores SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING *\n)\nSELECT u.*, (CASE WHEN e.id IS NOT NULL THEN json_build_object(\u0027id\u0027, e.id, \u0027nombre\u0027, e.nombre_empresa) ELSE NULL END) as empresa \nFROM updated u LEFT JOIN empresa e ON u.id_empresa = e.id;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.seleccionadorId] }}"
+        }
+      },
+      "id": "1485e7b6-8c12-47d3-a3e0-68db3fa84b4e",
+      "name": "SQL: Toggle Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3104,
+        4368
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(item =\u003e item.json) } }}",
+        "options": {}
+      },
+      "id": "67772d5c-d47b-4ea0-a535-6088d5a3fc4c",
+      "name": "Respond API",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3712,
+        3968
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Seleccionadores": {
+      "main": [
+        [
+          {
+            "node": "Switch Actions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Actions": {
+      "main": [
+        [
+          {
+            "node": "JS: Build Get Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL: Get Empresas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL: Create",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL: Update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL: Toggle Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JS: Build Get Query": {
+      "main": [
+        [
+          {
+            "node": "SQL: Get Seleccionadores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL: Get Seleccionadores": {
+      "main": [
+        [
+          {
+            "node": "Respond API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL: Get Empresas": {
+      "main": [
+        [
+          {
+            "node": "Respond API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL: Create": {
+      "main": [
+        [
+          {
+            "node": "Respond API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL: Update": {
+      "main": [
+        [
+          {
+            "node": "Respond API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL: Toggle Status": {
+      "main": [
+        [
+          {
+            "node": "Respond API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce978c989ab1e23db47d18854a2aa4ec48f1cc3365db2fa6e0d1703da947a576"
+  }
+}

@@ -23,30 +23,27 @@ export class AsignacionesService extends BaseCrud<Asignacion> {
     readonly totalFiltered = signal(0);
 
     // ── Carga inicial ────────────────────────────────────────────────────────
-    loadAll(searchText = '', filterType = 'todos', page = 1, pageSize = 10): Observable<Asignacion[]> {
+    loadAll(searchText = '', searchField = '', filterType = 'todos', page = 1, pageSize = 10): Observable<Asignacion[]> {
         this.loading.set(true);
         this.error.set(null);
-        
+
         let activo: boolean | undefined = undefined;
         if (filterType === 'activos') activo = true;
         if (filterType === 'baja') activo = false;
 
-        return this._findAll({ action: 'getAsignaciones', filters: { searchText, activo }, page, pageSize }).pipe(
+        return this._findAll({ action: 'getAsignaciones', filters: { searchText, searchField, activo }, page, pageSize }).pipe(
             tap({
                 next: list => {
-                    this._asignaciones.set(list);
-                    if (list && list.length > 0) {
+                    if (list && list.length > 0 && list[0].id !== undefined && list[0].id !== null) {
+                        this._asignaciones.set(list);
                         const first = list[0] as any;
                         this.totalFiltered.set(Number(first.total_records) || list.length);
                         this.total.set(Number(first.total_global) || 0);
                         this.totalActivos.set(Number(first.total_activos) || 0);
                         this.totalInactivos.set(Number(first.total_inactivos) || 0);
                     } else {
+                        this._asignaciones.set([]);
                         this.totalFiltered.set(0);
-                        // Cuando la lista de búsqueda está vacía, no queremos poner los globales a 0 si hay datos.
-                        // Sin embargo, si la DB está vacía, será 0. Si simplemente no hay resultados de búsqueda,
-                        // la query anterior no nos da los totales globales porque no hay registros.
-                        // Para solucionarlo de forma sencilla, si total_global venía, lo usamos, si no, lo dejamos igual.
                     }
                     this.loading.set(false);
                 },

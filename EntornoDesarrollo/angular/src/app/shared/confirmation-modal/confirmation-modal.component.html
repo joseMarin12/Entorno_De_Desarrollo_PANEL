@@ -31,11 +31,15 @@
         @if (description()) {
           <ng-container>{{ description() }}</ng-container>
         } @else {
-          {{ isDesactivar() ? 'Dar de baja a ' : 'Activar a ' }}<strong>{{ name() }}</strong>.<br>
-          {{ isDesactivar() ? 'Pasará a estar ' : 'Volverá a estar ' }}<strong>{{ isDesactivar() ? 'inactivo' : 'activo' }}</strong> en el sistema.<br>
-          {{ isDesactivar() ? 'No se eliminarán sus datos y podrá reactivarlo cuando quiera.' : 'Su historial y datos se mantendrán completamente intactos.' }}
+          @if (isEliminar()) {
+            ¿Estás seguro de que deseas eliminar permanentemente <strong>{{ name() }}</strong>?<br>
+            Esta acción no se puede deshacer y borrará el documento del sistema.
+          } @else {
+            {{ isDesactivar() ? 'Dar de baja a ' : 'Activar a ' }}<strong>{{ name() }}</strong>.<br>
+            {{ isDesactivar() ? 'Pasará a estar ' : 'Volverá a estar ' }}<strong>{{ isDesactivar() ? 'inactivo' : 'activo' }}</strong> en el sistema.<br>
+            {{ isDesactivar() ? 'No se eliminarán sus datos y podrá reactivarlo cuando quiera.' : 'Su historial y datos se mantendrán completamente intactos.' }}
+          }
         }
-
       </div>
     </div>
 
@@ -43,7 +47,9 @@
     <div class="sel-confirm-footer">
       <button class="sel-confirm-btn sel-confirm-btn-cancel" (click)="closed.emit()">{{cancelarButtonTitle()}}</button>
       @if (isDesactivar()) {
-        <button class="sel-confirm-btn sel-confirm-btn-danger" (click)="confirmClicked()">{{ desactivarButtonTitle() }}</button>
+        <button class="sel-confirm-btn sel-confirm-btn-danger" (click)="confirmClicked()">
+          {{ isEliminar() ? eliminarButtonTitle() : desactivarButtonTitle() }}
+        </button>
       } @else {
         <button class="sel-confirm-btn sel-confirm-btn-success" (click)="confirmClicked()">{{ activarButtonTitle() }}</button>
       }
