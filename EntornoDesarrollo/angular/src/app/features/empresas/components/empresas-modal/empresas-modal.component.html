@@ -1,5 +1,5 @@
 <div class="modal-overlay open">
-  <div class="modal" (click)="$event.stopPropagation()">
+  <div class="modal" style="max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div>
         <div class="modal-title">{{ title }}</div>
@@ -14,6 +14,7 @@
 
     <div class="modal-body">
       <div class="form-grid">
+
         <div class="form-group">
           <label class="form-label">Nombre <span class="req">*</span></label>
           <input class="form-input" [class.error]="errors['nombre']" type="text" placeholder="Ej: SGTech" [(ngModel)]="form.nombre">
@@ -27,13 +28,18 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Tipo <span class="req">*</span></label>
-          <select class="form-input" [class.error]="errors['id_tipo_empresa']" [(ngModel)]="form.id_tipo_empresa">
-            <option [ngValue]="null" disabled>Selecciona un tipo</option>
-            @for (tipo of tipos(); track tipo.id) {
-              <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
-            }
-          </select>
+          <app-lookup-select
+            [apiUrl]="empresasApiUrl"
+            action="getTiposEmpresa"
+            label="Tipo"
+            [required]="true"
+            [hasError]="!!errors['id_tipo_empresa']"
+            [searchable]="true"
+            valueField="id"
+            labelField="nombre"
+            placeholder="Seleccionar tipo de empresa..."
+            [(ngModel)]="form.id_tipo_empresa"
+          />
           @if (errors['id_tipo_empresa']) { 
             <span class="form-hint error-msg">{{ errors['id_tipo_empresa'] }}</span>
           }
@@ -45,26 +51,29 @@
           @if (errors['cif']) { <span class="form-hint error-msg">{{ errors['cif'] }}</span> }
         </div>
 
-        <div class="form-group full">
+        <div class="form-group">
           <label class="form-label">Direcciones</label>
           <input class="form-input" type="number" [(ngModel)]="form.direcciones" disabled>
           <span class="form-hint">Se actualiza automáticamente al añadir direcciones</span>
         </div>
 
-        <div class="form-group full">
+        <div class="form-group">
           <label class="form-label">Contactos</label>
           <input class="form-input" type="number" [(ngModel)]="form.contactos" disabled>
           <span class="form-hint">Se actualiza automáticamente al añadir contactos</span>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Comercial</label>
-          <select class="form-input" [(ngModel)]="form.id_comerciales">
-            <option [ngValue]="null">Sin comercial asignado</option>
-            @for (c of comerciales(); track c.id) {
-              <option [ngValue]="c.id">{{ fullName(c) }}</option>
-            }
-          </select>
+          <app-lookup-select
+            [apiUrl]="asignacionesApiUrl"
+            action="getComerciales"
+            label="Comercial"
+            [searchable]="true"
+            valueField="id"
+            labelField="nombre_completo"
+            placeholder="Sin comercial asignado"
+            [(ngModel)]="form.id_comerciales"
+          />
         </div>        
 
         <div class="form-group full">

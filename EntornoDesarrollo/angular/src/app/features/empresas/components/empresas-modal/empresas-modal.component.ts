@@ -2,16 +2,13 @@ import { CommonModule } from "@angular/common";
 import { Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, signal, SimpleChanges } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Empresa } from "../../../../models/empresa.model";
-import { EmpresasApiService } from "../../../../services/empresas-api.service";
-import { ComercialesApiService } from "../../../../services/comerciales-api.service";
-import { TipoEmpresa } from "../../../../models/tipo-empresa.model";
-import { Comercial, comercialFullName } from "../../../../models/comercial.model";
-import { catchError, forkJoin, map, of } from "rxjs";
+import { LookupSelectComponent } from "../../../../shared/lookup-select/lookup-select.component";
+import { environment } from "../../../../../environments/environment";
 
 @Component({
     selector: "app-modal-empresas",
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, LookupSelectComponent],
     templateUrl: "./empresas-modal.component.html",
 })
 export class EmpresasModalComponent implements OnInit, OnChanges {
@@ -21,13 +18,8 @@ export class EmpresasModalComponent implements OnInit, OnChanges {
     @Output() saveEdit = new EventEmitter<Empresa>();
     @Output() close = new EventEmitter<void>();
 
-    private empresasApi = inject(EmpresasApiService);
-    private comercialesApi = inject(ComercialesApiService);
-
-    private _tipos = signal<TipoEmpresa[]>([]);
-    private _comerciales = signal<Comercial[]>([]);
-    readonly tipos = this._tipos.asReadonly();
-    readonly comerciales = this._comerciales.asReadonly();
+    readonly empresasApiUrl = `${environment.apiUrl}/empresas`;
+    readonly asignacionesApiUrl = `${environment.apiUrl}/asignaciones`;
 
     form = {
         nombre: '',
@@ -43,37 +35,25 @@ export class EmpresasModalComponent implements OnInit, OnChanges {
     errors: Record<string, string> = {};
     private formInitialized = false;
 
-    get isEditMode() {
+    get isEditMode(): boolean {
         return this.empresa !== null;
     }
 
-    get title() {
+    get title(): string {
         return this.isEditMode ? 'Editar Empresa' : 'Añadir Empresa';
     }
 
-    get subtitle() {
+    get subtitle(): string {
         if (!this.isEditMode) return 'Rellena los datos de la nueva empresa.';
         return `Modificando datos de ${[this.empresa!.nombre, this.empresa!.razonSocial].join(' ')}`;
     }
 
-    get buttonLabel() {
+    get buttonLabel(): string {
         return this.isEditMode ? 'Guardar cambios' : 'Añadir empresa';
     }
 
     ngOnInit(): void {
-        forkJoin({
-            tipos: this.empresasApi.findTipos().pipe(
-                catchError((err) => { console.error('Error al cargar tipos:', err); return of([]); })
-            ),
-            comerciales: this.comercialesApi.findAll(1, 1000, '', 'true').pipe(
-                map(response => response.data ?? []),
-                catchError((err) => { console.error('Error al cargar comerciales:', err); return of([]); })
-            )
-        }).subscribe(({ tipos, comerciales }) => {
-            this._tipos.set(tipos);
-            this._comerciales.set(comerciales);
-            if (!this.formInitialized) this.fillForm();
-        });
+        if (!this.formInitialized) this.fillForm();
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -89,7 +69,6 @@ export class EmpresasModalComponent implements OnInit, OnChanges {
             this.formInitialized = true;
             return;
         }
-        if (this._tipos().length === 0) return;
 
         this.form = {
             nombre: this.empresa!.nombre,
@@ -150,9 +129,5 @@ export class EmpresasModalComponent implements OnInit, OnChanges {
             activo: true,
         };
         this.errors = {};
-    }
-
-    fullName(c: Comercial): string {
-        return comercialFullName(c);
     }
 }
