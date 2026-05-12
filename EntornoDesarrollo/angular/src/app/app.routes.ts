@@ -16,15 +16,16 @@ import { AsignacionesPageComponent } from './features/asignaciones/pages/asignac
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginPageComponent },
-  { 
-    path: 'change-password', 
-    component: ChangePasswordComponent, 
-    canActivate: [autenticadorGuard, firstLoginGuard] 
+  {
+    path: 'change-password',
+    component: ChangePasswordComponent,
+    canActivate: [autenticadorGuard, firstLoginGuard]
   },
-  { 
-    path: '', 
+  {
+    path: '',
     canActivate: [autenticadorGuard, firstLoginGuard],
     children: [
+      { path: 'asignaciones', component: AsignacionesPageComponent },
       { path: 'comerciales', component: ComercialesPageComponent },
       { path: 'seleccionadores', component: SeleccionadoresPageComponent },
       { path: 'empresas/:id/direcciones', component: EmpresasDireccionesPageComponent },
@@ -32,7 +33,7 @@ export const routes: Routes = [
       { path: 'empresas', component: EmpresasPageComponent },
       { path: 'usuarios', component: UsuariosPageComponent },
       { path: 'formaciones', component: FormacionesPageComponent },
-  { path: 'trabajadores', component: TrabajadoresPageComponent },
+      { path: 'trabajadores', component: TrabajadoresPageComponent },
     ]
   }
 ];
