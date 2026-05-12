@@ -40,3 +40,4 @@ Route::post('/usuarios', [UsuariosController::class, 'proxy']);
 Route::post('/formaciones', [FormacionController::class, 'proxy']);
 Route::post('/empresas', [EmpresaController::class, 'proxy']);
 Route::post('/direcciones-empresas', [DireccionesEmpresaController::class, 'proxy']);
+Route::post('/asignaciones', [\App\Http\Controllers\AsignacionController::class, 'proxy']);
