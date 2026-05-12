@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { ComercialesPageComponent } from './features/comerciales/pages/comerciales-page/comerciales-page.component';
 import { SeleccionadoresPageComponent } from './features/seleccionadores/pages/seleccionadores-page/seleccionadores-page.component';
 import { EmpresasPageComponent } from './features/empresas/pages/empresas-page/empresas-page.component';
-import { EmpresasDireccionesPageComponent } from './features/empresas/pages/empresas-direcciones-page/empresas-direcciones-page.component';
+import { EmpresasDireccionesPageComponent } from './features/direcciones_empresas/pages/direcciones-empresas-page/empresas-direcciones-page.component';
 import { EmpresasContactosPageComponent } from './features/empresas/pages/empresas-contactos-page/empresas-contactos-page.component';
 import { UsuariosPageComponent } from './features/usuarios/pages/usuarios-page/usuarios-page.component';
 import { FormacionesPageComponent } from './features/formaciones/pages/formaciones-page/formaciones-page.component';
