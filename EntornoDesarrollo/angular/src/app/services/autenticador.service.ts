@@ -49,6 +49,8 @@ export class AutenticadorService {
   logout(): void {
     sessionStorage.removeItem('user');
     sessionStorage.removeItem('token');
+    sessionStorage.removeItem('firstLoginCompleted');
+    this.firstLoginOverridden.set(false);
     this.currentUser.set(null);
     this.router.navigate(['/login']);
   }
@@ -101,7 +103,7 @@ export class AutenticadorService {
     return this.getDecodedToken()?.email || null;
   }
 
-  private firstLoginOverridden = signal(false);
+  private firstLoginOverridden = signal(sessionStorage.getItem('firstLoginCompleted') === 'true');
 
   isFirstLogin(): boolean {
     if (this.firstLoginOverridden()) return false;
@@ -109,6 +111,7 @@ export class AutenticadorService {
   }
 
   completeFirstLogin(): void {
+    sessionStorage.setItem('firstLoginCompleted', 'true');
     this.firstLoginOverridden.set(true);
   }
 }
