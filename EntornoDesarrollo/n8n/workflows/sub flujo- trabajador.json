@@ -1,4 +1,5 @@
 {
+  "name": "sub flujo- trabajador",
   "nodes": [
     {
       "parameters": {},
@@ -208,6 +209,7 @@
       }
     }
   ],
+  "pinData": {},
   "connections": {
     "Execute Workflow Trigger": {
       "main": [
@@ -264,9 +266,17 @@
       ]
     }
   },
-  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "08d83171-bae8-4bfd-84f4-670625bf88f4",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
-  }
+  },
+  "id": "c08ktOiuDWynWXG1",
+  "tags": []
 }

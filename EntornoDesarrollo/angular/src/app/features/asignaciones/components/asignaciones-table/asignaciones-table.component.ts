@@ -37,7 +37,7 @@ export class AsignacionesTableComponent {
     {
       header: 'Empresa',
       type: 'avatar-name',
-      nameFields: ['empresa_nombre'],
+      nameFields: ['nombre_empresa'],
       subField: 'id',
       subPrefix: 'ID: ',
       activeField: 'activo',

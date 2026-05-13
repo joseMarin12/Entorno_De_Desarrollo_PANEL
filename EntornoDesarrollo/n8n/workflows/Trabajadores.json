@@ -1,4 +1,5 @@
 {
+  "name": "Trabajadores",
   "nodes": [
     {
       "parameters": {
@@ -779,6 +780,7 @@
       "name": "JWT Verify"
     }
   ],
+  "pinData": {},
   "connections": {
     "Webhook Trabajadores1": {
       "main": [
@@ -1102,9 +1104,17 @@
       ]
     }
   },
-  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a0618c2f-798a-46ab-8cd4-cff1ff1e24e8",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
-  }
+  },
+  "id": "jAA5Pelj68qNMYJv",
+  "tags": []
 }
