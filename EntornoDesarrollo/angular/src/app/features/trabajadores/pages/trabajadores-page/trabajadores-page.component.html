@@ -2,7 +2,7 @@
 
 <div class="page-content">
 
-    <!-- Cabecera -->
+    
     <div class="page-header">
       <div>
         <div class="page-title">Trabajadores</div>
@@ -16,7 +16,7 @@
       </button>
     </div>
 
-  <!-- Estadísticas -->
+  
   <app-trab-stats-row 
     [total]="statsTotal()"
     [activos]="statsActivos()"
@@ -24,7 +24,7 @@
     [freelances]="statsFreelances()"
   />
 
-  <!-- Toolbar: búsqueda + filtros -->
+  
   <div style="margin-bottom:16px">
     <app-trab-toolbar
       (searchChange)="onSearchChange($event)"
@@ -85,7 +85,9 @@
   <app-confirmation-modal
     [mode]="confirmMode"
     [name]="selectedTrabajadorNombre() || 'Trabajador'"
+    [title]="confirmCustomTitle() || '¿Seguro que quiere realizar esta acción?'"
+    [description]="confirmCustomDesc()"
     (confirm)="onConfirmToggle()"
-    (closed)="showConfirm = false"
+    (closed)="showConfirm = false; confirmCustomTitle.set(undefined); confirmCustomDesc.set(null)"
   />
 }

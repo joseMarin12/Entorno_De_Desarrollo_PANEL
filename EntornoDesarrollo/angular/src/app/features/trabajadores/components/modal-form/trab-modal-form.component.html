@@ -333,17 +333,21 @@
           <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
             <!-- Selector Único Customizado -->
             <div class="form-group" style="margin: 0; position: relative; flex: 1; min-width: 250px;">
-              <label class="form-label" style="font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
-                <span>¿Qué documento añadirás? <em style="color:var(--danger)">*</em></span>
-                <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">Máx. 5 archivos permitidos</span>
+              <label class="form-label" style="font-size: 13px; font-weight: 600;">
+                ¿Qué documento añadirás? <em style="color:var(--danger)">*</em>
               </label>
               
-              <!-- Trigger del dropdown -->
               <div 
                 (click)="isDocDropdownOpen = !isDocDropdownOpen"
-                style="display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 14px; background: white; cursor: pointer; color: var(--text);">
-                <span>{{ selectedDocName }}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [style.transform]="isDocDropdownOpen ? 'rotate(180deg)' : 'none'" style="transition: transform 0.2s; color: var(--text-muted);"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                class="form-input"
+                [style.borderColor]="isDocDropdownOpen ? 'var(--blue-mid)' : ''"
+                style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; padding: 12px 14px; height: auto; font-size: 14px; overflow: hidden;">
+                <span 
+                  [style.color]="newDocSelection ? 'var(--text)' : 'var(--text-muted)'"
+                  style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 12px; flex-grow: 1;">
+                  {{ selectedDocName }}
+                </span>
+                <svg style="flex-shrink: 0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [style.transform]="isDocDropdownOpen ? 'rotate(180deg)' : 'none'" style="transition: transform 0.2s; color: var(--text-muted);"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </div>
 
               <!-- Menú Desplegable -->

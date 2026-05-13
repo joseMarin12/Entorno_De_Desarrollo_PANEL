@@ -55,6 +55,8 @@ export class TrabajadoresPageComponent implements OnInit {
   selectedTrabajador: Trabajador | null = null;
   selectedTrabajadorNombre = signal<string | null>(null);
   selectedDocumentoToDelete: any = null;
+  confirmCustomTitle = signal<string | undefined>(undefined);
+  confirmCustomDesc = signal<string | null>(null);
 
   searchQuery = signal<string>('');
   activeFilter = signal<TrabFilterType>('');
@@ -112,7 +114,8 @@ export class TrabajadoresPageComponent implements OnInit {
     switch (event.type) {
       case 'view': this.onDetailClick(event.id); break;
       case 'edit': this.onEditClick(event.id); break;
-      case 'toggle_status': this.onToggleStatusClick(event.id); break;
+      case 'baja': this.onBajaClick(event.id); break;
+      case 'activar': this.onActivarClick(event.id); break;
     }
   }
 
@@ -125,7 +128,6 @@ export class TrabajadoresPageComponent implements OnInit {
   onDetailClick(id: number): void {
     this.selectedId.set(id);
     this.selectedTrabajador = this.getById(id) ?? null;
-    // Cargar asignaciones y formaciones del trabajador
     this.detailAsignaciones.set([]);
     this.detailFormaciones.set([]);
     this.detailDocumentos.set([]);
@@ -178,10 +180,18 @@ export class TrabajadoresPageComponent implements OnInit {
     this.detailDocumentos.set([]);
   }
 
-  onToggleStatusClick(id: number): void {
+  onBajaClick(id: number): void {
     this.selectedId.set(id);
+    this.confirmMode = ConfirmMode.DESACTIVAR;
     const t = this.getById(id);
-    this.confirmMode = t?.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR;
+    this.selectedTrabajadorNombre.set(t ? `${t.nombre} ${t.primer_apellido}` : null);
+    this.showConfirm = true;
+  }
+
+  onActivarClick(id: number): void {
+    this.selectedId.set(id);
+    this.confirmMode = ConfirmMode.ACTIVAR;
+    const t = this.getById(id);
     this.selectedTrabajadorNombre.set(t ? `${t.nombre} ${t.primer_apellido}` : null);
     this.showConfirm = true;
   }
@@ -192,6 +202,8 @@ export class TrabajadoresPageComponent implements OnInit {
         next: () => {
           this.toast.show('success', '✓ Documento eliminado');
           this.showConfirm = false;
+          this.confirmCustomTitle.set(undefined);
+          this.confirmCustomDesc.set(null);
           this.selectedDocumentoToDelete = null;
           this.api.getDocumentosByTrabajador(this.selectedId()!).subscribe(data => this.detailDocumentos.set(data));
         },
@@ -244,6 +256,8 @@ export class TrabajadoresPageComponent implements OnInit {
     this.selectedDocumentoToDelete = doc;
     this.confirmMode = ConfirmMode.ELIMINAR;
     this.selectedTrabajadorNombre.set(doc.nombre_fichero || 'este documento');
+    this.confirmCustomTitle.set('¿Eliminar documento?');
+    this.confirmCustomDesc.set(doc.nombre_fichero || 'este documento');
     this.showConfirm = true;
   }
 
