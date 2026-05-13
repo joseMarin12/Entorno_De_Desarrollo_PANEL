@@ -13,23 +13,17 @@ export interface Trabajador {
   nacionalidad?: string;
   fecha_nacimiento?: string;
   id_seleccionadores?: number;
-  activo: boolean; // boolean es mejor práctica en Angular
+  activo: boolean; 
   fecha_ini?: string;
   fecha_fin?: string;
   codigo_postal?: string;
   id_localidad?: number;
   freelance: boolean;
   id_provincia?: number;
-
-  // Campos relacionales (para mostrar en la tabla, enviados por el backend)
   seleccionador_nombre?: string;
   provincia_nombre?: string;
   localidad_nombre?: string;
-
-  // Flag UI (ej. para formaciones)
   asignado?: boolean;
-
-  // Auditoría
   created_at?: string;
   updated_at?: string;
 }

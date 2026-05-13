@@ -14,15 +14,11 @@ export interface Seleccionador {
   email?: string;
   tipo: TipoSeleccionador;
   activo: boolean;
-  
-  // Campos exclusivos de seleccionador externo:
   id_empresa?: number;
-  empresa?: EmpresaVinculada; // Objeto completo devuelto por Laravel
+  empresa?: EmpresaVinculada; 
   fecha_ini?: string;
   salario?: number;
   fee?: number;
-
-  // Auditoría (vienen del backend)
   created_at?: string;
   updated_at?: string;
 }

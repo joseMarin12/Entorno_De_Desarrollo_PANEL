@@ -61,11 +61,19 @@ export const TRABAJADORES_COLUMNS: ColumnDef[] = [
       { type: 'view', title: 'Ver detalle', icon: 'eye', variant: 'view' },
       { type: 'edit', title: 'Editar', icon: 'edit', variant: 'edit' },
       { 
-        type: 'toggle_status', 
-        title: 'Baja / Alta', 
-        icon: 'refresh', 
+        type: 'baja', 
+        title: 'Dar de baja', 
+        icon: 'alert-circle', 
         variant: 'danger',
-        showWhen: 'always', 
+        showWhen: 'active', 
+        activeField: 'activo' 
+      },
+      { 
+        type: 'activar', 
+        title: 'Activar', 
+        icon: 'check-circle', 
+        variant: 'success',
+        showWhen: 'inactive', 
         activeField: 'activo' 
       }
     ]

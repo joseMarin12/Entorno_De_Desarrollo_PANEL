@@ -166,6 +166,8 @@ CREATE TABLE trabajador (
     id_localidad INT,
     freelance BOOLEAN DEFAULT FALSE,
     id_provincia INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_seleccionadores) REFERENCES seleccionadores(id) ON DELETE SET NULL,
     FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE SET NULL,
     FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE SET NULL
