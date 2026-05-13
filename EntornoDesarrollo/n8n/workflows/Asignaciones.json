@@ -242,6 +242,9 @@
           "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
         }
+      },
+      "options": {
+        "alwaysOutputData": true
       }
     },
     {

@@ -35,14 +35,15 @@ export class FormacionesService extends BaseCrud<Formacion> {
         return this._findAll({ action: 'getFormaciones', filters: { searchText, searchField, activo }, page, pageSize }).pipe(
             tap({
                 next: list => {
-                    this._formaciones.set(list);
-                    if (list && list.length > 0) {
+                    if (list && list.length > 0 && list[0].id !== undefined && list[0].id !== null) {
+                        this._formaciones.set(list);
                         const first = list[0] as any;
                         this.totalFiltered.set(Number(first.total_records) || list.length);
                         this.total.set(Number(first.total_global) || 0);
                         this.totalActivos.set(Number(first.total_activos) || 0);
                         this.totalInactivos.set(Number(first.total_inactivos) || 0);
                     } else {
+                        this._formaciones.set([]);
                         this.totalFiltered.set(0);
                     }
                     this.loading.set(false);

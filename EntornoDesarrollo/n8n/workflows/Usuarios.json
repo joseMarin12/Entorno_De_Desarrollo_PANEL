@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-23T11:27:05.607Z",
+  "updatedAt": "2026-04-27T10:05:11.409Z",
   "createdAt": "2026-04-09T13:26:23.893Z",
   "id": "r8k7krUdPWJ3TxuU",
   "name": "Usuarios",
@@ -469,7 +469,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = parseInt($input.item.json.body.page) || 1;\n\nconst limit = 7;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `\nSELECT \n  id, name, surname, email, roleid, password, enabled,\n  COUNT(*) OVER() as total_count\nFROM \"user\"\nWHERE 1=1\n`;\n\n// Búsqueda por texto\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(\n    CONCAT(name, ' ', surname) ILIKE $${paramIndex}\n    OR email ILIKE $${paramIndex}\n  )`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\n// Filtro por estado (enabled)\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  conditions.push(`enabled = $${paramIndex}`);\n  params.push(filters.status);\n  paramIndex++;\n}\n\n// Filtro por role_id\nif (filters.roleid !== undefined && filters.roleid !== null && filters.roleid !== '') {\n  conditions.push(`roleid = $${paramIndex}`);\n  params.push(filters.roleid);\n  paramIndex++;\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\n// 👇 IMPORTANTE: paginación + orden\nquery += ` ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      limit\n    }\n  }\n];"
+        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = parseInt($input.item.json.body.page) || 1;\n\nconst limit = 10;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `\nSELECT \n  id, name, surname, email, roleid, password, enabled,\n  COUNT(*) OVER() as total_count\nFROM \"user\"\nWHERE 1=1\n`;\n\n// Búsqueda por texto\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(\n    CONCAT(name, ' ', surname) ILIKE $${paramIndex}\n    OR email ILIKE $${paramIndex}\n  )`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\n// Filtro por estado (enabled)\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  conditions.push(`enabled = $${paramIndex}`);\n  params.push(filters.status);\n  paramIndex++;\n}\n\n// Filtro por role_id\nif (filters.roleid !== undefined && filters.roleid !== null && filters.roleid !== '') {\n  conditions.push(`roleid = $${paramIndex}`);\n  params.push(filters.roleid);\n  paramIndex++;\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\n// 👇 IMPORTANTE: paginación + orden\nquery += ` ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      limit\n    }\n  }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -716,9 +716,9 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "fd1ff0e6-82ec-49ce-8eac-4045a773a746",
-  "activeVersionId": "fd1ff0e6-82ec-49ce-8eac-4045a773a746",
-  "versionCounter": 411,
+  "versionId": "6321163c-c6b4-4629-aeee-6d4d8f4ebff5",
+  "activeVersionId": "6321163c-c6b4-4629-aeee-6d4d8f4ebff5",
+  "versionCounter": 415,
   "triggerCount": 1,
   "tags": [],
   "shared": [
@@ -741,7 +741,7 @@
     }
   ],
   "versionMetadata": {
-    "name": "Version 6babe063",
+    "name": "Version 6321163c",
     "description": ""
   }
 }

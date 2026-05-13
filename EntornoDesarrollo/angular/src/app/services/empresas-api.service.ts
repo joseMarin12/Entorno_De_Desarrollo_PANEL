@@ -9,8 +9,13 @@ import { TipoEmpresa } from '../models/tipo-empresa.model';
 export class EmpresasApiService extends BaseCrud<Empresa> {
   protected readonly API_URL = `${environment.apiUrl}/empresas`;
 
-  findAll(searchText = '', status = ''): Observable<Empresa[]> {
-    return this._findAll({ action: 'getEmpresas', filters: { searchText, status } });
+  findAll(searchText = '', status = '', tipo = '', page = 1, limit = 10): Observable<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }> {
+    return this.http.post<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }>(this.API_URL, {
+      action: 'getEmpresas',
+      filters: { searchText, status, tipo },
+      page,
+      limit,
+    });
   }
 
   findTipos(): Observable<TipoEmpresa[]> {
@@ -23,7 +28,14 @@ export class EmpresasApiService extends BaseCrud<Empresa> {
   }
 
   update(id: number, data: Empresa): Observable<Empresa> {
-    return this._update({ action: 'updateEmpresa', empresaId: id, empresaData: data });
+    return this._update({ action: 'updateEmpresa', empresaId: id, empresaData: {
+      nombre: data.nombre,
+      razonSocial: data.razonSocial,
+      cif: data.cif,
+      id_tipo_empresa: data.id_tipo_empresa,
+      id_comerciales: data.id_comerciales,
+      activo: data.activo,
+    } });
   }
 
   toggleStatus(id: number): Observable<Empresa> {

@@ -337,6 +337,7 @@
         "postgres": {
           "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
+>>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
         }
       }
     },

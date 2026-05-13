@@ -24,11 +24,10 @@ export class UsuariosService extends BaseCrud<Usuario> {
   readonly roles = this._roles.asReadonly();
 
   loadRoles(): void {
-    const payload = { action: 'getRole' };
-    this.http.post<{data: any[]}>(this.API_URL, payload).subscribe({
-      next: (res) => {
-        if (!res || !res.data) return;
-        const roles = res.data.map(r => {
+    this._findAll<{ action: string }>({ action: 'getRole' }).subscribe({
+      next: (res: any[]) => {
+        if (!res) return;
+        const roles = res.map(r => {
           const json = r.json || r;
           return { id: Number(json.id), name: json.name };
         });
@@ -38,15 +37,16 @@ export class UsuariosService extends BaseCrud<Usuario> {
     });
   }
 
-
   loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {
     this.loading.set(true);
     this.error.set(null);
+   
     return this._findAll({
       action: 'getUser',
       page,
       limit,
       filters,
+     
     }).pipe(
       map(rawData => ({
         mapped: rawData.map((item: any) => this.mapSingleFromBackend(item)),
@@ -241,5 +241,15 @@ export class UsuariosService extends BaseCrud<Usuario> {
       'linear-gradient(135deg,#5a4d9a,#23b4cd)',
     ];
     return COLORS[(id - 1) % COLORS.length] || COLORS[0];
+  }
+
+  changePassword(id: number, password: string): Observable<any> {
+    const payload = {
+      action: 'changePassword',
+      id,
+      password
+    };
+    // Usamos el endpoint de usuarios
+    return this.http.post(this.API_URL, payload);
   }
 }

@@ -31,9 +31,12 @@ CREATE TABLE "user" (
     roleid INT,
     enabled BOOLEAN DEFAULT TRUE,
     password VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    first_login BOOLEAN DEFAULT true,
     CONSTRAINT fk_user_role FOREIGN KEY (roleid) REFERENCES role(id) ON DELETE SET NULL
 );
+--Creación de usuario primera vez (Contraseña admin)
+INSERT INTO "user" (name, surname, email, roleid, enabled, password, first_login)
+VALUES ('admin', 'admin', 'administrador@example.com', 1, true, '$2a$10$7UKIy//QMfkq2ec2d5znR.EaOFTjzuD/CohXMHSbNw9OfMnh5zyW.');
 
 -- Localizaciones
 
@@ -91,12 +94,28 @@ CREATE TABLE pais (
     pais VARCHAR(45) NOT NULL
 );
 
+INSERT INTO pais (pais) VALUES 
+    ('Argentina'),
+    ('España'),
+    ('México');
+
 CREATE TABLE provincia (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_pais INT,
     provincia VARCHAR(30) NOT NULL,
     FOREIGN KEY (id_pais) REFERENCES pais(id) ON DELETE CASCADE
 );
+
+INSERT INTO provincia (id_pais, provincia) VALUES
+    (1, 'Buenos Aires'),
+    (1, 'Córdoba'),
+    (1, 'Mendoza'),
+    (2, 'Madrid'),
+    (2, 'Barcelona'),
+    (2, 'A Coruña'),
+    (3, 'Jalisco'),
+    (3, 'Nuevo León'),
+    (3, 'Yucatán');
 
 CREATE TABLE localidad (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -105,12 +124,35 @@ CREATE TABLE localidad (
     FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE CASCADE
 );
 
+INSERT INTO localidad (id_provincia, localidad) VALUES
+    (1, 'La Plata'),
+    (1, 'Mar del Plata'),
+    (2, 'Villa Carlos Paz'),
+    (2, 'Río Cuarto'),
+    (3, 'Godoy Cruz'),
+    (3, 'San Rafael'),
+    (4, 'Alcalá de Henares'),
+    (4, 'Móstoles'),
+    (5, 'Hospitalet de Llobregat'),
+    (5, 'Badalona'),
+    (6, 'Santiago de Compostela'),
+    (6, 'A Coruña'),
+    (7, 'Guadalajara'),
+    (7, 'Puerto Vallarta'),
+    (8, 'Monterrey'),
+    (8, 'San Nicolás de los Garza'),
+    (9, 'Mérida'),
+    (9, 'Valladolid');
+
 CREATE TABLE direccion_empresa (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     direccion VARCHAR(128),
     codigo_postal VARCHAR(10),
     id_empresa INT,
     id_localidad INT,
+    activo BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE CASCADE,
     FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE CASCADE
 );

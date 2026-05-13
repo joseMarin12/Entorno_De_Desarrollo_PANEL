@@ -45,7 +45,7 @@ export class UsuariosPageComponent implements OnInit {
     showForm = false;
     showBaja = false;
     showDetail = false;
-    selectedId: number | null = null;
+    selectedId = signal<number | null>(null);
 
     // ── Filtros ───────────────────────────────────────
     searchQuery = '';
@@ -53,10 +53,12 @@ export class UsuariosPageComponent implements OnInit {
 
     // ── Datos calculados ──────────────────────────────
     selectedUsuario = computed(() => 
-        this.selectedId ? this.svc.getById(this.selectedId) : null
+        this.selectedId() ? this.svc.getById(this.selectedId()!) : null
     );
 
-    emailUsuarios = signal<string[]>([]);
+    emailUsuarios = computed(() => 
+        this.svc.usuarios().map(u => (u.email || '').toLowerCase())
+    );
 
     // ── Ciclo de vida ─────────────────────────────────
     ngOnInit(): void {
@@ -100,20 +102,23 @@ export class UsuariosPageComponent implements OnInit {
     }
 
     openAdd(): void {
-        this.selectedId = null;
+        this.selectedId.set(null);
         this.showForm = true;
     }
 
     onSaveForm(data: Partial<Usuario>): void {
-        if (this.selectedId) {
-            this.svc.update(this.selectedId, data as Usuario).subscribe({
+        if (this.selectedId()) {
+            this.svc.update(this.selectedId()!, data as Usuario).subscribe({
                 next: () => {
                     this.showForm = false;
-                    this.selectedId = null;
+                    this.selectedId.set(null);
                     this.toast.show('info', `✎ Usuario <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
                 },
-                error: () => {
-                    this.toast.show('error', `✗ No se pudo guardar los cambios. Inténtalo de nuevo.`);
+                error: (err: any) => {
+                    const msg = err?.message?.toLowerCase().includes('duplicate') || err?.message?.toLowerCase().includes('ya existe') 
+                        ? '✗ El email ya está registrado.' 
+                        : '✗ No se pudo guardar los cambios. Inténtalo de nuevo.';
+                    this.toast.show('error', msg);
                 }
             });
         } else {
@@ -122,36 +127,40 @@ export class UsuariosPageComponent implements OnInit {
                     this.showForm = false;
                     this.toast.show('success', `✓ Usuario <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
                 },
-                error: () => {
-                    this.toast.show('error', `✗ No se pudo añadir el usuario. Inténtalo de nuevo.`);
+                error: (err: any) => {
+                    const msg = err?.message?.toLowerCase().includes('duplicate') || err?.message?.toLowerCase().includes('ya existe') 
+                        ? '✗ El email ya está registrado.' 
+                        : '✗ No se pudo añadir el usuario. Inténtalo de nuevo.';
+                    this.toast.show('error', msg);
                 }
             });
         }
     }
 
     onDetailClick(id: number): void {
-        this.selectedId = id;
+        this.selectedId.set(id);
         this.showDetail = true;
     }
 
     onEditClick(id: number): void {
-        this.selectedId = id;
+        this.selectedId.set(id);
         this.showForm = true;
     }
 
     onBajaClick(id: number): void {
-        this.selectedId = id;
+        this.selectedId.set(id);
         this.showBaja = true;
     }
 
     onConfirmBaja(): void {
-        if (this.selectedId == null) return;
-        const u = this.svc.getById(this.selectedId)!;
+        const id = this.selectedId();
+        if (id == null) return;
+        const u = this.svc.getById(id)!;
         const wasActive = u.enabled;
-        this.svc.toggleActivo(this.selectedId).subscribe({
+        this.svc.toggleActivo(id).subscribe({
             next: () => {
                 this.showBaja = false;
-                this.selectedId = null;
+                this.selectedId.set(null);
                 if (wasActive) {
                     this.toast.show('warning', `⊘ Usuario <strong>${this.svc.fullName(u)}</strong> dado de baja`);
                 } else {

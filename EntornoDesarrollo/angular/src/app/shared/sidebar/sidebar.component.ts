@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { UiService } from '../../services/ui.service';
+import { AutenticadorService } from '../../services/autenticador.service';
 
 export interface NavItem {
   label: string;
@@ -17,6 +18,7 @@ export interface NavItem {
 })
 export class SidebarComponent {
   ui = inject(UiService);
+  auth = inject(AutenticadorService);
 
   gestionItems: NavItem[] = [
     { label: 'Usuarios',        route: '/usuarios',        icon: 'user' },
@@ -34,4 +36,11 @@ export class SidebarComponent {
     { label: 'Comisiones',   route: '/comisiones',   icon: 'chart' },
     { label: 'Informes',     route: '/informes',     icon: 'table' },
   ];
+  
+  get roleName(): string {
+    const roleId = this.auth.currentUser()?.roleid;
+    if (roleId === 1) return 'Administrador';
+    if (roleId === 2) return 'Usuario';
+    return 'Rol no definido';
+  }
 }

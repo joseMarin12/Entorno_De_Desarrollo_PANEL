@@ -6,23 +6,22 @@ import { EmpresasTableComponent } from '../../components/empresas-table/empresas
 import { Empresa } from '../../../../models/empresa.model';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
 import { EmpToolbarComponent, EmpFilterType, EmpFilterTipoType } from '../../components/toolbar/emp-toolbar.component';
-import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
-import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
 import { EmpresasApiService } from '../../../../services/empresas-api.service';
+import { EmpresasModalComponent } from "../../components/empresas-modal/empresas-modal.component";
 
 @Component({
   selector: 'app-empresas-page',
   standalone: true,
   imports: [
     CommonModule,
-    TopbarComponent, 
-    EmpresasTableComponent, 
-    StatsRowComponent, 
-    EmpToolbarComponent, 
-    ModalAddComponent, 
-    ModalEditComponent, 
-    ConfirmationModalComponent],
+    TopbarComponent,
+    EmpresasTableComponent,
+    StatsRowComponent,
+    EmpToolbarComponent,
+    EmpresasModalComponent,
+    ConfirmationModalComponent
+],
   templateUrl: './empresas-page.component.html',
 })
 export class EmpresasPageComponent implements OnInit {
@@ -32,15 +31,19 @@ export class EmpresasPageComponent implements OnInit {
 
   private readonly _empresas = signal<Empresa[]>([]);
   readonly empresas = this._empresas.asReadonly();
-  readonly total = computed(() => this._empresas().length);
-  readonly totalActivos = computed(() => this._empresas().filter(e => e.activo).length);
-  readonly totalInactivos = computed(() => this._empresas().filter(e => !e.activo).length);
+
+  private readonly _total = signal(0);
+  private readonly _totalActivos = signal(0);
+  private readonly _totalInactivos = signal(0);
+  readonly total = this._total.asReadonly();
+  readonly totalActivos = this._totalActivos.asReadonly();
+  readonly totalInactivos = this._totalInactivos.asReadonly();
 
   // ── Filtros ──────────────────────────────────────
   searchQuery  = '';
   activeFilter: EmpFilterType = '';
   typeFilter: EmpFilterTipoType = '';
-  currentPage  = 1;
+  currentPage  = signal(1);
   readonly PAGE_SIZE = 10;
 
   // ── Estado modales ────────────────────────────────
@@ -55,59 +58,61 @@ export class EmpresasPageComponent implements OnInit {
   }
 
   // ── Computed ──────────────────────────────────────
-  get filtered(): Empresa[] {
-    return this.empresas().filter(e => {
-      let matchFilter = true;
-      if (this.activeFilter === 'activa') {
-        matchFilter = e.activo;
-      } else if (this.activeFilter === 'baja') {
-        matchFilter = !e.activo;
-      }
-
-      const matchType = this.typeFilter === '' ? true : e.tipo === this.typeFilter;
-
-      const q = this.searchQuery.toLowerCase().trim();
-      const matchSearch = !q
-        || this.fullName(e).toLowerCase().includes(q)
-      return matchFilter && matchSearch && matchType;
-    });
-  }
-
-  get paginatedEmpresas(): Empresa[] {
-    const start = (this.currentPage - 1) * this.PAGE_SIZE;
-    return this.filtered.slice(start, start + this.PAGE_SIZE);
-  }
 
   get selectedEmpresa(): Empresa | null {
     if (this.selectedId === null) return null;
     return this.getById(this.selectedId) ?? null;
   }
 
-  private loadAll(searchText = '', status = ''): void {
-    this.api.findAll(searchText, status).subscribe({
-      next: (list) => { 
-        this._empresas.set(list ?? []); 
+  private loadAll(searchText = '', status = '', tipo = ''): void {
+    this.api.findAll(searchText, status, tipo, this.currentPage(), this.PAGE_SIZE).subscribe({
+      next: (res) => { 
+        this._empresas.set(res.data ?? []);
+        this._total.set(res.total ?? 0);
+        this._totalActivos.set(res.totalActivos ?? 0);
+        this._totalInactivos.set(res.totalInactivos ?? 0);
       },
       error: () => this.toast.show('error', '✗ No se pudo cargar las empresas. Inténtalo de nuevo.'),
     });
   }
 
+  /* Get CIF existentes para que no se repitan */
+  get getExistingCIFs(): string[] {
+    return this.empresas().map(e => e.cif.trim().toUpperCase());
+  }
+  
+  get existingCIFsForEdit(): string[] {
+    if (!this.selectedId) return [];
+    return this.empresas()
+      .filter(e => e.id !== this.selectedId)
+      .map(e => e.cif.trim().toUpperCase());
+  }
+
+
   // ── Handlers ──────────────────────────────────────
   onSearchChange(q: string): void {
     this.searchQuery = q;
-    this.currentPage = 1;
+    this.currentPage.set(1);
+    this.loadAll(q, this.activeFilter, this.typeFilter);
   }
   
   onFilterChange(f: EmpFilterType): void {
     this.activeFilter = f;
-    this.currentPage = 1;
+    this.currentPage.set(1);
+    this.loadAll(this.searchQuery, f, this.typeFilter);
   }
 
   onTypeFilterChange(t: EmpFilterTipoType): void {
     this.typeFilter = t;
-    this.currentPage = 1;
+    this.currentPage.set(1);
+    this.loadAll(this.searchQuery, this.activeFilter, t);
   }
   
+  onPageChange(page:number): void {
+    this.currentPage.set(page);
+    this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
+  }
+
   openAdd(): void {
     this.showAdd = true;
   }

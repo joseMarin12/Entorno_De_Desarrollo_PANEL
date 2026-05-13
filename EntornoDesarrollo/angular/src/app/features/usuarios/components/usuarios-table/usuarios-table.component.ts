@@ -2,15 +2,14 @@ import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Usuario } from '../../../../models/usuarios.model';
 import { UsuariosService } from '../../../../services/usuarios.service';
+import { TableComponent, ColumnDef } from '../../../../shared/table/table.component';
 
 @Component({
   selector: 'app-usuarios-table',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TableComponent],
   templateUrl: './usuarios-table.component.html',
-  styles: [`
-    .action-btn:hover.detail { border-color: #7c6bba; background: #eeebff; }
-  `]
+  styles: []
 })
 export class UsuariosTableComponent {
   @Input() usuarios: Usuario[] = [];
@@ -25,18 +24,45 @@ export class UsuariosTableComponent {
 
   svc = inject(UsuariosService);
 
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.totalFiltered / this.pageSize));
-  }
+  columns: ColumnDef[] = [
+    {
+      header: 'Nombre',
+      type: 'avatar-name',
+      nameFields: ['nombre'],
+      activeField: 'enabled',
+      initialsFn: (row: Usuario) => this.svc.initials(row),
+      colorFn: (id: number) => this.svc.colorFor(id)
+    },
+    {
+      header: 'Primer Apellido',
+      type: 'text',
+      field: 'apellido1'
+    },
+    {
+      header: 'Email',
+      type: 'text',
+      field: 'email'
+    },
+    {
+      header: 'Estado',
+      type: 'status-badge',
+      activeField: 'enabled'
+    },
+    {
+      header: 'Acciones',
+      type: 'actions',
+      actions: [
+        { type: 'detail', title: 'Ver detalle', icon: 'eye', variant: 'view' },
+        { type: 'edit', title: 'Editar', icon: 'edit', variant: 'edit' },
+        { type: 'baja', title: 'Dar de Baja', icon: 'ban', variant: 'danger', showWhen: 'active', activeField: 'enabled' },
+        { type: 'baja', title: 'Activar', icon: 'check-circle', variant: 'success', showWhen: 'inactive', activeField: 'enabled' }
+      ]
+    }
+  ];
 
-  get paginationInfo(): string {
-    if (this.totalFiltered === 0) return 'Sin resultados';
-    const start = (this.currentPage - 1) * this.pageSize + 1;
-    const end = Math.min(this.currentPage * this.pageSize, this.totalFiltered);
-    return `Mostrando ${start}–${end} de ${this.totalFiltered} usuarios`;
-  }
-
-  get pages(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  onAction(event: { type: string; id: number }): void {
+    if (event.type === 'detail') this.detailClick.emit(event.id);
+    else if (event.type === 'edit') this.editClick.emit(event.id);
+    else if (event.type === 'baja') this.bajaClick.emit(event.id);
   }
 }
