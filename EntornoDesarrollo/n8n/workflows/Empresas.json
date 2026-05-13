@@ -133,270 +133,13 @@
           "renameFallbackOutput": "Invalid Action"
         }
       },
-<<<<<<< HEAD
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        -352,
-        384
-      ],
-      "id": "fa3cedab-4acd-440f-839b-96c9e0e555d7",
-      "name": "Route by Action"
-    },
-    {
-      "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 15;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = \u0027WHERE 1=1\u0027;\n\nif (filters.searchText \u0026\u0026 typeof filters.searchText === \u0027string\u0027 \u0026\u0026 filters.searchText.trim() !== \u0027\u0027) {\n  whereClause += ` AND (f.curso ILIKE $${paramIndex} OR f.denominacion ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.id_estado !== undefined \u0026\u0026 filters.id_estado !== null \u0026\u0026 filters.id_estado !== \u0027\u0027) {\n  whereClause += ` AND f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\n// Si queremos que por defecto traiga activos e inactivos, dejamos WHERE 1=1.\n// Si el frontend enviara un filtro de status, podramos manejarlo aqu.\n\nparams.push(pageSize);\nconst limitParam = paramIndex++;\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) as total\n  FROM formacion f\n  ${whereClause}\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre as estado_nombre,\n    af.nombre as area_nombre,\n    mf.nombre as modalidad_nombre,\n    exe.nombre as ejecucion_nombre,\n    COUNT(ft.id_trabajador) as num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY f.id, ef.nombre, af.nombre, mf.nombre, exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\nSELECT paginado.*, total_count.total as total_records\nFROM paginado, total_count;\n`;\n\nreturn [{ json: { query, params, page, pageSize } }];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -32,
-        -544
-      ],
-      "id": "fbf74ae7-f306-4e9c-81f6-b4446591f700",
-      "name": "Build Get Formaciones Query"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "{{ $json.query }}",
-        "options": {
-          "queryReplacement": "={{ $json.params }}"
-        }
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        320,
-        -528
-      ],
-      "id": "81f121a4-c55e-42e8-a0fa-465a7b000671",
-      "name": "Get Formaciones",
-      "credentials": {
-        "postgres": {
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
-<<<<<<< HEAD
-          "id": "0PqKc6BkC38ueyxO",
-          "name": "Postgres account 2"
-=======
-          "id": "PEj0EcRRiVkwps7h",
-          "name": "Postgres account"
->>>>>>> origin/feature/lookup-select
-========
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account"
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO formacion (\n  id_estado, curso, denominacion, motivo, id_area,\n  recursos, id_responsable, id_modalidad, duracion, dentro_fuera_jornada,\n  observaciones, fecha_prevista, fecha_inicio, fecha_fin, horario,\n  id_ejecucion, eficacia, anio, coste, bonificacion, total, activo\n) VALUES (\n  $1, $2, $3, $4, $5,\n  $6, $7, $8, $9, $10,\n  $11, $12, $13, $14, $15,\n  $16, $17, $18, $19, $20, $21, true\n) RETURNING *;",
-        "options": {
-          "queryReplacement": "={{ $json.body.formacionData.id_estado }},={{ $json.body.formacionData.curso }},={{ $json.body.formacionData.denominacion }},={{ $json.body.formacionData.motivo }},={{ $json.body.formacionData.id_area }},={{ $json.body.formacionData.recursos }},={{ $json.body.formacionData.id_responsable }},={{ $json.body.formacionData.id_modalidad }},={{ $json.body.formacionData.duracion }},={{ $json.body.formacionData.dentro_fuera_jornada }},={{ $json.body.formacionData.observaciones }},={{ $json.body.formacionData.fecha_prevista }},={{ $json.body.formacionData.fecha_inicio }},={{ $json.body.formacionData.fecha_fin }},={{ $json.body.formacionData.horario }},={{ $json.body.formacionData.id_ejecucion }},={{ $json.body.formacionData.eficacia }},={{ $json.body.formacionData.anio }},={{ $json.body.formacionData.coste }},={{ $json.body.formacionData.bonificacion }},={{ $json.body.formacionData.total }}"
-        }
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        320,
-        -352
-      ],
-      "id": "26938c25-b018-42ce-9bb7-efcdc407abc3",
-      "name": "Insert Formacion",
-      "credentials": {
-        "postgres": {
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
-<<<<<<< HEAD
-          "id": "0PqKc6BkC38ueyxO",
-          "name": "Postgres account 2"
-=======
-          "id": "PEj0EcRRiVkwps7h",
-          "name": "Postgres account"
->>>>>>> origin/feature/lookup-select
-========
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account"
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE formacion SET\n  id_estado = $1, curso = $2, denominacion = $3, motivo = $4,\n  id_area = $5, recursos = $6, id_responsable = $7, id_modalidad = $8,\n  duracion = $9, dentro_fuera_jornada = $10, observaciones = $11,\n  fecha_prevista = $12, fecha_inicio = $13, fecha_fin = $14,\n  horario = $15, id_ejecucion = $16, eficacia = $17,\n  anio = $18, coste = $19, bonificacion = $20, total = $21,\n  updated_at = NOW()\nWHERE id = $22\nRETURNING *;",
-        "options": {
-          "queryReplacement": "={{ $json.body.formacionData.id_estado }},={{ $json.body.formacionData.curso }},={{ $json.body.formacionData.denominacion }},={{ $json.body.formacionData.motivo }},={{ $json.body.formacionData.id_area }},={{ $json.body.formacionData.recursos }},={{ $json.body.formacionData.id_responsable }},={{ $json.body.formacionData.id_modalidad }},={{ $json.body.formacionData.duracion }},={{ $json.body.formacionData.dentro_fuera_jornada }},={{ $json.body.formacionData.observaciones }},={{ $json.body.formacionData.fecha_prevista }},={{ $json.body.formacionData.fecha_inicio }},={{ $json.body.formacionData.fecha_fin }},={{ $json.body.formacionData.horario }},={{ $json.body.formacionData.id_ejecucion }},={{ $json.body.formacionData.eficacia }},={{ $json.body.formacionData.anio }},={{ $json.body.formacionData.coste }},={{ $json.body.formacionData.bonificacion }},={{ $json.body.formacionData.total }},={{ $json.body.formacionId }}"
-        }
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        320,
-        -160
-      ],
-      "id": "7a774ed7-109c-4853-b29c-60f1f048df85",
-      "name": "Update Formacion",
-      "credentials": {
-        "postgres": {
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
-<<<<<<< HEAD
-          "id": "Kih4P6xJ67gZaubs",
-=======
-          "id": "PEj0EcRRiVkwps7h",
->>>>>>> origin/feature/lookup-select
-========
-          "id": "AUTOPOSTGRESCRED01",
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE formacion SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING id, curso, activo, updated_at;",
-        "options": {
-          "queryReplacement": "={{ $json.body.formacionId }}"
-        }
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        320,
-        32
-      ],
-      "id": "16b53842-f1bd-4a35-ad82-e38a0608531d",
-      "name": "Toggle Formacion Status",
-      "credentials": {
-        "postgres": {
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
-<<<<<<< HEAD
-          "id": "Kih4P6xJ67gZaubs",
-=======
-          "id": "PEj0EcRRiVkwps7h",
->>>>>>> origin/feature/lookup-select
-========
-          "id": "AUTOPOSTGRESCRED01",
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst idFormacion = body.id_formacion;\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT\n  t.id,\n  t.nombre,\n  t.primer_apellido,\n  t.segundo_apellido,\n  t.dni_nif_pasaporte,\n  t.email,\n  t.telefono,\n  t.activo,\n  CASE WHEN ft.id IS NOT NULL THEN true ELSE false END as asignado\nFROM trabajador t\nLEFT JOIN formacion_trabajador ft\n  ON ft.id_trabajador = t.id AND ft.id_formacion = $${paramIndex}\nWHERE t.activo = true`;\nparams.push(idFormacion);\nparamIndex++;\n\nif (filters.searchText \u0026\u0026 typeof filters.searchText === \u0027string\u0027 \u0026\u0026 filters.searchText.trim() !== \u0027\u0027) {\n  query += ` AND (CONCAT(t.nombre, \u0027 \u0027, t.primer_apellido, \u0027 \u0027, COALESCE(t.segundo_apellido,\u0027\u0027)) ILIKE $${paramIndex} OR t.dni_nif_pasaporte ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.soloDisponibles === true) {\n  query += \u0027 AND ft.id IS NULL\u0027;\n}\n\nquery += \u0027 ORDER BY t.primer_apellido, t.nombre\u0027;\n\nreturn [{ json: { query, params } }];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        80,
-        864
-      ],
-      "id": "9fa85371-0c7c-45b9-aa9d-1715d0b1ad6f",
-      "name": "Build Get Trabajadores Query"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "{{ $json.query }}",
-        "options": {
-          "queryReplacement": "={{ $json.params }}"
-        }
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        304,
-        864
-      ],
-      "id": "c2886c75-ccd9-44b6-bd94-d84d9a4ab8c2",
-      "name": "Get Trabajadores",
-      "credentials": {
-        "postgres": {
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
-<<<<<<< HEAD
-          "id": "Kih4P6xJ67gZaubs",
-=======
-          "id": "PEj0EcRRiVkwps7h",
->>>>>>> origin/feature/lookup-select
-========
-          "id": "AUTOPOSTGRESCRED01",
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO formacion_trabajador (id_formacion, id_trabajador)\nSELECT $1, $2\nWHERE NOT EXISTS (\n  SELECT 1 FROM formacion_trabajador\n  WHERE id_formacion = $1 AND id_trabajador = $2\n)\nRETURNING *;",
-        "options": {
-          "queryReplacement": "={{ $json.body.id_formacion }},={{ $json.body.id_trabajador }}"
-        }
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        304,
-        1056
-      ],
-      "id": "8ac77d33-0f52-4f9a-8d93-78dd08c1e140",
-      "name": "Add Trabajador",
-      "credentials": {
-        "postgres": {
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
-<<<<<<< HEAD
-          "id": "Kih4P6xJ67gZaubs",
-=======
-          "id": "PEj0EcRRiVkwps7h",
->>>>>>> origin/feature/lookup-select
-========
-          "id": "AUTOPOSTGRESCRED01",
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "DELETE FROM formacion_trabajador\nWHERE id_formacion = $1 AND id_trabajador = $2\nRETURNING id;",
-        "options": {
-          "queryReplacement": "={{ $json.body.id_formacion }},={{ $json.body.id_trabajador }}"
-        }
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        304,
-        1232
-      ],
-      "id": "935b51b7-040b-434e-b77d-df7b826a2533",
-      "name": "Remove Trabajador",
-      "credentials": {
-        "postgres": {
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
-<<<<<<< HEAD
-          "id": "Kih4P6xJ67gZaubs",
-=======
-          "id": "PEj0EcRRiVkwps7h",
->>>>>>> origin/feature/lookup-select
-========
-          "id": "AUTOPOSTGRESCRED01",
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-          "name": "Postgres account"
-        }
-      }
-=======
-      "id": "13c290bd-2582-495c-b573-a9a9b2358ce3",
+      "id": "67c6b610-288b-4d02-89c1-afaf7ca81aa6",
       "name": "Route by Action",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -224,
-        336
+        960,
+        464
       ]
     },
     {
@@ -407,15 +150,14 @@
           "responseCode": 200
         }
       },
-      "id": "2ea29faf-3c81-40d8-a548-b9f0c397dd93",
+      "id": "feddefd9-8b7e-4697-8bf4-3403e3827a90",
       "name": "Respond Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1008,
-        384
+        2192,
+        512
       ]
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
     },
     {
       "parameters": {
@@ -430,53 +172,21 @@
             {
               "id": "2",
               "name": "error",
-<<<<<<< HEAD
-              "value": "AcciÃ³n invÃ¡lida. Acciones: getFormaciones, createFormacion, updateFormacion, toggleFormacionStatus, getTrabajadores, addTrabajadorToFormacion, removeTrabajadorFromFormacion",
-=======
               "value": "Invalid action. Supported actions: getEmpresas, createEmpresa, updateEmpresa, toggleEmpresaStatus",
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
               "type": "string"
             }
           ]
         },
         "options": {}
       },
-<<<<<<< HEAD
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        80,
-        1408
-      ],
-      "id": "e5af6836-bf2b-4bab-a6ea-b26e871a9034",
-      "name": "Invalid Action Response"
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item =\u003e item.json) }) }}",
-        "options": {
-          "responseCode": 200
-        }
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        944,
-        512
-      ],
-      "id": "c309396c-fb81-4c74-af17-95542f7f63c6",
-      "name": "Respond Success"
-=======
-      "id": "ca2c8def-2ea6-4215-8811-0540ed171634",
+      "id": "d9591d07-29e7-46ff-96c6-88446d59fcbd",
       "name": "Invalid Action Response",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        0,
-        832
+        1184,
+        960
       ]
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
     },
     {
       "parameters": {
@@ -486,23 +196,13 @@
           "responseCode": 400
         }
       },
-<<<<<<< HEAD
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        304,
-        1408
-      ],
-      "id": "a1bc5a54-8833-46d0-bfa8-ea68c4523e60",
-      "name": "Respond Error"
-=======
-      "id": "857bffb9-e8ca-47ed-96b8-34ce59525305",
+      "id": "11e5e307-aded-4917-bbf0-4654a25b0139",
       "name": "Respond Error",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        224,
-        832
+        1408,
+        960
       ]
     },
     {
@@ -512,13 +212,13 @@
         "width": 340,
         "color": 4
       },
-      "id": "86ca3a50-c39c-4f86-b591-c4183055177c",
+      "id": "bad02da0-40a8-4682-a9ab-da41725b7136",
       "name": "Sticky Note 7ebaaad5",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -928,
-        256
+        0,
+        0
       ]
     },
     {
@@ -528,13 +228,13 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "e00f7ff6-370b-4bf9-a1d1-b7c083702a08",
+      "id": "c116ae12-ce42-4fba-b117-b63f2c9396a5",
       "name": "Gestión Empresas API",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -448,
-        384
+        416,
+        528
       ],
       "webhookId": "0105c6ba-d2f2-478a-87b6-cf65f658184e"
     },
@@ -542,95 +242,58 @@
       "parameters": {
         "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = $input.item.json.body.page || 1;\nconst limit = $input.item.json.body.limit || 10;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT e.id, e.nombre_empresa AS nombre, e.razon_social, e.cif, e.created_at, e.activo, e.id_tipo_empresa,\nt.tipo_empresa AS tipo, e.id_comerciales, NULLIF(CONCAT(com.nombre, ' ', com.primer_apellido), ' ') AS comercial, COUNT(DISTINCT d.id) AS direcciones, \nCOUNT(DISTINCT c.id) AS contactos, COUNT(*) OVER() AS total_count,\nCOUNT(*) FILTER (WHERE e.activo = true) OVER() AS total_activos, COUNT(*) FILTER (WHERE e.activo = false) OVER() AS total_inactivos\nFROM empresa e \nLEFT JOIN tipo_empresa t ON t.id = e.id_tipo_empresa\nLEFT JOIN comerciales com ON com.id = e.id_comerciales\nLEFT JOIN direccion_empresa d ON d.id_empresa = e.id \nLEFT JOIN contacto_empresa c ON c.id_empresa = e.id \nWHERE 1=1`;\n\nif (filters.searchText && filters.searchText.trim() !== '') {\n  conditions.push(`(e.nombre_empresa ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.tipo && filters.tipo.trim() !== '') {\n  conditions.push(`t.tipo_empresa = $${paramIndex}`);\n  params.push(filters.tipo);\n  paramIndex++;\n}\n\nif (filters.status && filters.status.trim() !== '') {\n  if (filters.status === 'activa') {\n    conditions.push(`e.activo = true`);\n  } else if (filters.status === 'baja') {\n    conditions.push(`e.activo = false`);\n  }\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\nquery += ' GROUP BY e.id, e.nombre_empresa, t.tipo_empresa, com.nombre, com.primer_apellido';\nquery += ' ORDER BY e.created_at ASC';\nquery += ` LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [{\n  json: {\n    query: query,\n    params: params.join(',')\n  }\n}];"
       },
-      "id": "a432b92e-13df-4a1e-9d91-4fc1a71ce169",
+      "id": "5c0375ea-63f8-42cb-b692-1802b9795dfb",
       "name": "Build Get Empresas Query",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        48,
-        96
+        1232,
+        224
       ]
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
     },
     {
       "parameters": {
         "operation": "executeQuery",
-<<<<<<< HEAD
-        "query": "select id, nombre from area_formacion",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        320,
-        192
-      ],
-      "id": "0c433135-2882-48c8-b87b-9b0c3ff23c09",
-      "name": "Execute a SQL query",
-      "credentials": {
-        "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account 2"
-=======
         "query": "{{ $json.query }}",
         "options": {
           "queryReplacement": "={{ $json.params }}"
         }
       },
-      "id": "113751f3-6216-47e0-a900-66f9173a85da",
+      "id": "b8fbc43f-90d8-4d60-8538-109ca33a1334",
       "name": "Get Empresas",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        224,
-        48
+        1408,
+        176
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
         }
       }
     },
     {
       "parameters": {
         "operation": "executeQuery",
-<<<<<<< HEAD
-        "query": "select id, nombre from modalidad_formacion",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        320,
-        368
-      ],
-      "id": "a2cb1ae5-0bda-40ec-869d-b61369e50b42",
-      "name": "Execute a SQL query1",
-      "credentials": {
-        "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account 2"
-=======
         "query": "{{ $json.query }}",
         "options": {
           "queryReplacement": "={{ $json.params }}"
         }
       },
-      "id": "18ed9a0c-a8b5-4a31-aa32-5e53c4b959c2",
+      "id": "18f5f80a-272a-41c2-897c-88d0485884eb",
       "name": "Create Empresa",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        224,
-        224
+        1408,
+        352
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
         }
       }
     },
@@ -642,58 +305,40 @@
           "queryReplacement": "={{ $json.body.empresaData.nombre }},{{ $json.body.empresaData.razonSocial }},{{ $json.body.empresaData.cif }},{{ $json.body.empresaData.id_tipo_empresa }},{{ $json.body.empresaData.id_comerciales }},{{ $json.body.empresaData.activo }},{{ $json.body.empresaId }}"
         }
       },
-      "id": "4a29a274-89f2-444a-ab38-adb92f6a7bd5",
+      "id": "a6bc9718-9bae-45fa-a306-9bb367e10f11",
       "name": "Update Empresa",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        224,
-        384
+        1408,
+        512
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
         }
       }
     },
     {
       "parameters": {
         "operation": "executeQuery",
-<<<<<<< HEAD
-        "query": "select id, name from \"user\"",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        320,
-        704
-      ],
-      "id": "fa13a642-8469-49c5-b3e3-e57fb82f46c1",
-      "name": "Execute a SQL query3",
-      "credentials": {
-        "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account 2"
-=======
         "query": "UPDATE empresa \nSET activo = NOT activo, updated_at = NOW() \nWHERE id = $1\nRETURNING id;",
         "options": {
           "queryReplacement": "={{ $json.body.empresaId }}"
         }
       },
-      "id": "98568c5b-3e39-4770-ae51-021fde0552ed",
+      "id": "1c1112af-423f-4d82-b11d-740c277a408a",
       "name": "Toggle Empresa Status",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        224,
-        512
+        1408,
+        640
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -702,13 +347,13 @@
       "parameters": {
         "jsCode": "const body = $input.item.json.body;\n\nconst fields = ['nombre_empresa', 'razon_social', 'cif', 'id_tipo_empresa', 'activo'];\nconst values = [body.empresaData.nombre, body.empresaData.razonSocial, body.empresaData.cif, body.empresaData.id_tipo_empresa, body.empresaData.activo];\n\nif (body.empresaData.id_comerciales !== null && body.empresaData.id_comerciales !== undefined) {\n  fields.push('id_comerciales');\n  values.push(body.empresaData.id_comerciales);\n}\n\nconst placeholders = values.map((_, i) => `$${i + 1}`).join(', ');\n\nreturn [{\n  json: {\n    query: `INSERT INTO empresa (${fields.join(', ')})\n            VALUES (${placeholders})\n            RETURNING id, nombre_empresa AS nombre, razon_social, cif, id_tipo_empresa, id_comerciales, activo, created_at`,\n    params: values.join(',')\n  }\n}];"
       },
-      "id": "a2f02678-06f8-45b4-8db2-863fdd1cd6a7",
+      "id": "01c9c80e-6f12-45d9-ac78-943532f9965b",
       "name": "Build Create Empresas Query",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        48,
-        256
+        1232,
+        384
       ]
     },
     {
@@ -717,17 +362,17 @@
         "query": "SELECT id, tipo_empresa as nombre from tipo_empresa;",
         "options": {}
       },
-      "id": "fa011cfe-cf88-43dc-98dc-f8d793edc6a3",
+      "id": "c32c3c5b-c754-4752-87e7-88f92f2a1acf",
       "name": "Get Tipos Empresa",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        224,
-        672
+        1408,
+        800
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -739,10 +384,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        448,
-        384
+        1632,
+        512
       ],
-      "id": "c4100fbd-a192-4ff3-b80e-5be03a6e5565",
+      "id": "a0500ee3-e750-4d31-97bc-a3405d35d74a",
       "name": "Build Get Created Empresa"
     },
     {
@@ -753,135 +398,120 @@
           "queryReplacement": "={{ $json.params }}"
         }
       },
-      "id": "8722bde3-0e4b-40a9-908c-51676b9fcec9",
+      "id": "a6252cf5-7368-4d9c-85bc-e8b99510a640",
       "name": "Get Created Empresa",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        608,
-        384
+        1792,
+        512
       ],
       "credentials": {
         "postgres": {
-          "id": "QhgEBWfGGCBRrHwt",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const jwt = require('jsonwebtoken');\n\nconst JWT_SECRET = 'passEncriptada';\nconst PUBLIC_ACTIONS = ['getRole'];\n\nconst body = $json.body;\nconst action = body?.action || '';\n\nif (PUBLIC_ACTIONS.includes(action)) {\n  return [{ json: { ...$json, _bypass: true } }];\n}\n\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst bodyToken  = body?.token || '';\nconst rawToken   = authHeader || bodyToken;\n\nconst token = rawToken.replace('Bearer ', '').trim();\n\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\n\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{\n    json: {\n      ...$json,\n      _auth: { id: decoded.id, email: decoded.email, role: decoded.role }\n    }\n  }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido o expirado - ' + err.message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        528
+      ],
+      "id": "2caa1458-5497-4329-8554-ebd2447b5ddc",
+      "name": "JWT Verify"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "auth-check-001",
+              "leftValue": "={{ $json._authError }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        528
+      ],
+      "id": "8b054755-5ed3-48e8-af31-050d7c837277",
+      "name": "Auth Error?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: $json.message }) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        960,
+        272
+      ],
+      "id": "4e0ab95b-9cd7-4f94-b282-862626136900",
+      "name": "Respond 401"
     }
   ],
-<<<<<<< HEAD
-  "connections": {
-    "API GestiÃ³n Formaciones": {
-      "main": [
-        [
-          {
-            "node": "Route by Action",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-=======
   "pinData": {},
   "connections": {
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
     "Route by Action": {
       "main": [
         [
           {
-<<<<<<< HEAD
-            "node": "Build Get Formaciones Query",
-=======
             "node": "Build Get Empresas Query",
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-<<<<<<< HEAD
-            "node": "Insert Formacion",
-=======
             "node": "Build Create Empresas Query",
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-<<<<<<< HEAD
-            "node": "Update Formacion",
-=======
             "node": "Update Empresa",
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-<<<<<<< HEAD
-            "node": "Toggle Formacion Status",
-=======
             "node": "Toggle Empresa Status",
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-<<<<<<< HEAD
-            "node": "Build Get Trabajadores Query",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Add Trabajador",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Remove Trabajador",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Execute a SQL query",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Execute a SQL query1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Execute a SQL query2",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Execute a SQL query3",
-=======
             "node": "Get Tipos Empresa",
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
             "type": "main",
             "index": 0
           }
@@ -895,108 +525,6 @@
         ]
       ]
     },
-<<<<<<< HEAD
-    "Build Get Formaciones Query": {
-      "main": [
-        [
-          {
-            "node": "Get Formaciones",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Formaciones": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Insert Formacion": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update Formacion": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Toggle Formacion Status": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Build Get Trabajadores Query": {
-      "main": [
-        [
-          {
-            "node": "Get Trabajadores",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Trabajadores": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Add Trabajador": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Remove Trabajador": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-=======
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
     "Invalid Action Response": {
       "main": [
         [
@@ -1012,7 +540,7 @@
       "main": [
         [
           {
-            "node": "Route by Action",
+            "node": "JWT Verify",
             "type": "main",
             "index": 0
           }
@@ -1031,7 +559,6 @@
       ]
     },
     "Get Empresas": {
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
       "main": [
         [
           {
@@ -1042,9 +569,6 @@
         ]
       ]
     },
-<<<<<<< HEAD
-    "Execute a SQL query1": {
-=======
     "Create Empresa": {
       "main": [
         [
@@ -1090,7 +614,6 @@
       ]
     },
     "Get Tipos Empresa": {
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
       "main": [
         [
           {
@@ -1101,30 +624,18 @@
         ]
       ]
     },
-<<<<<<< HEAD
-    "Execute a SQL query2": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-=======
     "Build Get Created Empresa": {
       "main": [
         [
           {
             "node": "Get Created Empresa",
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-<<<<<<< HEAD
-    "Execute a SQL query3": {
-=======
     "Get Created Empresa": {
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
       "main": [
         [
           {
@@ -1134,104 +645,48 @@
           }
         ]
       ]
+    },
+    "JWT Verify": {
+      "main": [
+        [
+          {
+            "node": "Auth Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Error?": {
+      "main": [
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Route by Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-<<<<<<< HEAD
-  "settings": {
-    "executionOrder": "v1",
-    "binaryMode": "separate"
-  },
-  "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
-  "pinData": {},
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
-<<<<<<< HEAD
-  "versionId": "644bf54a-6686-4089-a699-0fd94956c33f",
-  "activeVersionId": "644bf54a-6686-4089-a699-0fd94956c33f",
-  "versionCounter": 46,
-=======
-  "versionId": "8c0f2f4c-90e4-4b98-aae9-52240d1a80bd",
-  "activeVersionId": "8c0f2f4c-90e4-4b98-aae9-52240d1a80bd",
-  "versionCounter": 106,
->>>>>>> origin/feature/lookup-select
-========
-  "versionId": "8c0f2f4c-90e4-4b98-aae9-52240d1a80bd",
-  "activeVersionId": "8c0f2f4c-90e4-4b98-aae9-52240d1a80bd",
-  "versionCounter": 106,
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-  "triggerCount": 1,
-  "tags": [],
-  "shared": [
-    {
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
-<<<<<<< HEAD
-      "updatedAt": "2026-04-22T09:43:05.809Z",
-      "createdAt": "2026-04-22T09:43:05.809Z",
-      "role": "workflow:owner",
-      "workflowId": "R5yHppLWfre3MYim",
-      "projectId": "scuB9Y3NwfAwv0vk",
-      "project": {
-        "updatedAt": "2026-04-22T09:42:42.949Z",
-        "createdAt": "2026-04-22T09:42:05.392Z",
-        "id": "scuB9Y3NwfAwv0vk",
-        "name": "p v <daniel.pedrero@sgtech.tech>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "creatorId": "06b871d4-11e0-4b54-8aa7-b150c2e36810"
-=======
-========
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-      "updatedAt": "2026-04-22T08:46:52.367Z",
-      "createdAt": "2026-04-22T08:46:52.367Z",
-      "role": "workflow:owner",
-      "workflowId": "R5yHppLWfre3MYim",
-      "projectId": "HPNLsCxwhHCLkcBf",
-      "project": {
-        "updatedAt": "2026-04-22T08:46:19.945Z",
-        "createdAt": "2026-04-22T08:41:51.280Z",
-        "id": "HPNLsCxwhHCLkcBf",
-        "name": "Adriano Casado Villarreal \u003cadriano.casado@sgtech.tech\u003e",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "creatorId": "134af668-187e-480f-8edf-2641b318bfd3"
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
->>>>>>> origin/feature/lookup-select
-========
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-      }
-    }
-  ],
-  "versionMetadata": {
-<<<<<<<< HEAD:EntornoDesarrollo/n8n/workflows/Empresas.json
-<<<<<<< HEAD
-    "name": "Version 644bf54a",
-=======
-    "name": "Version 8c0f2f4c",
->>>>>>> origin/feature/lookup-select
-========
-    "name": "Version 8c0f2f4c",
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
-    "description": ""
-  }
-=======
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
-    "timeSavedMode": "fixed",
-    "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "d26bf44d-ac13-4ee7-b120-701d9df7fbef",
+  "versionId": "b98215a5-7698-42d0-a786-781e9031f311",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "0be933b78a35dd21a30a023de1af3d127feafa94bc11949cc457a6e73f9525d9"
+    "instanceId": "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
   },
-  "id": "R0QaOBkAeSiUKvhb",
+  "id": "r86yuIN2Mr8fvtRp",
   "tags": []
->>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e
 }

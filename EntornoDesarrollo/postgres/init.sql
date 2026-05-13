@@ -23,6 +23,13 @@ CREATE TABLE permission (
     name VARCHAR(16) NOT NULL
 );
 
+INSERT INTO permission (name)
+VALUES
+    ('CREATE'),
+    ('READ'),
+    ('UPDATE'),
+    ('DELETE');
+
 CREATE TABLE "user" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(45) NOT NULL,
@@ -35,7 +42,7 @@ CREATE TABLE "user" (
     CONSTRAINT fk_user_role FOREIGN KEY (roleid) REFERENCES role(id) ON DELETE SET NULL
 );
 --Creación de usuario primera vez (Contraseña admin)
-INSERT INTO "user" (name, surname, email, roleid, enabled, password, first_login)
+INSERT INTO "user" (name, surname, email, roleid, enabled, password)
 VALUES ('admin', 'admin', 'administrador@example.com', 1, true, '$2a$10$7UKIy//QMfkq2ec2d5znR.EaOFTjzuD/CohXMHSbNw9OfMnh5zyW.');
 
 -- Localizaciones
@@ -70,10 +77,28 @@ CREATE TABLE comerciales (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+INSERT INTO comerciales (
+    nombre,
+    primer_apellido,
+    segundo_apellido,
+    telefono,
+    email
+)
+VALUES
+    ('Carlos', 'García', 'López', '600111222', 'carlos.garcia@example.com'),
+    ('Lucía', 'Martín', 'Pérez', '600333444', 'lucia.martin@example.com');
+
 CREATE TABLE tipo_empresa (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     tipo_empresa VARCHAR(45) NOT NULL
 );
+
+INSERT INTO tipo_empresa (tipo_empresa)
+VALUES 
+    ('Tecnológica'),
+    ('Consultoría'),
+    ('Logística'),
+    ('Marketing');
 
 CREATE TABLE empresa (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -88,6 +113,17 @@ CREATE TABLE empresa (
     FOREIGN KEY (id_tipo_empresa) REFERENCES tipo_empresa(id) ON DELETE SET NULL,
     FOREIGN KEY (id_comerciales) REFERENCES comerciales(id) ON DELETE SET NULL
 );
+
+INSERT INTO empresa (
+    nombre_empresa,
+    razon_social,
+    cif,
+    id_tipo_empresa,
+    id_comerciales
+)
+VALUES
+    ('Tech Solutions', 'Tech Solutions SL', 'B12345678', 1, 1),
+    ('LogiTrans', 'LogiTrans SA', 'A87654321', 3, 2);
 
 CREATE TABLE pais (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -157,6 +193,16 @@ CREATE TABLE direccion_empresa (
     FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE CASCADE
 );
 
+INSERT INTO direccion_empresa (
+    direccion,
+    codigo_postal,
+    id_empresa,
+    id_localidad
+)
+VALUES
+    ('Calle Mayor 10', '28001', 1, 7),
+    ('Avenida Diagonal 200', '08018', 2, 9);
+
 CREATE TABLE contacto_empresa (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(45) NOT NULL,
@@ -167,6 +213,18 @@ CREATE TABLE contacto_empresa (
     id_empresa INT,
     FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE CASCADE
 );
+
+INSERT INTO contacto_empresa (
+    nombre,
+    primer_apellido,
+    telefono,
+    email,
+    cargo,
+    id_empresa
+)
+VALUES
+    ('Ana', 'Ruiz', '611222333', 'ana.ruiz@techsolutions.com', 'RRHH', 1),
+    ('Pedro', 'Santos', '622333444', 'pedro.santos@logitrans.com', 'Manager', 2);
 
 CREATE TABLE seleccionadores (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -185,6 +243,22 @@ CREATE TABLE seleccionadores (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE SET NULL
 );
+
+INSERT INTO seleccionadores (
+    nombre,
+    primer_apellido,
+    segundo_apellido,
+    tipo,
+    email,
+    telefono,
+    id_empresa,
+    fecha_ini,
+    salario,
+    fee
+)
+VALUES
+    ('María', 'Fernández', 'López', 'interno', 'maria.fernandez@example.com', '633444555', 1, '2024-01-15', 32000, NULL),
+    ('Javier', 'Moreno', 'Sánchez', 'externo', 'javier.moreno@example.com', '644555666', 2, '2024-02-01', NULL, 1500);
 
 CREATE TABLE trabajador (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -212,6 +286,30 @@ CREATE TABLE trabajador (
     FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE SET NULL,
     FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE SET NULL
 );
+
+INSERT INTO trabajador (
+    nombre,
+    primer_apellido,
+    segundo_apellido,
+    telefono,
+    email,
+    dni_nif_pasaporte,
+    salario,
+    cheques_guarderia,
+    cheques_restaurante,
+    direccion,
+    nacionalidad,
+    fecha_nacimiento,
+    id_seleccionadores,
+    fecha_ini,
+    codigo_postal,
+    id_localidad,
+    freelance,
+    id_provincia
+)
+VALUES
+    ('David', 'Navarro', 'Gil', '655111222', 'david.navarro@example.com', '12345678A', 28000, 100, 150, 'Calle Luna 5', 'Española', '1995-04-20', 1, '2024-03-01', '28001', 7, FALSE, 4),
+    ('Elena', 'Torres', 'Ruiz', '666222333', 'elena.torres@example.com', '87654321B', 35000, 0, 200, 'Avenida Sol 8', 'Española', '1990-08-12', 2, '2024-03-10', '08018', 9, TRUE, 5);
 
 -- Documentacion
 
@@ -259,6 +357,18 @@ CREATE TABLE asignacion (
     FOREIGN KEY (id_comerciales) REFERENCES comerciales(id)
 );
 
+
+INSERT INTO asignacion (
+    id_empresa,
+    id_trabajador,
+    id_comerciales,
+    fecha_ini,
+    fecha_fin,
+    tarifa
+)
+VALUES
+    (1, 1, 1, '2024-04-01', '2024-12-31', 350.50),
+    (2, 2, 2, '2024-05-01', NULL, 420.00);
 -- Formación
 
 CREATE TABLE estado_formacion (
@@ -341,6 +451,54 @@ CREATE TABLE formacion (
     FOREIGN KEY (id_ejecucion) REFERENCES ejecucion_formacion(id) ON DELETE SET NULL
 );
 
+INSERT INTO formacion (
+    id_estado,
+    curso,
+    denominacion,
+    motivo,
+    id_area,
+    recursos,
+    id_responsable,
+    id_modalidad,
+    duracion,
+    dentro_fuera_jornada,
+    observaciones,
+    fecha_prevista,
+    fecha_inicio,
+    fecha_fin,
+    horario,
+    id_ejecucion,
+    eficacia,
+    anio,
+    coste,
+    bonificacion,
+    total
+)
+VALUES
+    (
+        1,
+        'PostgreSQL Avanzado',
+        'Curso avanzado de PostgreSQL',
+        'Mejora de conocimientos técnicos',
+        1,
+        'Aula virtual',
+        1,
+        2,
+        20,
+        'Dentro',
+        'Ninguna',
+        '2024-06-01',
+        '2024-06-10',
+        '2024-06-20',
+        '09:00-13:00',
+        1,
+        'Alta',
+        2024,
+        1200,
+        300,
+        900
+    );
+
 CREATE TABLE formacion_trabajador (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_formacion INT,
@@ -350,6 +508,17 @@ CREATE TABLE formacion_trabajador (
     FOREIGN KEY (id_formacion) REFERENCES formacion(id) ON DELETE CASCADE,
     FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE
 );
+
+INSERT INTO formacion_trabajador (
+    id_formacion,
+    id_trabajador,
+    asistencia,
+    eficacia
+)
+VALUES
+    (1, 1, TRUE, 'Alta'),
+    (1, 2, FALSE, 'Pendiente');
+
 
 -- Documentos para firmar
 

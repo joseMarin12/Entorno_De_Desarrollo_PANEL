@@ -3,6 +3,19 @@
   "nodes": [
     {
       "parameters": {
+        "jsCode": "const firstItem = $input.first() || {};\n\nconst errorObj = firstItem.error || {};\nconst cause = errorObj.cause || {};\n\nconst jsonObj = firstItem.json || {};\n\nconst nestedError = jsonObj.error || {};\nconst nestedCause = nestedError.cause || {};\n\nconst pgCode = String(\n  cause.code ||\n  errorObj.code ||\n  nestedCause.code ||\n  nestedError.code ||\n  jsonObj.code ||\n  ''\n);\n\nconst rawMessage = String(\n  jsonObj.message ||\n  cause.message ||\n  errorObj.message ||\n  errorObj.description ||\n  nestedCause.message ||\n  nestedError.message ||\n  nestedError.description ||\n  'Error desconocido'\n);\n\nlet status = 500;\nlet errorType = 'Internal Server Error';\nlet message = rawMessage;\nlet code = 'DB_ERROR';\n\n// Unique constraint violation\nif (\n  pgCode === '23505' ||\n  rawMessage.includes('unique constraint')\n) {\n  status = 409;\n  errorType = 'Conflict';\n  code = 'DUPLICATE_ENTRY';\n\n  if (rawMessage.toLowerCase().includes('email')) {\n    message = 'El correo electrónico ya se encuentra registrado.';\n    code = 'EMAIL_ALREADY_EXISTS';\n  } else {\n    const match = rawMessage.match(\n      /unique constraint \\\"(.+?)\\\"/i\n    );\n\n    message = match\n      ? `Ya existe un registro que viola la restricción: ${match[1]}.`\n      : 'Ya existe un registro con esos datos.';\n  }\n}\n\n// NOT NULL violation\nelse if (\n  pgCode === '23502' ||\n  rawMessage.includes('not-null constraint') ||\n  rawMessage.includes('violates not-null')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'MISSING_REQUIRED_FIELD';\n\n  const match = rawMessage.match(/column \\\"(.+?)\\\"/);\n\n  const field = match\n    ? match[1]\n    : 'desconocido';\n\n  message = `El campo \"${field}\" es obligatorio y no puede estar vacío.`;\n}\n\n// Foreign key violation\nelse if (\n  pgCode === '23503' ||\n  rawMessage.includes('foreign key constraint')\n) {\n  status = 409;\n  errorType = 'Conflict';\n  code = 'FOREIGN_KEY_VIOLATION';\n\n  message =\n    'El registro referenciado no existe o ha sido eliminado.';\n}\n\n// Check constraint violation\nelse if (\n  pgCode === '23514' ||\n  rawMessage.includes('check constraint')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'CHECK_VIOLATION';\n\n  message =\n    'Los datos enviados no cumplen las restricciones requeridas.';\n}\n\n// Invalid date format\nelse if (\n  rawMessage.includes('invalid input syntax for type date')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'INVALID_DATE_FORMAT';\n\n  message =\n    'El formato de fecha introducido no es válido o está vacío.';\n}\n\n// Generic invalid input\nelse if (\n  rawMessage.includes('invalid input syntax')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'INVALID_INPUT_FORMAT';\n\n  message =\n    'Uno de los campos introducidos tiene un formato incorrecto (ej: texto en lugar de número).';\n}\n\nreturn [\n  {\n    json: {\n      status,\n      error: errorType,\n      message,\n      code,\n    },\n  },\n];"
+      },
+      "id": "088550bc-9347-4215-9728-9ef6c44f0a52",
+      "name": "Handle DB Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        864
+      ]
+    },
+    {
+      "parameters": {
         "httpMethod": "POST",
         "path": "gestion-formaciones",
         "responseMode": "responseNode",
@@ -13,11 +26,11 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -624,
-        544
+        -352,
+        576
       ],
-      "id": "ee427571-815e-4590-b347-112dc73a5916",
-      "name": "API Gestión Formaciones",
+      "id": "d804d0d4-f10f-4e08-a6d8-f4b0f4e936c7",
+      "name": "API Gestión Formaciones1",
       "webhookId": "formaciones-gestion-uuid-0001"
     },
     {
@@ -298,24 +311,24 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -352,
-        384
+        416,
+        432
       ],
-      "id": "fa3cedab-4acd-440f-839b-96c9e0e555d7",
-      "name": "Route by Action"
+      "id": "c621900c-9991-4bc7-bddb-9c67f04ee521",
+      "name": "Route by Action1"
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\n\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 10;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (\n  filters.searchText &&\n  typeof filters.searchText === 'string' &&\n  filters.searchText.trim() !== ''\n) {\n  if (filters.searchField === 'curso') {\n    whereClause += \\ AND curso ILIKE {paramIndex}\\;\n  } else if (filters.searchField === 'denominacion') {\n    whereClause += \\ AND denominacion ILIKE {paramIndex}\\;\n  } else {\n    whereClause +=       AND (\n        curso ILIKE {paramIndex}\n        OR denominacion ILIKE {paramIndex}\n      )\n    \\;\n  }\n  params.push(\\%%\\);\n  paramIndex++;\n}\n\nif (\n  filters.id_estado !== undefined &&\n  filters.id_estado !== null &&\n  filters.id_estado !== ''\n) {\n  whereClause += ` AND f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\nif (\n  filters.activo !== undefined &&\n  filters.activo !== null &&\n  filters.activo !== ''\n) {\n  whereClause += ` AND f.activo = $${paramIndex}`;\n  params.push(filters.activo);\n  paramIndex++;\n}\n\n// Paginación\nparams.push(pageSize);\nconst limitParam = paramIndex++;\n\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\n// Query principal\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) AS total\n  FROM formacion f\n  ${whereClause}\n),\nglobal_counts AS (\n  SELECT \n    COUNT(*) AS total_global,\n    SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) AS total_activos,\n    SUM(CASE WHEN activo = false THEN 1 ELSE 0 END) AS total_inactivos\n  FROM formacion\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre AS estado_nombre,\n    af.nombre AS area_nombre,\n    mf.nombre AS modalidad_nombre,\n    exe.nombre AS ejecucion_nombre,\n    COUNT(ft.id_trabajador) AS num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY \n    f.id,\n    ef.nombre,\n    af.nombre,\n    mf.nombre,\n    exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\n\nSELECT \n  paginado.*,\n  total_count.total AS total_records,\n  global_counts.total_global,\n  global_counts.total_activos,\n  global_counts.total_inactivos\nFROM paginado, total_count, global_counts;\n`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      pageSize,\n    },\n  },\n];"
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\n\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 10;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (\n  filters.searchText &&\n  typeof filters.searchText === 'string' &&\n  filters.searchText.trim() !== ''\n) {\n  whereClause += `\n    AND (\n      f.curso ILIKE $${paramIndex}\n      OR f.denominacion ILIKE $${paramIndex}\n    )\n  `;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (\n  filters.id_estado !== undefined &&\n  filters.id_estado !== null &&\n  filters.id_estado !== ''\n) {\n  whereClause += ` AND f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\nif (\n  filters.activo !== undefined &&\n  filters.activo !== null &&\n  filters.activo !== ''\n) {\n  whereClause += ` AND f.activo = $${paramIndex}`;\n  params.push(filters.activo);\n  paramIndex++;\n}\n\n// Paginación\nparams.push(pageSize);\nconst limitParam = paramIndex++;\n\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\n// Query principal\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) AS total\n  FROM formacion f\n  ${whereClause}\n),\nglobal_counts AS (\n  SELECT \n    COUNT(*) AS total_global,\n    SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) AS total_activos,\n    SUM(CASE WHEN activo = false THEN 1 ELSE 0 END) AS total_inactivos\n  FROM formacion\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre AS estado_nombre,\n    af.nombre AS area_nombre,\n    mf.nombre AS modalidad_nombre,\n    exe.nombre AS ejecucion_nombre,\n    COUNT(ft.id_trabajador) AS num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY \n    f.id,\n    ef.nombre,\n    af.nombre,\n    mf.nombre,\n    exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\n\nSELECT \n  paginado.*,\n  total_count.total AS total_records,\n  global_counts.total_global,\n  global_counts.total_activos,\n  global_counts.total_inactivos\nFROM paginado, total_count, global_counts;\n`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      pageSize,\n    },\n  },\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        128,
-        -464
+        880,
+        -400
       ],
-      "id": "fbf74ae7-f306-4e9c-81f6-b4446591f700",
-      "name": "Build Get Formaciones Query"
+      "id": "63fdd2aa-633c-464b-b3d4-20f39e2741ad",
+      "name": "Build Get Formaciones Query1"
     },
     {
       "parameters": {
@@ -328,16 +341,15 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        -464
+        1072,
+        -400
       ],
-      "id": "81f121a4-c55e-42e8-a0fa-465a7b000671",
-      "name": "Get Formaciones",
+      "id": "07f0ce20-a0b3-45fb-a98a-226a0a5dbac4",
+      "name": "Get Formaciones1",
       "credentials": {
         "postgres": {
           "id": "PEj0EcRRiVkwps7h",
           "name": "Postgres account"
->>>>>>>> 443ef61c2f2d5a76f488bd68e47809ecc4a57b0e:EntornoDesarrollo/n8n/workflows/Formaciones.json
         }
       }
     },
@@ -352,11 +364,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        -288
+        1072,
+        -224
       ],
-      "id": "26938c25-b018-42ce-9bb7-efcdc407abc3",
-      "name": "Insert Formacion",
+      "id": "4afc947e-c68d-466c-9225-afc8c3eaaf34",
+      "name": "Insert Formacion1",
       "credentials": {
         "postgres": {
           "id": "PEj0EcRRiVkwps7h",
@@ -376,11 +388,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        -96
+        1072,
+        -32
       ],
-      "id": "7a774ed7-109c-4853-b29c-60f1f048df85",
-      "name": "Update Formacion",
+      "id": "e7b8db89-6d73-4d0c-b572-e3379c3174d5",
+      "name": "Update Formacion1",
       "credentials": {
         "postgres": {
           "id": "PEj0EcRRiVkwps7h",
@@ -400,11 +412,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        96
+        1072,
+        160
       ],
-      "id": "16b53842-f1bd-4a35-ad82-e38a0608531d",
-      "name": "Toggle Formacion Status",
+      "id": "14d4f213-e984-4879-9106-25e8bf346f15",
+      "name": "Toggle Formacion Status1",
       "credentials": {
         "postgres": {
           "id": "PEj0EcRRiVkwps7h",
@@ -415,16 +427,16 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst idFormacion = body.id_formacion;\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT\n  t.id,\n  t.nombre,\n  t.primer_apellido,\n  t.segundo_apellido,\n  t.dni_nif_pasaporte,\n  t.email,\n  t.telefono,\n  t.activo,\n  CASE WHEN ft.id IS NOT NULL THEN true ELSE false END as asignado\nFROM trabajador t\nLEFT JOIN formacion_trabajador ft\n  ON ft.id_trabajador = t.id AND ft.id_formacion = $${paramIndex}\nWHERE t.activo = true`;\nparams.push(idFormacion);\nparamIndex++;\n\nif (\n  filters.searchText &&\n  typeof filters.searchText === 'string' &&\n  filters.searchText.trim() !== ''\n) {\n  if (filters.searchField === 'curso') {\n    whereClause += \\ AND curso ILIKE {paramIndex}\\;\n  } else if (filters.searchField === 'denominacion') {\n    whereClause += \\ AND denominacion ILIKE {paramIndex}\\;\n  } else {\n    whereClause +=       AND (\n        curso ILIKE {paramIndex}\n        OR denominacion ILIKE {paramIndex}\n      )\n    \\;\n  }\n  params.push(\\%%\\);\n  paramIndex++;\n}\n\nif (filters.soloDisponibles === true) {\n  query += ' AND ft.id IS NULL';\n}\n\nquery += ' ORDER BY t.primer_apellido, t.nombre';\n\nreturn [{ json: { query, params } }];"
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst idFormacion = body.id_formacion;\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT\n  t.id,\n  t.nombre,\n  t.primer_apellido,\n  t.segundo_apellido,\n  t.dni_nif_pasaporte,\n  t.email,\n  t.telefono,\n  t.activo,\n  CASE WHEN ft.id IS NOT NULL THEN true ELSE false END as asignado\nFROM trabajador t\nLEFT JOIN formacion_trabajador ft\n  ON ft.id_trabajador = t.id AND ft.id_formacion = $${paramIndex}\nWHERE t.activo = true`;\nparams.push(idFormacion);\nparamIndex++;\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  query += ` AND (CONCAT(t.nombre, ' ', t.primer_apellido, ' ', COALESCE(t.segundo_apellido,'')) ILIKE $${paramIndex} OR t.dni_nif_pasaporte ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.soloDisponibles === true) {\n  query += ' AND ft.id IS NULL';\n}\n\nquery += ' ORDER BY t.primer_apellido, t.nombre';\n\nreturn [{ json: { query, params } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        208,
-        272
+        960,
+        336
       ],
-      "id": "9fa85371-0c7c-45b9-aa9d-1715d0b1ad6f",
-      "name": "Build Get Trabajadores Query"
+      "id": "4dbacedc-b1e2-4791-ac49-81815a630310",
+      "name": "Build Get Trabajadores Query1"
     },
     {
       "parameters": {
@@ -437,11 +449,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        432,
-        272
+        1184,
+        336
       ],
-      "id": "c2886c75-ccd9-44b6-bd94-d84d9a4ab8c2",
-      "name": "Get Trabajadores",
+      "id": "d1d18da9-0fcf-4656-b6e9-500393e5f424",
+      "name": "Get Trabajadores1",
       "credentials": {
         "postgres": {
           "id": "PEj0EcRRiVkwps7h",
@@ -460,11 +472,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        416
+        1072,
+        480
       ],
-      "id": "8ac77d33-0f52-4f9a-8d93-78dd08c1e140",
-      "name": "Add Trabajador",
+      "id": "7fff64d6-61e3-461f-bbd1-2433512c76d0",
+      "name": "Add Trabajador1",
       "credentials": {
         "postgres": {
           "id": "PEj0EcRRiVkwps7h",
@@ -484,11 +496,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        576
+        1072,
+        640
       ],
-      "id": "935b51b7-040b-434e-b77d-df7b826a2533",
-      "name": "Remove Trabajador",
+      "id": "b1ade61b-aa13-4c26-a869-1e5207c7b35e",
+      "name": "Remove Trabajador1",
       "credentials": {
         "postgres": {
           "id": "PEj0EcRRiVkwps7h",
@@ -520,11 +532,11 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        144,
-        1360
+        896,
+        1424
       ],
-      "id": "e5af6836-bf2b-4bab-a6ea-b26e871a9034",
-      "name": "Invalid Action Response"
+      "id": "52505541-f5cc-4d8c-9f42-417af6f3da43",
+      "name": "Invalid Action Response1"
     },
     {
       "parameters": {
@@ -537,11 +549,11 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        944,
-        512
+        1696,
+        576
       ],
-      "id": "c309396c-fb81-4c74-af17-95542f7f63c6",
-      "name": "Respond Success"
+      "id": "53e7c0bb-91b0-4889-b498-715669b28e33",
+      "name": "Respond Success1"
     },
     {
       "parameters": {
@@ -554,11 +566,11 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        960,
-        800
+        1712,
+        864
       ],
-      "id": "a1bc5a54-8833-46d0-bfa8-ea68c4523e60",
-      "name": "Respond Error"
+      "id": "75d761f7-908a-4d9c-8337-e6ac6569f5d3",
+      "name": "Respond Error1"
     },
     {
       "parameters": {
@@ -569,11 +581,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        720
+        1072,
+        784
       ],
-      "id": "0c433135-2882-48c8-b87b-9b0c3ff23c09",
-      "name": "Execute a SQL query",
+      "id": "46fd9615-c1c7-4a9e-8226-90cf3c32ea70",
+      "name": "Execute a SQL query4",
       "credentials": {
         "postgres": {
           "id": "ko5fFqsOIauxDSEd",
@@ -590,11 +602,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        880
+        1072,
+        944
       ],
-      "id": "a2cb1ae5-0bda-40ec-869d-b61369e50b42",
-      "name": "Execute a SQL query1",
+      "id": "373d9caa-baa2-4410-9db8-42793ce18730",
+      "name": "Execute a SQL query5",
       "credentials": {
         "postgres": {
           "id": "ko5fFqsOIauxDSEd",
@@ -611,11 +623,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        1040
+        1072,
+        1104
       ],
-      "id": "2968e0b2-6f72-4e98-a4e6-94003c650e40",
-      "name": "Execute a SQL query2",
+      "id": "12a9851e-3dae-4d63-a195-29e80c4748a4",
+      "name": "Execute a SQL query6",
       "credentials": {
         "postgres": {
           "id": "ko5fFqsOIauxDSEd",
@@ -632,11 +644,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        1200
+        1072,
+        1264
       ],
-      "id": "fa13a642-8469-49c5-b3e3-e57fb82f46c1",
-      "name": "Execute a SQL query3",
+      "id": "08546d8c-9e25-4366-9d6c-57d18bdb4aa5",
+      "name": "Execute a SQL query7",
       "credentials": {
         "postgres": {
           "id": "ko5fFqsOIauxDSEd",
@@ -645,314 +657,393 @@
       }
     },
     {
-      "id": "a9f3c821-1234-4abc-bdef-000000000001",
-      "name": "Handle DB Error",
+      "parameters": {
+        "jsCode": "const jwt = require('jsonwebtoken');\n\nconst JWT_SECRET = 'passEncriptada';\n\nconst body = $json.body;\n\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst bodyToken  = body?.token || '';\nconst rawToken   = authHeader || bodyToken;\n\nconst token = rawToken.replace('Bearer ', '').trim();\n\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\n\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{\n    json: {\n      ...$json,\n      _auth: { id: decoded.id, email: decoded.email, role: decoded.role }\n    }\n  }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido o expirado - ' + err.message } }];\n}"
+      },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        700,
-        800
+        -64,
+        576
       ],
+      "id": "a88624a9-ef4a-4958-a4ba-0de0a241a22a",
+      "name": "JWT Verify"
+    },
+    {
       "parameters": {
-        "jsCode": "\nconst firstItem = $input.first() || {};\nconst errorObj = firstItem.error || {};\nconst cause = errorObj.cause || {};\nconst jsonObj = firstItem.json || {};\nconst nestedError = jsonObj.error || {};\nconst nestedCause = nestedError.cause || {};\n\nconst pgCode = String(\n  cause.code || errorObj.code || \n  nestedCause.code || nestedError.code || \n  jsonObj.code || ''\n);\n\nconst rawMessage = String(\n  jsonObj.message || \n  cause.message || errorObj.message || errorObj.description || \n  nestedCause.message || nestedError.message || nestedError.description || \n  'Error desconocido'\n);\n\nlet status = 500;\nlet errorType = 'Internal Server Error';\nlet message = rawMessage;\nlet code = 'DB_ERROR';\n\nif (pgCode === '23505' || rawMessage.includes('unique constraint')) {\n  // Unique constraint violation\n  status = 409;\n  errorType = 'Conflict';\n  code = 'DUPLICATE_ENTRY';\n  if (rawMessage.toLowerCase().includes('email')) {\n    message = 'El correo electrónico ya se encuentra registrado.';\n    code = 'EMAIL_ALREADY_EXISTS';\n  } else {\n    const match = rawMessage.match(/unique constraint \"(.+?)\"/i);\n    message = match\n      ? `Ya existe un registro que viola la restricción: ${match[1]}.`\n      : 'Ya existe un registro con esos datos.';\n  }\n} else if (pgCode === '23502' || rawMessage.includes('not-null constraint') || rawMessage.includes('violates not-null')) {\n  // NOT NULL violation\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'MISSING_REQUIRED_FIELD';\n  const match = rawMessage.match(/column \"(.+?)\"/);\n  const field = match ? match[1] : 'desconocido';\n  message = `El campo \"${field}\" es obligatorio y no puede estar vacío.`;\n} else if (pgCode === '23503' || rawMessage.includes('foreign key constraint')) {\n  // Foreign key violation\n  status = 409;\n  errorType = 'Conflict';\n  code = 'FOREIGN_KEY_VIOLATION';\n  message = 'El registro referenciado no existe o ha sido eliminado.';\n} else if (pgCode === '23514' || rawMessage.includes('check constraint')) {\n  // Check constraint violation\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'CHECK_VIOLATION';\n  message = 'Los datos enviados no cumplen las restricciones requeridas.';\n} else if (rawMessage.includes('invalid input syntax for type date')) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'INVALID_DATE_FORMAT';\n  message = 'El formato de fecha introducido no es válido o está vacío.';\n} else if (rawMessage.includes('invalid input syntax')) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'INVALID_INPUT_FORMAT';\n  message = 'Uno de los campos introducidos tiene un formato incorrecto (ej: texto en lugar de número).';\n}\n\nreturn [{ json: { status, error: errorType, message, code } }];\n"
-      }
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "auth-check-001",
+              "leftValue": "={{ $json._authError }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        96,
+        576
+      ],
+      "id": "a98d862b-9db5-4e8b-b3fc-ce04ec5580e5",
+      "name": "Auth Error?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: $json.message }) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        272,
+        272
+      ],
+      "id": "729a22c5-af25-417c-8229-758fad532958",
+      "name": "Respond 401"
     }
   ],
   "pinData": {},
   "connections": {
-    "API Gestión Formaciones": {
-      "main": [
-        [
-          {
-            "node": "Route by Action",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Route by Action": {
-      "main": [
-        [
-          {
-            "node": "Build Get Formaciones Query",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Insert Formacion",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Update Formacion",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Toggle Formacion Status",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Build Get Trabajadores Query",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Add Trabajador",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Remove Trabajador",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Execute a SQL query",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Execute a SQL query1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Execute a SQL query2",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Execute a SQL query3",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Invalid Action Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Build Get Formaciones Query": {
-      "main": [
-        [
-          {
-            "node": "Get Formaciones",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Formaciones": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Insert Formacion": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle DB Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update Formacion": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle DB Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Toggle Formacion Status": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle DB Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Build Get Trabajadores Query": {
-      "main": [
-        [
-          {
-            "node": "Get Trabajadores",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Trabajadores": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Add Trabajador": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle DB Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Remove Trabajador": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle DB Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Invalid Action Response": {
-      "main": [
-        [
-          {
-            "node": "Respond Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute a SQL query": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute a SQL query1": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute a SQL query2": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute a SQL query3": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Handle DB Error": {
       "main": [
         [
           {
-            "node": "Respond Error",
+            "node": "Respond Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Gestión Formaciones1": {
+      "main": [
+        [
+          {
+            "node": "JWT Verify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Action1": {
+      "main": [
+        [
+          {
+            "node": "Build Get Formaciones Query1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Formacion1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Formacion1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Toggle Formacion Status1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Get Trabajadores Query1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Trabajador1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Remove Trabajador1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Action Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Formaciones Query1": {
+      "main": [
+        [
+          {
+            "node": "Get Formaciones1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Formaciones1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Formacion1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Formacion1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toggle Formacion Status1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Trabajadores Query1": {
+      "main": [
+        [
+          {
+            "node": "Get Trabajadores1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Trabajadores1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Trabajador1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Trabajador1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid Action Response1": {
+      "main": [
+        [
+          {
+            "node": "Respond Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query4": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query5": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query6": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query7": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JWT Verify": {
+      "main": [
+        [
+          {
+            "node": "Auth Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Error?": {
+      "main": [
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Route by Action1",
             "type": "main",
             "index": 0
           }
@@ -965,7 +1056,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "8752c031-3ddd-40f4-aeb6-4a7cd44c0311",
+  "versionId": "e098ac95-7c1c-4a53-a0c8-e56d31cab4d0",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "68406e238b7dc5bdce60068f923199f237e1a3d96b618bf2b35e1281a86e782f"

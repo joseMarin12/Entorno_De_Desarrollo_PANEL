@@ -1,14 +1,15 @@
 {
+  "name": "sub flujo- trabajador",
   "nodes": [
     {
       "parameters": {},
-      "id": "d5158408-4802-4cc3-a858-fa998401a700",
+      "id": "37bf40f9-6ba7-41c4-8a36-ba50ffadffa3",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -176,
-        592
+        -496,
+        208
       ]
     },
     {
@@ -93,13 +94,13 @@
           "fallbackOutput": "extra"
         }
       },
-      "id": "ba6406af-1ddb-4731-bf13-1fdb7b605684",
+      "id": "60c79ae8-bc4c-41c4-b522-11d8d15f85ec",
       "name": "Switch Sub-Action",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        16,
-        592
+        -304,
+        208
       ]
     },
     {
@@ -110,17 +111,17 @@
           "queryReplacement": "={{ [$json.body.trabajadorId] }}"
         }
       },
-      "id": "06d32af6-8e98-46b3-87bf-68151485d2ed",
+      "id": "38a6bc42-d434-41cf-8c19-1a1dbbf0a58e",
       "name": "SQL: Get Documentos",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        384
+        0,
+        0
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -133,17 +134,17 @@
           "queryReplacement": "={{ [$json.body.documentoId] }}"
         }
       },
-      "id": "a2608e5b-701e-4a45-9a17-8101da98c6d3",
+      "id": "b1506fa5-bedf-46d3-93b4-f38486cd24e1",
       "name": "SQL: Delete Documento",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        592
+        0,
+        208
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -156,17 +157,17 @@
           "queryReplacement": "={{ [$json.body.data.descripcion || null, $json.body.data.base64 || '', $json.body.data.fileName || '', $json.body.data.id] }}"
         }
       },
-      "id": "fcb09407-ceea-41ab-999b-1a4570408747",
+      "id": "b00f9481-30bf-46b2-b1c6-df7e2fe007c9",
       "name": "SQL: Update Documento",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        784
+        0,
+        400
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -175,13 +176,13 @@
       "parameters": {
         "jsCode": "const items = $input.all();\nlet results = [];\n\nfor (const item of items) {\n  let payload = item.json.body.data || item.json.body;\n  if (payload.origen === 'plantilla') {\n    const worker = payload.trabajadorData || {};\n    const name = worker.nombre ? `${worker.nombre}_${worker.primer_apellido || ''}`.trim() : 'Trabajador';\n    const dni = worker.dni_nif_pasaporte || 'ID';\n    const dummyB64 = 'JVBERi0xLjQKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSL0ZpbHRlci9GbGF0ZURlY29kZT4+CnN0cmVhbQp4nDPQM1Qo5ypUMFAwALJMLU31jBQsTAz1LBSKikB8p9xchZJUhZLU4uLEvBIAh44KRQplbmRzdHJlYW0KZW5kb2JqCgozIDAgb2JqCjQ0CmVuZG9iagoKMSAwIG9iago8PC9QYWdlcyA0IDAgUi9UeXBlL0NhdGFsb2c+PgplbmRvYmoKCjUgMCBvYmoKPDwvQ3JlYXRpb25EYXRlKEQ6MjAyMzA2MTQxMjAwMDBaKS9DcmVhdG9yKFBERkNyZWF0b3IpL1Byb2R1Y2VyKFBERkNyZWF0b3IpPj4KZW5kb2JqCgo2IDAgb2JqCjw8L0ZvbnQ8PC9GMSA3IDAgUj4+Pj4KZW5kb2JqCgo3IDAgb2JqCjw8L0Jhc2VGb250L0hlbHZldGljYS9FbmNvZGluZy9XaW5BbnNpRW5jb2RpbmcvU3VidHlwZS9UeXBlMS9UeXBlL0ZvbnQ+PgplbmRvYmoKCjggMCBvYmoKPDwvQ29udGVudHMgMiAwIFIvTWVkaWFCb3hbMCAwIDU5NS4yNzYgODQxLjg5XS9QYXJlbnQgNCAwIFIvUmVzb3VyY2VzIDYgMCBSL1R5cGUvUGFnZT4+CmVuZG9iagoKNCAwIG9iago8PC9Db3VudCAxL0tpZHNbOCAwIFJdL1R5cGUvUGFnZXM+PgplbmRvYmoKCnhyZWYKMCA5CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDEzNyAwMDAwMCBuIAowMDAwMDAwMDE5IDAwMDAwIG4gCjAwMDAwMDAxMTYgMDAwMDAgbiAKMDAwMDAwMDUyMyAwMDAwMCBuIAowMDAwMDAwMTg1IDAwMDAwIG4gCjAwMDAwMDAyODAgMDAwMDAgbiAKMDAwMDAwMDMyNCAwMDAwMCBuIAowMDAwMDAwNDEyIDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA5L1Jvb3QgMSAwIFIvSW5mbyA1IDAgUj4+CnN0YXJ0eHJlZgo1ODQKJSVFT0YK';\n    payload.base64 = dummyB64;\n    payload.nombre = `Plantilla_${payload.templateId || 'Auto'}_${name}_${dni}.pdf`.replace(/ /g, '_');\n    payload.tipoId = 8;\n    payload.descripcion = payload.descripcion || ``;\n  }\n  results.push({ json: { payload } });\n}\nreturn results;"
       },
-      "id": "f31b0819-c0fb-450b-8e82-e740c9485ea0",
+      "id": "5dab0232-0c4e-4b96-81ab-fdf7de34ed08",
       "name": "JS: Upload Documento Router",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        320,
-        992
+        0,
+        608
       ]
     },
     {
@@ -192,22 +193,23 @@
           "queryReplacement": "={{ [$json.payload.trabajadorId || $json.payload.id_trabajador, $json.payload.tipoId || null, $json.payload.nombre || $json.payload.fileName || 'documento.bin', $json.payload.descripcion || '', $json.payload.base64 || ''] }}"
         }
       },
-      "id": "881f6f11-10e2-42ff-ab83-9da1fdc7d985",
+      "id": "29957d59-db42-46db-9bef-864e693469e1",
       "name": "SQL: Insert Documento",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        640,
-        1008
+        320,
+        624
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
     }
   ],
+  "pinData": {},
   "connections": {
     "Execute Workflow Trigger": {
       "main": [
@@ -264,9 +266,17 @@
       ]
     }
   },
-  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "08d83171-bae8-4bfd-84f4-670625bf88f4",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "ce978c989ab1e23db47d18854a2aa4ec48f1cc3365db2fa6e0d1703da947a576"
-  }
+    "instanceId": "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
+  },
+  "id": "c08ktOiuDWynWXG1",
+  "tags": []
 }

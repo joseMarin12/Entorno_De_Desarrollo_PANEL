@@ -1,4 +1,5 @@
 {
+  "name": "Trabajadores",
   "nodes": [
     {
       "parameters": {
@@ -9,13 +10,13 @@
           "allowedOrigins": "*"
         }
       },
-      "id": "c81aa994-de50-4c96-b35d-b4aaa89c15b2",
-      "name": "Webhook Trabajadores",
+      "id": "af1cdb11-a5d2-4e6c-8769-bc3eef7355cb",
+      "name": "Webhook Trabajadores1",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -1968,
-        5776
+        -2032,
+        688
       ],
       "webhookId": "b884095a-9de5-4c1b-9869-56be69f43c01"
     },
@@ -365,26 +366,26 @@
           "fallbackOutput": "extra"
         }
       },
-      "id": "b26fa02b-60e3-4006-803a-a59f2887ad04",
-      "name": "Switch Actions",
+      "id": "2e328025-1c3d-422d-a478-3c4797018612",
+      "name": "Switch Actions1",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -1552,
-        5648
+        -1200,
+        544
       ]
     },
     {
       "parameters": {
         "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = body.page || 1;\nconst limit = body.limit || 10;\nconst offset = (page - 1) * limit;\nconst conditions = [];\nconst params = [];\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(CONCAT(t.nombre, ' ', t.primer_apellido, ' ', COALESCE(t.segundo_apellido,'')) ILIKE $${params.length + 1} OR t.email ILIKE $${params.length + 1} OR t.dni_nif_pasaporte ILIKE $${params.length + 1})`);\n  params.push(`%${filters.searchText.trim()}%`);\n}\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  const s = String(filters.status).toLowerCase();\n  if (s !== 'todos' && s !== '') { conditions.push(`t.activo = $${params.length + 1}`); params.push(s === 'activo' || s === 'activos'); }\n}\nif (filters.tipo !== undefined && filters.tipo !== null && filters.tipo !== '') {\n  const tp = String(filters.tipo).toLowerCase();\n  if (tp === 'freelance') { conditions.push(`t.freelance = $${params.length + 1}`); params.push(true); }\n  else if (tp === 'plantilla') { conditions.push(`t.freelance = $${params.length + 1}`); params.push(false); }\n}\nlet whereClause = 'WHERE 1=1';\nif (conditions.length > 0) whereClause += ' AND ' + conditions.join(' AND ');\nconst lp = params.length + 1;\nconst op = params.length + 2;\nparams.push(limit);\nparams.push(offset);\nconst query = `WITH global_stats AS (SELECT COUNT(*)::int as total, COUNT(*) FILTER (WHERE activo=true)::int as activos, COUNT(*) FILTER (WHERE activo=false)::int as inactivos, COUNT(*) FILTER (WHERE freelance=true)::int as freelances FROM trabajador), filtered_data AS (SELECT t.*, p.provincia AS provincia_nombre, l.localidad AS localidad_nombre, CONCAT(s.nombre,' ',s.primer_apellido) AS seleccionador_nombre FROM trabajador t LEFT JOIN provincia p ON t.id_provincia=p.id LEFT JOIN localidad l ON t.id_localidad=l.id LEFT JOIN seleccionadores s ON t.id_seleccionadores=s.id ${whereClause} ORDER BY t.id DESC LIMIT $${lp} OFFSET $${op}), filtered_count AS (SELECT COUNT(*)::int as total_filtered FROM trabajador t ${whereClause}) SELECT fd.*, fc.total_filtered, gs.total as stats_total, gs.activos as stats_activos, gs.inactivos as stats_inactivos, gs.freelances as stats_freelances FROM global_stats gs CROSS JOIN filtered_count fc LEFT JOIN filtered_data fd ON true`;\nreturn [{ json: { query, params } }];"
       },
-      "id": "e1894a50-da00-4b9a-bf3b-b809a15e0663",
-      "name": "JS: Build Get Query",
+      "id": "90092fd6-acce-4c9b-894a-48b275921247",
+      "name": "JS: Build Get Query1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1232,
-        5120
+        -880,
+        16
       ]
     },
     {
@@ -395,17 +396,17 @@
           "queryReplacement": "={{ $json.params }}"
         }
       },
-      "id": "b22a9163-3042-43b8-9076-58f0ed059fc0",
-      "name": "SQL: Get Trabajadores",
+      "id": "1a5b0bb8-941f-449e-9cce-82cd069f9c1d",
+      "name": "SQL: Get Trabajadores1",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -864,
-        5056
+        -512,
+        -48
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -418,17 +419,17 @@
           "queryReplacement": "={{ [$json.body.trabajadorData.nombre||null, $json.body.trabajadorData.primer_apellido||null, $json.body.trabajadorData.segundo_apellido||null, $json.body.trabajadorData.telefono||null, $json.body.trabajadorData.email||null, $json.body.trabajadorData.dni_nif_pasaporte||null, $json.body.trabajadorData.salario||null, $json.body.trabajadorData.cheques_guarderia||null, $json.body.trabajadorData.cheques_restaurante||null, $json.body.trabajadorData.direccion||null, $json.body.trabajadorData.nacionalidad||null, $json.body.trabajadorData.fecha_nacimiento||null, $json.body.trabajadorData.id_seleccionadores||null, $json.body.trabajadorData.activo!==undefined?$json.body.trabajadorData.activo:true, $json.body.trabajadorData.fecha_ini||null, $json.body.trabajadorData.fecha_fin||null, $json.body.trabajadorData.codigo_postal||null, $json.body.trabajadorData.id_localidad||null, $json.body.trabajadorData.freelance!==undefined?$json.body.trabajadorData.freelance:false, $json.body.trabajadorData.id_provincia||null] }}"
         }
       },
-      "id": "9542cab1-10ce-44ce-a086-cfad6b5f6133",
-      "name": "SQL: Create",
+      "id": "2ccccb45-9ae6-4582-9b2c-9a2c93fc0991",
+      "name": "SQL: Create1",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -976,
-        5552
+        -624,
+        448
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -438,19 +439,19 @@
         "conditions": {
           "boolean": [
             {
-              "value1": "={{ $('Webhook Trabajadores').first().json.body.documentos ? true : false }}",
+              "value1": "={{ $('Webhook Trabajadores1').first().json.body.documentos ? true : false }}",
               "value2": true
             }
           ]
         }
       },
-      "id": "a69d4531-fea2-4aeb-9c73-7d63c3e1dad3",
-      "name": "IF: Trae Documentos?",
+      "id": "50b2b1c5-aa0f-4581-b450-2fe5b0643007",
+      "name": "IF: Trae Documentos?1",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        -752,
-        5584
+        -400,
+        480
       ]
     },
     {
@@ -459,26 +460,26 @@
         "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(item => item.json) } }}",
         "options": {}
       },
-      "id": "89e142ba-a585-4442-bb6e-ae1cb9358ed1",
-      "name": "Respond API",
+      "id": "5d61c082-35bc-4a02-bf9f-6a747a192a2f",
+      "name": "Respond API1",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1264,
-        5920
+        1616,
+        816
       ]
     },
     {
       "parameters": {
-        "jsCode": "const worker = $input.item.json;\nconst body = $('Webhook Trabajadores').first().json.body;\nconst docs = body.documentos || [];\nlet results = [];\nfor (let d of docs) {\n  results.push({\n    json: {\n      body: {\n        action: 'uploadDocumento',\n        trabajadorId: worker.id,\n        origen: d.origen,\n        tipoId: d.tipoId,\n        nombre: d.nombre,\n        descripcion: d.descripcion,\n        base64: d.base64,\n        trabajadorData: worker\n      }\n    }\n  });\n}\nreturn results;"
+        "jsCode": "const worker = $input.item.json;\nconst body = $('Webhook Trabajadores1').first().json.body;\nconst docs = body.documentos || [];\nlet results = [];\nfor (let d of docs) {\n  results.push({\n    json: {\n      body: {\n        action: 'uploadDocumento',\n        trabajadorId: worker.id,\n        origen: d.origen,\n        tipoId: d.tipoId,\n        nombre: d.nombre,\n        descripcion: d.descripcion,\n        base64: d.base64,\n        trabajadorData: worker\n      }\n    }\n  });\n}\nreturn results;"
       },
-      "id": "46985385-7b1d-4d10-a557-dea09eee7287",
-      "name": "JS: Preparar Documentos",
+      "id": "e8aafe37-f222-4599-ac30-70be1783cdbb",
+      "name": "JS: Preparar Documentos1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -512,
-        5440
+        -160,
+        336
       ]
     },
     {
@@ -487,17 +488,17 @@
         "query": "SELECT id, tipo FROM tipoDoc ORDER BY tipo ASC;",
         "options": {}
       },
-      "id": "17f462dc-8840-41b6-9c0a-0b381665f12a",
-      "name": "SQL: Get Tipos Doc",
+      "id": "1312b40f-3449-4c88-b3ff-5e2a83287ebd",
+      "name": "SQL: Get Tipos Doc1",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -608,
-        5248
+        -256,
+        144
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -506,10 +507,10 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "idqm2DXuS03wQBdf",
+          "value": "c08ktOiuDWynWXG1",
           "mode": "list",
-          "cachedResultUrl": "/workflow/idqm2DXuS03wQBdf",
-          "cachedResultName": "Motor Documentos Trabajadores"
+          "cachedResultUrl": "/workflow/c08ktOiuDWynWXG1",
+          "cachedResultName": "sub flujo- trabajador"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
@@ -524,31 +525,31 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        -208,
-        5760
+        416,
+        640
       ],
-      "id": "0dc74922-5088-4bcf-8d7e-b1be12032506",
-      "name": "Call 'Motor Documentos Trabajadores'"
+      "id": "47c89b7d-1573-4f72-bdd6-ff5e0b340811",
+      "name": "Call 'Motor Documentos Trabajadores'1"
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH upd AS (UPDATE trabajador SET nombre=COALESCE($1,nombre), primer_apellido=COALESCE($2,primer_apellido), segundo_apellido=$3, telefono=$4, email=$5, dni_nif_pasaporte=$6, salario=$7, cheques_guarderia=$8, cheques_restaurante=$9, direccion=$10, nacionalidad=$11, fecha_nacimiento=$12, id_seleccionadores=$13, activo=COALESCE($14,activo), fecha_ini=$15, fecha_fin=$16, codigo_postal=$17, id_localidad=$18, freelance=COALESCE($19,freelance), id_provincia=$20 WHERE id=$21 RETURNING *) SELECT u.*, p.provincia AS provincia_nombre, l.localidad AS localidad_nombre, CONCAT(s.nombre,' ',s.primer_apellido) AS seleccionador_nombre FROM upd u LEFT JOIN provincia p ON u.id_provincia=p.id LEFT JOIN localidad l ON u.id_localidad=l.id LEFT JOIN seleccionadores s ON u.id_seleccionadores=s.id;",
+        "query": "WITH upd AS (UPDATE trabajador SET nombre=COALESCE($1,nombre), primer_apellido=COALESCE($2,primer_apellido), segundo_apellido=$3, telefono=$4, email=$5, dni_nif_pasaporte=$6, salario=$7, cheques_guarderia=$8, cheques_restaurante=$9, direccion=$10, nacionalidad=$11, fecha_nacimiento=$12, id_seleccionadores=$13, activo=COALESCE($14,activo), fecha_ini=$15, fecha_fin=$16, codigo_postal=$17, id_localidad=$18, freelance=COALESCE($19,freelance), id_provincia=$20, updated_at=NOW() WHERE id=$21 RETURNING *) SELECT u.*, p.provincia AS provincia_nombre, l.localidad AS localidad_nombre, CONCAT(s.nombre,' ',s.primer_apellido) AS seleccionador_nombre FROM upd u LEFT JOIN provincia p ON u.id_provincia=p.id LEFT JOIN localidad l ON u.id_localidad=l.id LEFT JOIN seleccionadores s ON u.id_seleccionadores=s.id;\n",
         "options": {
           "queryReplacement": "={{ [$json.body.trabajadorData.nombre||null, $json.body.trabajadorData.primer_apellido||null, $json.body.trabajadorData.segundo_apellido||null, $json.body.trabajadorData.telefono||null, $json.body.trabajadorData.email||null, $json.body.trabajadorData.dni_nif_pasaporte||null, $json.body.trabajadorData.salario||null, $json.body.trabajadorData.cheques_guarderia||null, $json.body.trabajadorData.cheques_restaurante||null, $json.body.trabajadorData.direccion||null, $json.body.trabajadorData.nacionalidad||null, $json.body.trabajadorData.fecha_nacimiento||null, $json.body.trabajadorData.id_seleccionadores||null, $json.body.trabajadorData.activo!==undefined?$json.body.trabajadorData.activo:null, $json.body.trabajadorData.fecha_ini||null, $json.body.trabajadorData.fecha_fin||null, $json.body.trabajadorData.codigo_postal||null, $json.body.trabajadorData.id_localidad||null, $json.body.trabajadorData.freelance!==undefined?$json.body.trabajadorData.freelance:null, $json.body.trabajadorData.id_provincia||null, $json.body.trabajadorId] }}"
         }
       },
-      "id": "11674e18-97fe-45d2-ac6c-bc616dea4051",
-      "name": "SQL: Update",
+      "id": "f75d7214-08a9-4f3e-840e-cc491975b92c",
+      "name": "SQL: Update1",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -768,
-        5888
+        -416,
+        784
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -556,22 +557,22 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH upd AS (UPDATE trabajador SET activo = NOT activo WHERE id = $1 RETURNING *) SELECT u.*, p.provincia AS provincia_nombre, l.localidad AS localidad_nombre, CONCAT(s.nombre,' ',s.primer_apellido) AS seleccionador_nombre FROM upd u LEFT JOIN provincia p ON u.id_provincia=p.id LEFT JOIN localidad l ON u.id_localidad=l.id LEFT JOIN seleccionadores s ON u.id_seleccionadores=s.id;",
+        "query": "WITH upd AS (UPDATE trabajador SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING *) SELECT u.*, p.provincia AS provincia_nombre, l.localidad AS localidad_nombre, CONCAT(s.nombre,' ',s.primer_apellido) AS seleccionador_nombre FROM upd u LEFT JOIN provincia p ON u.id_provincia=p.id LEFT JOIN localidad l ON u.id_localidad=l.id LEFT JOIN seleccionadores s ON u.id_seleccionadores=s.id;\n",
         "options": {
           "queryReplacement": "={{ [$json.body.trabajadorId] }}"
         }
       },
-      "id": "138d15a5-3627-4045-8700-3bf2d04f0aa6",
-      "name": "SQL: Toggle Status",
+      "id": "a6ab726d-8db5-4ae0-8849-0b2ab0b7c469",
+      "name": "SQL: Toggle Status1",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -640,
-        6032
+        -288,
+        928
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -582,17 +583,17 @@
         "query": "SELECT id, provincia AS nombre FROM provincia ORDER BY provincia ASC;",
         "options": {}
       },
-      "id": "1d2678e1-2973-4b92-9aad-2c297d04d933",
-      "name": "SQL: Get Provincias",
+      "id": "c7efb73c-9f5e-4235-a5d0-fa8eabfc0051",
+      "name": "SQL: Get Provincias1",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -656,
-        6224
+        -304,
+        1120
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -603,17 +604,17 @@
         "query": "SELECT id, id_provincia, localidad AS nombre FROM localidad ORDER BY localidad ASC;",
         "options": {}
       },
-      "id": "1f12cab9-ebf1-49c1-a834-b4a46c081864",
-      "name": "SQL: Get Localidades",
+      "id": "406c2094-421b-4d20-8080-1beb320075a8",
+      "name": "SQL: Get Localidades1",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -672,
-        6416
+        -320,
+        1312
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -624,17 +625,17 @@
         "query": "SELECT id, CONCAT(nombre, ' ', primer_apellido) AS nombre, tipo FROM seleccionadores WHERE activo = true ORDER BY nombre ASC;",
         "options": {}
       },
-      "id": "61654af0-34ac-4cf9-b0f5-cf47414a85bd",
-      "name": "SQL: Get Seleccionadores Lookup",
+      "id": "95c4ca82-4483-423c-a8de-8ea693a47192",
+      "name": "SQL: Get Seleccionadores Lookup1",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -768,
-        6592
+        -416,
+        1488
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -647,17 +648,17 @@
           "queryReplacement": "={{ [$json.body.trabajadorId] }}"
         }
       },
-      "id": "3cdd8c42-1ea3-49fb-84c8-b8505c7256c3",
-      "name": "SQL: Get Asignaciones By Trabajador",
+      "id": "bc428107-9b43-49c8-b5ad-678e18eb8ce9",
+      "name": "SQL: Get Asignaciones By Trabajador1",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -848,
-        6832
+        -496,
+        1728
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -670,17 +671,17 @@
           "queryReplacement": "={{ [$json.body.trabajadorId] }}"
         }
       },
-      "id": "593a1005-ef80-45ac-982e-49c0c7a414c9",
-      "name": "SQL: Get Formaciones By Trabajador",
+      "id": "5e39213e-b1ad-4abb-a41b-f32f398fb7eb",
+      "name": "SQL: Get Formaciones By Trabajador1",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -992,
-        7040
+        -640,
+        1936
       ],
       "credentials": {
         "postgres": {
-          "id": "mPfszXAIIX9ayVGQ",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
@@ -689,13 +690,13 @@
       "parameters": {
         "jsCode": "return [{ json: { success: false, error: `Acción no válida: '${$input.item.json.body?.action || 'undefined'}'` } }];"
       },
-      "id": "069b87a5-0431-4a4c-83f2-2d8f84e0587c",
-      "name": "Invalid Action Response",
+      "id": "ca95e0a6-272b-4373-987a-50fa9aafd785",
+      "name": "Invalid Action Response1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1408,
-        7056
+        -1056,
+        1952
       ]
     },
     {
@@ -706,303 +707,396 @@
           "responseCode": 400
         }
       },
-      "id": "d6cfa491-9951-4dde-bacf-691c24bf0c17",
-      "name": "Respond Error",
+      "id": "f2f3f876-c8b1-47a5-ae4f-46a989ccd68f",
+      "name": "Respond Error1",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        -1008,
-        7296
+        -656,
+        2192
       ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "auth-check-001",
+              "leftValue": "={{ $json._authError }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1568,
+        704
+      ],
+      "id": "ca4f125d-7234-4b86-9afb-5cd450fa34ab",
+      "name": "Auth Error?1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: $json.message }) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1408,
+        416
+      ],
+      "id": "5fd31050-0b43-41a9-9d73-9e4a0c07a744",
+      "name": "Respond "
+    },
+    {
+      "parameters": {
+        "jsCode": "const jwt = require('jsonwebtoken');\n\nconst JWT_SECRET = 'passEncriptada';\n\nconst body = $json.body;\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst bodyToken  = body?.token || '';\nconst rawToken   = authHeader || bodyToken;\n\nconst token = rawToken.replace('Bearer ', '').trim();\n\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\n\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{\n    json: {\n      ...$json,\n      _auth: { id: decoded.id, email: decoded.email, role: decoded.role }\n    }\n  }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido o expirado - ' + err.message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1776,
+        704
+      ],
+      "id": "6fc2f615-6c60-4a43-a746-a70f8db0e50a",
+      "name": "JWT Verify"
     }
   ],
+  "pinData": {},
   "connections": {
-    "Webhook Trabajadores": {
+    "Webhook Trabajadores1": {
       "main": [
         [
           {
-            "node": "Switch Actions",
+            "node": "JWT Verify",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Switch Actions": {
+    "Switch Actions1": {
       "main": [
         [
           {
-            "node": "JS: Build Get Query",
+            "node": "JS: Build Get Query1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "SQL: Create",
+            "node": "SQL: Create1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "SQL: Get Tipos Doc",
+            "node": "SQL: Get Tipos Doc1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Call 'Motor Documentos Trabajadores'",
+            "node": "Call 'Motor Documentos Trabajadores'1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Call 'Motor Documentos Trabajadores'",
+            "node": "Call 'Motor Documentos Trabajadores'1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Call 'Motor Documentos Trabajadores'",
+            "node": "Call 'Motor Documentos Trabajadores'1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Call 'Motor Documentos Trabajadores'",
+            "node": "Call 'Motor Documentos Trabajadores'1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "SQL: Update",
+            "node": "SQL: Update1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "SQL: Toggle Status",
+            "node": "SQL: Toggle Status1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "SQL: Get Provincias",
+            "node": "SQL: Get Provincias1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "SQL: Get Localidades",
+            "node": "SQL: Get Localidades1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "SQL: Get Seleccionadores Lookup",
+            "node": "SQL: Get Seleccionadores Lookup1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "SQL: Get Asignaciones By Trabajador",
+            "node": "SQL: Get Asignaciones By Trabajador1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "SQL: Get Formaciones By Trabajador",
+            "node": "SQL: Get Formaciones By Trabajador1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Invalid Action Response",
+            "node": "Invalid Action Response1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "JS: Build Get Query": {
+    "JS: Build Get Query1": {
       "main": [
         [
           {
-            "node": "SQL: Get Trabajadores",
+            "node": "SQL: Get Trabajadores1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "SQL: Get Trabajadores": {
+    "SQL: Get Trabajadores1": {
       "main": [
         [
           {
-            "node": "Respond API",
+            "node": "Respond API1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "SQL: Create": {
+    "SQL: Create1": {
       "main": [
         [
           {
-            "node": "IF: Trae Documentos?",
+            "node": "IF: Trae Documentos?1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF: Trae Documentos?": {
+    "IF: Trae Documentos?1": {
       "main": [
         [
           {
-            "node": "JS: Preparar Documentos",
+            "node": "JS: Preparar Documentos1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond API",
+            "node": "Respond API1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "JS: Preparar Documentos": {
+    "JS: Preparar Documentos1": {
       "main": [
         [
           {
-            "node": "Call 'Motor Documentos Trabajadores'",
+            "node": "Call 'Motor Documentos Trabajadores'1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "SQL: Get Tipos Doc": {
+    "SQL: Get Tipos Doc1": {
       "main": [
         [
           {
-            "node": "Respond API",
+            "node": "Respond API1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Call 'Motor Documentos Trabajadores'": {
+    "Call 'Motor Documentos Trabajadores'1": {
       "main": [
         [
           {
-            "node": "Respond API",
+            "node": "Respond API1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "SQL: Update": {
+    "SQL: Update1": {
       "main": [
         [
           {
-            "node": "Respond API",
+            "node": "Respond API1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "SQL: Toggle Status": {
+    "SQL: Toggle Status1": {
       "main": [
         [
           {
-            "node": "Respond API",
+            "node": "Respond API1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "SQL: Get Provincias": {
+    "SQL: Get Provincias1": {
       "main": [
         [
           {
-            "node": "Respond API",
+            "node": "Respond API1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "SQL: Get Localidades": {
+    "SQL: Get Localidades1": {
       "main": [
         [
           {
-            "node": "Respond API",
+            "node": "Respond API1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "SQL: Get Seleccionadores Lookup": {
+    "SQL: Get Seleccionadores Lookup1": {
       "main": [
         [
           {
-            "node": "Respond API",
+            "node": "Respond API1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "SQL: Get Asignaciones By Trabajador": {
+    "SQL: Get Asignaciones By Trabajador1": {
       "main": [
         [
           {
-            "node": "Respond API",
+            "node": "Respond API1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "SQL: Get Formaciones By Trabajador": {
+    "SQL: Get Formaciones By Trabajador1": {
       "main": [
         [
           {
-            "node": "Respond API",
+            "node": "Respond API1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Invalid Action Response": {
+    "Invalid Action Response1": {
       "main": [
         [
           {
-            "node": "Respond Error",
+            "node": "Respond Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Error?1": {
+      "main": [
+        [
+          {
+            "node": "Respond ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch Actions1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JWT Verify": {
+      "main": [
+        [
+          {
+            "node": "Auth Error?1",
             "type": "main",
             "index": 0
           }
@@ -1010,9 +1104,17 @@
       ]
     }
   },
-  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a0618c2f-798a-46ab-8cd4-cff1ff1e24e8",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "ce978c989ab1e23db47d18854a2aa4ec48f1cc3365db2fa6e0d1703da947a576"
-  }
+    "instanceId": "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
+  },
+  "id": "jAA5Pelj68qNMYJv",
+  "tags": []
 }
