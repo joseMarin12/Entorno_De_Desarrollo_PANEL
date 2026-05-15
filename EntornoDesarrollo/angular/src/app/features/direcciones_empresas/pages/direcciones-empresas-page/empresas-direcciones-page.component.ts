@@ -131,7 +131,7 @@ export class EmpresasDireccionesPageComponent implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage.set(page);
-    this.loadAll(this.searchQuery, this.activeFilter);
+    this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
   }
 
   onSearchChange(q: string): void {

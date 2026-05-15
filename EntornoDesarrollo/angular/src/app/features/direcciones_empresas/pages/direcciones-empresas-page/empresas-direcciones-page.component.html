@@ -65,6 +65,7 @@
 
 @if (showEdit && selectedDireccion) {
   <app-modal-direcciones
+    [idEmpresa]="empresaId!"
     [direccion]="selectedDireccion"
     (saveEdit)="onSaveEdit($event)"
     (close)="showEdit = false; selectedId = null"

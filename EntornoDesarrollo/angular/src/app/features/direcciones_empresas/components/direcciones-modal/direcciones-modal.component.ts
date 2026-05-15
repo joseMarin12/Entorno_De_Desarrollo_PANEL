@@ -2,16 +2,13 @@ import { CommonModule } from "@angular/common";
 import { Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, signal, SimpleChanges } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { DireccionEmpresa } from "../../../../models/direccion-empresa.model";
-import { DireccionesEmpresasApiService } from "../../../../services/direcciones-empresas-api.service";
-import { Pais } from "../../../../models/pais.model";
-import { Provincia } from "../../../../models/provincia.model";
-import { Localidad } from "../../../../models/localidad.model";
-import { forkJoin } from "rxjs";
+import { LookupSelectComponent } from "../../../../shared/lookup-select/lookup-select.component";
+import { environment } from "../../../../../environments/environment";
 
 @Component({
     selector: "app-modal-direcciones",
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, LookupSelectComponent],
     templateUrl: "./direcciones-modal.component.html"
 })
 export class DireccionesModalComponent implements OnInit, OnChanges {
@@ -21,18 +18,36 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
     @Output() saveEdit = new EventEmitter<DireccionEmpresa>();
     @Output() close = new EventEmitter<void>();
 
-    private direccionesApi = inject(DireccionesEmpresasApiService);
+    readonly direccionesApiUrl = `${environment.apiUrl}/direcciones-empresas`;
 
-    private _paises = signal<Pais[]>([]);
-    private _provincias = signal<Provincia[]>([]);
-    private _localidades = signal<Localidad[]>([]);
+    private isInitializing = false;
 
-    readonly paises = this._paises.asReadonly();
-    readonly provincias = this._provincias.asReadonly();
-    readonly localidades = this._localidades.asReadonly();
+    private _selectedPaisId: number | null = null;
 
-    selectedPaisId: number | null = null;
-    selectedProvinciaId: number | null = null;
+    get selectedPaisId(): number | null {
+        return this._selectedPaisId;
+    }
+
+    set selectedPaisId(value: number | null) {
+        this._selectedPaisId = value;
+        if (!this.isInitializing) {
+            this.selectedProvinciaId = null;
+            this.form.id_localidad = null;
+        }
+    }
+
+    private _selectedProvinciaId: number | null = null;
+
+    get selectedProvinciaId(): number | null {
+        return this._selectedProvinciaId;
+    }
+
+    set selectedProvinciaId(value: number | null) {
+        this._selectedProvinciaId = value;
+        if (!this.isInitializing) {
+            this.form.id_localidad = null;
+        }
+    }
 
     form = { 
         direccion: '',
@@ -45,61 +60,35 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
     errors: Record<string, string> = {};
     private formInitialized = false;
 
-    get isEditMode() {
+    get isEditMode(): boolean {
         return this.direccion !== null;
     }
 
-    get title() {
+    get title(): string {
         return this.isEditMode ? 'Editar Dirección' : 'Añadir Dirección';
     }
 
-    get subtitle() {
+    get subtitle(): string {
         if (!this.isEditMode) return 'Rellena los datos de la nueva dirección.';
         return `Modificando datos de ${this.direccion!.direccion}`;
     }
 
-    get buttonLabel() {
+    get buttonLabel(): string {
         return this.isEditMode ? 'Guardar cambios' : 'Añadir dirección';
     } 
 
     ngOnInit(): void {
         this.form.id_empresa = this.idEmpresa;
-        this.direccionesApi.findPaises().subscribe({
-        next: (paises) => {
-            this._paises.set(paises);
-            if (!this.formInitialized) this.fillForm();
-        },
-        error: (err) => console.error('Error al cargar países:', err),
-    });
+        if (!this.formInitialized) this.fillForm();
     }
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['direccion']) {
             this.formInitialized = false;
-            this.fillForm(); 
+            this.selectedPaisId = null;
+            this.selectedProvinciaId = null;
+            this.fillForm();
         }
-    }
-
-    onPaisChange(idPais: number): void {
-        this.selectedProvinciaId = null;
-        this._provincias.set([]);
-        this._localidades.set([]);
-        this.form.id_localidad = null;
-
-        this.direccionesApi.findProvincias(idPais).subscribe({
-            next: (provincias) => this._provincias.set(provincias),
-            error: (err) => console.error('Error al cargar provincias:', err)
-        });
-    }
-
-    onProvinciaChange(idProvincia: number): void {
-        this._localidades.set([]);
-        this.form.id_localidad = null;
-
-        this.direccionesApi.findLocalidades(idProvincia).subscribe({
-            next: (localidades) => this._localidades.set(localidades),
-            error: (err) => console.error('Error al cargar localidades:', err)
-        });
     }
 
     private fillForm(): void {
@@ -108,31 +97,23 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
             this.formInitialized = true;
             return;
         }
-        if (!this.direccion || this._paises().length === 0) return;
+        if (!this.direccion) return;
+        this.isInitializing = true;
+
+        this.form = {
+            direccion: this.direccion.direccion,
+            codigoPostal: this.direccion.codigoPostal,
+            id_localidad: this.direccion.id_localidad ?? null,
+            id_empresa: this.direccion.id_empresa ?? null,
+            activo: this.direccion.activo,
+        };
 
         this.selectedPaisId = this.direccion.id_pais;
         this.selectedProvinciaId = this.direccion.id_provincia;
-
-        this.form = {
-            direccion: this.direccion!.direccion,
-            codigoPostal: this.direccion!.codigoPostal,
-            id_localidad: this.direccion!.id_localidad ?? null,
-            id_empresa: this.direccion!.id_empresa ?? null,
-            activo: this.direccion!.activo,
-        };
+        
         this.errors = {};
         this.formInitialized = true;
-
-        forkJoin({
-            provincias: this.direccionesApi.findProvincias(this.direccion.id_pais),
-            localidades: this.direccionesApi.findLocalidades(this.direccion.id_provincia),
-        }).subscribe({
-            next: ({ provincias, localidades }) => {
-                this._provincias.set(provincias);
-                this._localidades.set(localidades);
-            },
-            error: (err) => console.error('Error al cargar provincias/localidades:', err),
-        });
+        setTimeout(() => this.isInitializing = false);
     }
 
     toggleActivo(): void {
@@ -140,6 +121,8 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
     }
 
     submit(): void {
+        console.log('form completo:', JSON.stringify(this.form));
+        console.log('id_empresa', this.form.id_empresa);
         this.errors = {};
         if (!this.form.direccion) this.errors['direccion'] = 'Campo obligatorio';
         if (!this.form.codigoPostal) this.errors['codigoPostal'] = 'Campo obligatorio';
@@ -174,9 +157,12 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
             direccion: '',
             codigoPostal: '',
             id_localidad: null,
-            id_empresa: null,
+            id_empresa: this.idEmpresa,
             activo: true,
         };
+        this.selectedPaisId = null;
+        this.selectedProvinciaId = null;
         this.errors = {};
+        this.formInitialized = false;
     }
 }

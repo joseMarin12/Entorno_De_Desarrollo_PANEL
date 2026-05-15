@@ -149,6 +149,9 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
   @Input() hasError = false;
   @Input() required = false;
   @Input() searchable = false;
+  @Input() dependsOn: any = null;
+  @Input() dependsOnField = 'parentId';
+  @Input() initialValue: any = null;
 
   // ── Estado ────────────────────────────────────────────────────────────────
   options = signal<any[]>([]);
@@ -191,13 +194,27 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
       !changes['action']?.isFirstChange()) {
       this.loadData();
     }
+
+    if (changes['dependsOn']) {
+      if (changes['dependsOn'].isFirstChange()) return;
+      setTimeout(() => {
+        this.internalValue = null;
+        this.onChange(null);
+        if (this.dependsOn !== null && this.dependsOn !== undefined) {
+          this.loadData();          
+        } else {
+          this.options.set([]);
+        }
+      });
+
+    }
   }
 
   // ── Carga de datos ────────────────────────────────────────────────────────
   private loadData(): void {
     if (!this.apiUrl || !this.action) return;
     this.isLoading.set(true);
-    this.lookupSvc.getOptions(this.apiUrl, this.action).subscribe({
+    this.lookupSvc.getOptions(this.apiUrl, this.action, this.dependsOn, this.dependsOnField).subscribe({
       next: data => {
         this.options.set(data || []);
         this.syncSearchText();
