@@ -25,11 +25,18 @@
   />
 
   <!-- Toolbar: búsqueda + filtros -->
-  <div style="margin-bottom:16px">
-    <app-sel-toolbar
+  <div style="margin-bottom:16px; display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+    <app-sel-toolbar style="flex: 1;"
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
       (tipoFilterChange)="onTypeFilterChange($event)"
+    />
+    <app-csv-import-export
+      [columns]="csvColumns"
+      [rows]="seleccionadores()"
+      exportFilename="Seleccionadores_Export.csv"
+      templateFilename="Seleccionadores.csv"
+      (importData)="onImportCsv($event)"
     />
   </div>
 

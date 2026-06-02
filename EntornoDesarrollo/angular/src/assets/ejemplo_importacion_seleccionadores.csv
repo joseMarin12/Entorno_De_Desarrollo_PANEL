@@ -1,0 +1,6 @@
+nombre,primer_apellido,segundo_apellido,telefono,email,tipo,activo,id_empresa,fecha_ini,salario,fee
+Ana,López,García,611222333,ana.lopez@example.com,interno,true,,2024-03-01,30000,
+Roberto,Sánchez,Martín,622333444,roberto.sanchez@example.com,externo,true,1,2024-04-15,,1200
+Laura,Díaz,,633444555,laura.diaz@example.com,interno,true,,2024-05-01,28000,
+Pablo,Ruiz,Fernández,644555666,pablo.ruiz@example.com,externo,true,2,2024-06-01,,1800
+Carmen,Navarro,Torres,655666777,carmen.navarro@example.com,interno,true,,2024-07-15,35000,

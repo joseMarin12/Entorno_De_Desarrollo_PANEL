@@ -12,6 +12,8 @@ import { TableComponent, ColumnDef } from '../../../../shared/table/table.compon
 import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
 import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { ConfirmMode, ConfirmationModalComponent } from '../../../../shared/confirmation-modal/confirmation-modal.component';
+import { CsvImportExportComponent } from '../../../../shared/csv-import-export/csv-import-export.component';
+import { CsvColumnDef } from '../../../../shared/csv-import-export/csv.service';
 
 @Component({
   selector: 'app-comerciales-page',
@@ -25,6 +27,7 @@ import { ConfirmMode, ConfirmationModalComponent } from '../../../../shared/conf
     ModalAddComponent,
     ModalEditComponent,
     ConfirmationModalComponent,
+    CsvImportExportComponent
   ],
   templateUrl: './comerciales-page.component.html',
 })
@@ -80,6 +83,15 @@ export class ComercialesPageComponent implements OnInit {
   currentPage   = signal<number>(1);
   totalFiltered = signal<number>(0);
   readonly PAGE_SIZE = 10;
+
+  csvColumns: CsvColumnDef[] = [
+    { key: 'nombre', header: 'nombre', type: 'text' },
+    { key: 'primer_apellido', header: 'primer_apellido', type: 'text' },
+    { key: 'segundo_apellido', header: 'segundo_apellido', type: 'text' },
+    { key: 'telefono', header: 'telefono', type: 'text' },
+    { key: 'email', header: 'email', type: 'text' },
+    { key: 'activo', header: 'activo', type: 'boolean' }
+  ];
 
   // ── Estado modales ────────────────────────────────────────
   showAdd  = false;
@@ -196,6 +208,36 @@ export class ComercialesPageComponent implements OnInit {
         );
       },
     });
+  }
+
+  onImportCsv(rows: any[]): void {
+    let success = 0;
+    let errors = 0;
+    
+    const importNext = (index: number) => {
+      if (index >= rows.length) {
+        this.toast.show(errors === 0 ? 'success' : 'warning', `Importación finalizada. ${success} correctos, ${errors} errores.`);
+        this.loadPage();
+        return;
+      }
+      
+      const row = rows[index];
+      const { id, created_at, updated_at, ...cleanRow } = row;
+      
+      const payload = {
+        ...cleanRow,
+        activo: cleanRow.activo === 'true' || cleanRow.activo === true || cleanRow.activo === 1 || cleanRow.activo === '1',
+      };
+
+      this.api.create(payload).subscribe({
+        next: () => { success++; importNext(index + 1); },
+        error: () => { errors++; importNext(index + 1); }
+      });
+    };
+    
+    if (rows.length > 0) {
+      importNext(0);
+    }
   }
 
   onSaveEdit(data: Comercial): void {

@@ -21,11 +21,20 @@
   <app-stats-row [total]="svc.total()" [activas]="svc.totalActivos()" [inactivas]="svc.totalInactivos()" />
 
   <!-- Toolbar: búsqueda + filtros -->
-  <app-shared-filter 
-    placeholder="Buscar por empresa o trabajador..."
-    (searchChange)="onSearchChange($event)" 
-    (filterChange)="onFilterChange($event)" 
-  />
+  <div style="margin-bottom:16px; display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+    <app-shared-filter style="flex: 1;"
+      placeholder="Buscar por empresa o trabajador..."
+      (searchChange)="onSearchChange($event)" 
+      (filterChange)="onFilterChange($event)" 
+    />
+    <app-csv-import-export
+      [columns]="csvColumns"
+      [rows]="svc.asignaciones()"
+      exportFilename="Asignaciones_Export.csv"
+      templateFilename="Asignacion.csv"
+      (importData)="onImportCsv($event)"
+    />
+  </div>
 
   <!-- Tabla -->
   <app-asignaciones-table [asignaciones]="svc.asignaciones()" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"

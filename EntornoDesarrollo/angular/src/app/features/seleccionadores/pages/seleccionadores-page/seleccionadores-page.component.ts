@@ -11,22 +11,25 @@ import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 import { TableComponent } from '../../../../shared/table/table.component';
 import { tableColumns } from './seleccionadores-table.config';
+import { CsvImportExportComponent } from '../../../../shared/csv-import-export/csv-import-export.component';
+import { CsvColumnDef } from '../../../../shared/csv-import-export/csv.service';
 
 @Component({
   selector: 'app-seleccionadores-page',
   standalone: true,
   imports: [
     CommonModule, SelStatsRowComponent, SelToolbarComponent, TableComponent,
-    SelModalFormComponent, SelModalDetailComponent, TopbarComponent, ConfirmationModalComponent
+    SelModalFormComponent, SelModalDetailComponent, TopbarComponent, ConfirmationModalComponent,
+    CsvImportExportComponent
   ],
   templateUrl: './seleccionadores-page.component.html',
 })
 export class SeleccionadoresPageComponent implements OnInit {
-  api   = inject(SeleccionadoresApiService);
+  api = inject(SeleccionadoresApiService);
   toast = inject(ToastService);
 
   private readonly _seleccionadores = signal<Seleccionador[]>([]);
-  private readonly _empresas = signal<{id: number, nombre: string}[]>([]);
+  private readonly _empresas = signal<{ id: number, nombre: string }[]>([]);
   readonly empresasDisponibles = this._empresas.asReadonly();
 
   readonly seleccionadores = computed(() => {
@@ -42,29 +45,43 @@ export class SeleccionadoresPageComponent implements OnInit {
 
   // Stats globales del backend
   private readonly _stats = signal<SeleccionadorStats>({ total: 0, activos: 0, inactivos: 0, externos: 0 });
-  readonly statsTotal     = computed(() => this._stats().total);
-  readonly statsActivos   = computed(() => this._stats().activos);
+  readonly statsTotal = computed(() => this._stats().total);
+  readonly statsActivos = computed(() => this._stats().activos);
   readonly statsInactivos = computed(() => this._stats().inactivos);
-  readonly statsExternos  = computed(() => this._stats().externos);
+  readonly statsExternos = computed(() => this._stats().externos);
 
   // Paginación server-side
   readonly PAGE_SIZE = 10;
-  currentPage   = signal<number>(1);
+  currentPage = signal<number>(1);
   totalFiltered = signal<number>(0);
 
   tableColumns = tableColumns;
   selectedSeleccionador: Seleccionador | null = null;
   selectedSeleccionadorNombre = signal<string | null>(null);
 
-  searchQuery  = signal<string>('');
+  searchQuery = signal<string>('');
   activeFilter = signal<SelFilterType>('');
-  typeFilter   = signal<SelFilterTipoType>('');
+  typeFilter = signal<SelFilterTipoType>('');
 
-  showForm    = false;
+  csvColumns: CsvColumnDef[] = [
+    { key: 'nombre', header: 'nombre', type: 'text' },
+    { key: 'primer_apellido', header: 'primer_apellido', type: 'text' },
+    { key: 'segundo_apellido', header: 'segundo_apellido', type: 'text' },
+    { key: 'telefono', header: 'telefono', type: 'text' },
+    { key: 'email', header: 'email', type: 'text' },
+    { key: 'tipo', header: 'tipo', type: 'text' },
+    { key: 'activo', header: 'activo', type: 'boolean' },
+    { key: 'id_empresa', header: 'id_empresa', type: 'number' },
+    { key: 'fecha_ini', header: 'fecha_ini', type: 'date' },
+    { key: 'salario', header: 'salario', type: 'number' },
+    { key: 'fee', header: 'fee', type: 'number' }
+  ];
+
+  showForm = false;
   showConfirm = false;
-  showDetail  = false;
+  showDetail = false;
   confirmMode = ConfirmMode.DESACTIVAR;
-  selectedId  = signal<number | null>(null);
+  selectedId = signal<number | null>(null);
   ConfirmMode = ConfirmMode;
 
   ngOnInit(): void {
@@ -153,6 +170,41 @@ export class SeleccionadoresPageComponent implements OnInit {
         },
         error: () => this.toast.show('error', '✗ Error al crear seleccionador')
       });
+    }
+  }
+
+  onImportCsv(rows: any[]): void {
+    let success = 0;
+    let errors = 0;
+
+    const importNext = (index: number) => {
+      if (index >= rows.length) {
+        this.toast.show(errors === 0 ? 'success' : 'warning', `Importación finalizada. ${success} correctos, ${errors} errores.`);
+        this.loadPage();
+        return;
+      }
+
+      const row = rows[index];
+
+      const { id, created_at, updated_at, ...cleanRow } = row;
+
+      const payload = {
+        ...cleanRow,
+        activo: cleanRow.activo === 'true' || cleanRow.activo === true || cleanRow.activo === 1 || cleanRow.activo === '1',
+        tipo: cleanRow.tipo ? String(cleanRow.tipo).toLowerCase().trim() : 'interno',
+        id_empresa: cleanRow.id_empresa ? Number(cleanRow.id_empresa) : null,
+        salario: cleanRow.salario ? Number(cleanRow.salario) : null,
+        fee: cleanRow.fee ? Number(cleanRow.fee) : null,
+      };
+
+      this.api.create(payload).subscribe({
+        next: () => { success++; importNext(index + 1); },
+        error: () => { errors++; importNext(index + 1); }
+      });
+    };
+
+    if (rows.length > 0) {
+      importNext(0);
     }
   }
 

@@ -11,13 +11,16 @@ import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 import { TableComponent } from '../../../../shared/table/table.component';
 import { TRABAJADORES_COLUMNS } from './trabajadores-table.config';
+import { CsvImportExportComponent } from '../../../../shared/csv-import-export/csv-import-export.component';
+import { CsvColumnDef } from '../../../../shared/csv-import-export/csv.service';
 
 @Component({
   selector: 'app-trabajadores-page',
   standalone: true,
   imports: [
     CommonModule, TrabStatsRowComponent, TrabToolbarComponent, TableComponent,
-    TrabModalFormComponent, TrabModalDetailComponent, TopbarComponent, ConfirmationModalComponent
+    TrabModalFormComponent, TrabModalDetailComponent, TopbarComponent, ConfirmationModalComponent,
+    CsvImportExportComponent
   ],
   templateUrl: './trabajadores-page.component.html',
 })
@@ -61,6 +64,29 @@ export class TrabajadoresPageComponent implements OnInit {
   searchQuery = signal<string>('');
   activeFilter = signal<TrabFilterType>('');
   typeFilter = signal<TrabFilterTipoType>('');
+
+  csvColumns: CsvColumnDef[] = [
+    { key: 'nombre', header: 'nombre', type: 'text' },
+    { key: 'primer_apellido', header: 'primer_apellido', type: 'text' },
+    { key: 'segundo_apellido', header: 'segundo_apellido', type: 'text' },
+    { key: 'telefono', header: 'telefono', type: 'text' },
+    { key: 'email', header: 'email', type: 'text' },
+    { key: 'dni_nif_pasaporte', header: 'dni_nif_pasaporte', type: 'text' },
+    { key: 'salario', header: 'salario', type: 'number' },
+    { key: 'cheques_guarderia', header: 'cheques_guarderia', type: 'number' },
+    { key: 'cheques_restaurante', header: 'cheques_restaurante', type: 'number' },
+    { key: 'direccion', header: 'direccion', type: 'text' },
+    { key: 'nacionalidad', header: 'nacionalidad', type: 'text' },
+    { key: 'fecha_nacimiento', header: 'fecha_nacimiento', type: 'date' },
+    { key: 'id_seleccionadores', header: 'id_seleccionadores', type: 'number' },
+    { key: 'activo', header: 'activo', type: 'boolean' },
+    { key: 'fecha_ini', header: 'fecha_ini', type: 'date' },
+    { key: 'fecha_fin', header: 'fecha_fin', type: 'date' },
+    { key: 'codigo_postal', header: 'codigo_postal', type: 'text' },
+    { key: 'id_localidad', header: 'id_localidad', type: 'number' },
+    { key: 'freelance', header: 'freelance', type: 'boolean' },
+    { key: 'id_provincia', header: 'id_provincia', type: 'number' }
+  ];
 
   showForm = false;
   showConfirm = false;
@@ -167,6 +193,43 @@ export class TrabajadoresPageComponent implements OnInit {
         },
         error: () => this.toast.show('error', '✗ Error al crear')
       });
+    }
+  }
+
+  onImportCsv(rows: any[]): void {
+    let success = 0;
+    let errors = 0;
+    
+    const importNext = (index: number) => {
+      if (index >= rows.length) {
+        this.toast.show(errors === 0 ? 'success' : 'warning', `Importación finalizada. ${success} correctos, ${errors} errores.`);
+        this.loadPage();
+        return;
+      }
+      
+      const row = rows[index];
+      const { id, created_at, updated_at, seleccionador_nombre, provincia_nombre, localidad_nombre, asignado, ...cleanRow } = row;
+      
+      const payload = {
+        ...cleanRow,
+        activo: cleanRow.activo === 'true' || cleanRow.activo === true || cleanRow.activo === 1 || cleanRow.activo === '1',
+        freelance: cleanRow.freelance === 'true' || cleanRow.freelance === true || cleanRow.freelance === 1 || cleanRow.freelance === '1',
+        salario: cleanRow.salario ? Number(cleanRow.salario) : null,
+        cheques_guarderia: cleanRow.cheques_guarderia ? Number(cleanRow.cheques_guarderia) : null,
+        cheques_restaurante: cleanRow.cheques_restaurante ? Number(cleanRow.cheques_restaurante) : null,
+        id_seleccionadores: cleanRow.id_seleccionadores ? Number(cleanRow.id_seleccionadores) : null,
+        id_localidad: cleanRow.id_localidad ? Number(cleanRow.id_localidad) : null,
+        id_provincia: cleanRow.id_provincia ? Number(cleanRow.id_provincia) : null,
+      };
+
+      this.api.create(payload).subscribe({
+        next: () => { success++; importNext(index + 1); },
+        error: () => { errors++; importNext(index + 1); }
+      });
+    };
+    
+    if (rows.length > 0) {
+      importNext(0);
     }
   }
 

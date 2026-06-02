@@ -12,6 +12,8 @@ import { AsignacionesTableComponent } from '../../components/asignaciones-table/
 import { ModalAsignacionComponent } from '../../components/modal-asignacion/modal-asignacion.component';
 import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 import { FormsModule } from '@angular/forms';
+import { CsvImportExportComponent } from '../../../../shared/csv-import-export/csv-import-export.component';
+import { CsvColumnDef } from '../../../../shared/csv-import-export/csv.service';
 
 @Component({
   selector: 'app-asignaciones-page',
@@ -25,6 +27,7 @@ import { FormsModule } from '@angular/forms';
     AsignacionesTableComponent,
     ModalAsignacionComponent,
     ConfirmationModalComponent,
+    CsvImportExportComponent
   ],
   templateUrl: './asignaciones-page.component.html',
 })
@@ -39,6 +42,16 @@ export class AsignacionesPageComponent implements OnInit {
   activeFilter: string = 'todos';
   currentPage = 1;
   readonly PAGE_SIZE = 10;
+
+  csvColumns: CsvColumnDef[] = [
+    { key: 'id_empresa', header: 'id_empresa', type: 'number' },
+    { key: 'id_trabajador', header: 'id_trabajador', type: 'number' },
+    { key: 'id_comerciales', header: 'id_comerciales', type: 'number' },
+    { key: 'fecha_ini', header: 'fecha_ini', type: 'date' },
+    { key: 'fecha_fin', header: 'fecha_fin', type: 'date' },
+    { key: 'tarifa', header: 'tarifa', type: 'number' },
+    { key: 'activo', header: 'activo', type: 'boolean' }
+  ];
 
   // ── Estado modales ────────────────────────────────
   showForm = false;
@@ -111,6 +124,40 @@ export class AsignacionesPageComponent implements OnInit {
           this.toast.show('error', `✗ ${msg}`);
         },
       });
+    }
+  }
+
+  onImportCsv(rows: any[]): void {
+    let success = 0;
+    let errors = 0;
+    
+    const importNext = (index: number) => {
+      if (index >= rows.length) {
+        this.toast.show(errors === 0 ? 'success' : 'warning', `Importación finalizada. ${success} correctos, ${errors} errores.`);
+        this.loadData();
+        return;
+      }
+      
+      const row = rows[index];
+      const { id, created_at, updated_at, ...cleanRow } = row;
+      
+      const payload = {
+        ...cleanRow,
+        id_empresa: cleanRow.id_empresa ? Number(cleanRow.id_empresa) : null,
+        id_trabajador: cleanRow.id_trabajador ? Number(cleanRow.id_trabajador) : null,
+        id_comerciales: cleanRow.id_comerciales ? Number(cleanRow.id_comerciales) : null,
+        tarifa: cleanRow.tarifa ? Number(cleanRow.tarifa) : null,
+        activo: cleanRow.activo === 'true' || cleanRow.activo === true || cleanRow.activo === 1 || cleanRow.activo === '1',
+      };
+
+      this.svc.add(payload).subscribe({
+        next: () => { success++; importNext(index + 1); },
+        error: () => { errors++; importNext(index + 1); }
+      });
+    };
+    
+    if (rows.length > 0) {
+      importNext(0);
     }
   }
 
