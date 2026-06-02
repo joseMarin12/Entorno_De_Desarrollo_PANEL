@@ -1,0 +1,266 @@
+<app-topbar pageTitle="Inicio" />
+
+<div class="page-content">
+
+  <!-- Estado de Carga -->
+  <div *ngIf="loading()" class="loading-wrapper">
+    <div class="spinner"></div>
+    <p>Cargando panel de control...</p>
+  </div>
+
+  <!-- Contenido Principal -->
+  <div *ngIf="!loading()" class="dashboard-container">
+    
+    <!-- Banner de Bienvenida -->
+    <div class="welcome-card animate-fade-in">
+      <div class="welcome-left">
+        <div class="welcome-badge">{{ userRole }}</div>
+        <h1>¡Bienvenido de nuevo, <span class="highlight">{{ userDisplayName }}</span>!</h1>
+        <p>Aquí tienes un resumen completo y en tiempo real del estado de la plataforma Sg Tech.</p>
+      </div>
+      <div class="welcome-right">
+        <div class="clock-display">
+          <div class="time">{{ currentTime() }}</div>
+          <div class="date">{{ currentDate() }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rejilla de Estadísticas -->
+    <div class="dashboard-grid">
+      
+      <!-- Tarjeta: Trabajadores -->
+      <div class="modern-stat-card" [routerLink]="['/trabajadores']">
+        <div class="card-header">
+          <div class="icon-wrap purple">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+            </svg>
+          </div>
+          <span class="card-category">Personal</span>
+        </div>
+        <div class="card-body">
+          <h2 class="stat-value">{{ trabajadorStats().activos }}</h2>
+          <p class="stat-title">Trabajadores Activos</p>
+          <div class="progress-container">
+            <div class="progress-bar purple" [style.width.%]="trabajadoresActivosPct()"></div>
+          </div>
+          <div class="stats-breakdown">
+            <span class="pct">{{ trabajadoresActivosPct() }}% activos</span>
+            <span class="detail">Total: {{ trabajadorStats().total }}</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="sub-stat">
+            <span class="sub-label">Freelance:</span>
+            <span class="sub-val">{{ trabajadorStats().freelances }}</span>
+          </div>
+          <div class="sub-stat">
+            <span class="sub-label">De Baja:</span>
+            <span class="sub-val">{{ trabajadorStats().inactivos }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Formaciones -->
+      <div class="modern-stat-card" [routerLink]="['/formaciones']">
+        <div class="card-header">
+          <div class="icon-wrap blue">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 14l9-5-9-5-9 5 9 5z" />
+              <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+              <path d="M12 14v6.5" />
+            </svg>
+          </div>
+          <span class="card-category">Capacitación</span>
+        </div>
+        <div class="card-body">
+          <h2 class="stat-value">{{ formacionesSvc.totalActivos() }}</h2>
+          <p class="stat-title">Formaciones Activas</p>
+          <div class="progress-container">
+            <div class="progress-bar blue" [style.width.%]="formacionesActivasPct()"></div>
+          </div>
+          <div class="stats-breakdown">
+            <span class="pct">{{ formacionesActivasPct() }}% activas</span>
+            <span class="detail">Total: {{ formacionesSvc.total() }}</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="sub-stat">
+            <span class="sub-label">Terminadas/Baja:</span>
+            <span class="sub-val">{{ formacionesSvc.totalInactivos() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Empresas -->
+      <div class="modern-stat-card" [routerLink]="['/empresas']">
+        <div class="card-header">
+          <div class="icon-wrap teal">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="2" y="7" width="20" height="14" rx="2" />
+              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+            </svg>
+          </div>
+          <span class="card-category">Negocio</span>
+        </div>
+        <div class="card-body">
+          <h2 class="stat-value">{{ empresaStats().totalActivos }}</h2>
+          <p class="stat-title">Empresas Activas</p>
+          <div class="progress-container">
+            <div class="progress-bar teal" [style.width.%]="empresasActivasPct()"></div>
+          </div>
+          <div class="stats-breakdown">
+            <span class="pct">{{ empresasActivasPct() }}% activas</span>
+            <span class="detail">Total: {{ empresaStats().total }}</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="sub-stat">
+            <span class="sub-label">Inactivas:</span>
+            <span class="sub-val">{{ empresaStats().totalInactivos }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Comerciales -->
+      <div class="modern-stat-card" [routerLink]="['/comerciales']">
+        <div class="card-header">
+          <div class="icon-wrap indigo">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M17 20h5v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2h5" />
+              <circle cx="12" cy="8" r="4" />
+            </svg>
+          </div>
+          <span class="card-category">Ventas</span>
+        </div>
+        <div class="card-body">
+          <h2 class="stat-value">{{ comercialStats().activos }}</h2>
+          <p class="stat-title">Comerciales Activos</p>
+          <div class="progress-container">
+            <div class="progress-bar indigo" [style.width.%]="comercialesActivosPct()"></div>
+          </div>
+          <div class="stats-breakdown">
+            <span class="pct">{{ comercialesActivosPct() }}% activos</span>
+            <span class="detail">Total: {{ comercialStats().total }}</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="sub-stat">
+            <span class="sub-label">De Baja:</span>
+            <span class="sub-val">{{ comercialStats().inactivos }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Seleccionadores -->
+      <div class="modern-stat-card" [routerLink]="['/seleccionadores']">
+        <div class="card-header">
+          <div class="icon-wrap orange">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+          </div>
+          <span class="card-category">Reclutamiento</span>
+        </div>
+        <div class="card-body">
+          <h2 class="stat-value">{{ seleccionadorStats().activos }}</h2>
+          <p class="stat-title">Seleccionadores Activos</p>
+          <div class="progress-container">
+            <div class="progress-bar orange" [style.width.%]="seleccionadoresActivosPct()"></div>
+          </div>
+          <div class="stats-breakdown">
+            <span class="pct">{{ seleccionadoresActivosPct() }}% activos</span>
+            <span class="detail">Total: {{ seleccionadorStats().total }}</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="sub-stat">
+            <span class="sub-label">Externos:</span>
+            <span class="sub-val">{{ seleccionadorStats().externos }}</span>
+          </div>
+          <div class="sub-stat">
+            <span class="sub-label">De Baja:</span>
+            <span class="sub-val">{{ seleccionadorStats().inactivos }}</span>
+          </div>
+        </div>
+    </div>
+
+    <!-- Sección Inferior: Novedades y Resumen Dinámico -->
+    <div class="dashboard-footer-cards animate-fade-in">
+      
+      <!-- Listado: Últimas Formaciones -->
+      <div class="summary-card">
+        <div class="card-title-bar">
+          <h3>Últimas Formaciones</h3>
+          <a class="view-all-link" [routerLink]="['/formaciones']">Ver todas</a>
+        </div>
+        <p class="summary-desc">Cursos planificados y en ejecución recientemente en Sg Tech.</p>
+        
+        <div class="summary-list">
+          <div *ngFor="let f of recentFormaciones()" class="summary-item" [routerLink]="['/formaciones']">
+            <div class="summary-avatar" [style.background]="formacionesSvc.colorFor(f.id)">
+              {{ formacionesSvc.initials(f) }}
+            </div>
+            <div class="summary-info">
+              <div class="item-name">{{ f.curso }}</div>
+              <div class="item-meta">
+                <span>{{ f.duracion ? f.duracion + ' horas' : 'Duración N/D' }}</span>
+                <span class="meta-dot">•</span>
+                <span>{{ f.fecha_inicio ? (f.fecha_inicio | date:'dd/MM/yyyy') : 'Sin fecha de inicio' }}</span>
+              </div>
+            </div>
+            <span class="badge" [class.badge-active]="f.activo" [class.badge-inactive]="!f.activo">
+              <span class="badge-dot"></span>
+              {{ f.activo ? 'Activa' : 'Baja' }}
+            </span>
+          </div>
+          
+          <div *ngIf="recentFormaciones().length === 0" class="empty-list-info">
+            No hay formaciones registradas actualmente.
+          </div>
+        </div>
+      </div>
+
+      <!-- Listado: Últimos Trabajadores -->
+      <div class="summary-card">
+        <div class="card-title-bar">
+          <h3>Últimas Incorporaciones</h3>
+          <a class="view-all-link" [routerLink]="['/trabajadores']">Ver todos</a>
+        </div>
+        <p class="summary-desc">Últimos profesionales registrados en el portal administrativo.</p>
+        
+        <div class="summary-list">
+          <div *ngFor="let t of recentTrabajadores()" class="summary-item" [routerLink]="['/trabajadores']">
+            <div class="summary-avatar" [style.background]="getColorFor(t.id)">
+              {{ getInitials(t) }}
+            </div>
+            <div class="summary-info">
+              <div class="item-name">{{ getFullName(t) }}</div>
+              <div class="item-meta">
+                <span>{{ t.freelance ? 'Freelance' : 'Contrato por Cuenta Ajena' }}</span>
+                <span class="meta-dot">•</span>
+                <span>{{ t.email || 'Sin correo' }}</span>
+              </div>
+            </div>
+            <span class="badge" [class.badge-active]="t.activo" [class.badge-inactive]="!t.activo">
+              <span class="badge-dot"></span>
+              {{ t.activo ? 'Activo' : 'De Baja' }}
+            </span>
+          </div>
+          
+          <div *ngIf="recentTrabajadores().length === 0" class="empty-list-info">
+            No hay trabajadores registrados en la plataforma.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

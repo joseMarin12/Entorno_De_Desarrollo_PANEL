@@ -12,6 +12,7 @@ import { autenticadorGuard } from './guards/autenticador.guard';
 import { firstLoginGuard } from './guards/first-login.guard';
 import { TrabajadoresPageComponent } from './features/trabajadores/pages/trabajadores-page/trabajadores-page.component';
 import { AsignacionesPageComponent } from './features/asignaciones/pages/asignaciones-page/asignaciones-page.component';
+import { InicioPageComponent } from './features/inicio/pages/inicio-page/inicio-page.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -25,6 +26,7 @@ export const routes: Routes = [
     path: '',
     canActivate: [autenticadorGuard, firstLoginGuard],
     children: [
+      { path: 'inicio', component: InicioPageComponent },
       { path: 'asignaciones', component: AsignacionesPageComponent },
       { path: 'comerciales', component: ComercialesPageComponent },
       { path: 'seleccionadores', component: SeleccionadoresPageComponent },

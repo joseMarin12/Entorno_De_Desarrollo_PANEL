@@ -38,7 +38,7 @@ export class LoginPageComponent {
       next: (response) => {
         if (response.success) {
           this.toastService.show('success', '¡Bienvenido!');
-          this.router.navigate(['/usuarios']); // O la ruta que prefieras por defecto
+          this.router.navigate(['/inicio']); // Redirige a la página de inicio
         } else {
           this.toastService.show('error', response.message || 'Credenciales incorrectas');
         }
