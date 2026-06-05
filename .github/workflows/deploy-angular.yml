@@ -3,13 +3,11 @@ name: Deploy Angular to Cloud Run
 on:
   push:
     branches:
-      - main
-    paths:
-      - 'angular/**' # Solo se activa si cambias cosas en la carpeta de Angular
+      - main     # Si tu rama se llama 'master' o 'developer', cambia este texto
 
 env:
   PROJECT_ID: panel-sgtech-20260603
-  SERVICE_NAME: panel-frontend # Se subirá como un servicio visual independiente
+  SERVICE_NAME: panel-frontend
   REPO_NAME: panel-docker
   REGION: us-central1
 
