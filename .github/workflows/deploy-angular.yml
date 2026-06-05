@@ -32,7 +32,7 @@ jobs:
     - name: Build and Push Angular
       run: |
         IMAGE_URL=us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:latest
-        docker build -t $IMAGE_URL -f ./angular/Dockerfile ./angular
+        docker build -t $IMAGE_URL -f ./EntornoDesarrollo/angular/Dockerfile ./EntornoDesarrollo/angular
         docker push $IMAGE_URL
 
     - name: Deploy to Cloud Run
