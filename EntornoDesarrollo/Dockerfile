@@ -1,40 +1,35 @@
-# Usa la imagen oficial de PHP con Apache
-FROM php:8.2-apache
+# --- ETAPA 1: Compilar la aplicación de Angular ---
+FROM node:18-alpine AS build
+WORKDIR /app
 
-# Instala extensiones necesarias para Laravel y limpia caché
-RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip \
-    unzip \
-    git \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql gd \
-    && apt-get clean && rm -rf /var/lib/lists/*
+# Copiamos los archivos de configuración de Angular
+COPY ./angular/package*.json ./
 
-# Habilita el módulo de reescritura de Apache para Laravel
-RUN a2enmod rewrite
+# Instalamos las dependencias de Angular
+RUN npm ci
 
-# Configura la carpeta pública de Laravel como la raíz de Apache
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Copiamos todo el código de la carpeta angular
+COPY ./angular/ .
 
-# Nos movemos al directorio de trabajo del servidor web
-WORKDIR /var/www/html
+# Compilamos el proyecto para producción
+RUN npm run build -- --configuration=production
 
-# COPIAMOS ÚNICAMENTE EL CONTENIDO DE LA CARPETA LARAVEL A LA RAÍZ DEL SERVIDOR
-COPY ./laravel/ .
+# --- ETAPA 2: Servir la aplicación con Nginx ---
+FROM nginx:alpine
 
-# Da permisos correctos a las carpetas de Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Copiamos la configuración de Nginx para soportar rutas de Angular
+RUN echo 'server { \
+    listen 8080; \
+    location / { \
+        root /usr/share/nginx/html; \
+        index index.html index.htm; \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
 
-# Expone el puerto 8080 para Cloud Run
+# Copiamos los archivos compilados de Angular al servidor web
+# NOTA: Revisa si tu proyecto compila dentro de una subcarpeta (ej. dist/tu-app-name)
+COPY --from=build /app/dist/ /usr/share/nginx/html/
+
 EXPOSE 8080
-ENV PORT 8080
-
-# Modifica el puerto de Apache para que escuche en el 8080
-RUN sed -i "s/Listen 80/Listen 8080/g" /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
-
-CMD ["apache2-foreground"]
+CMD ["nginx", "-g", "daemon off;"]
