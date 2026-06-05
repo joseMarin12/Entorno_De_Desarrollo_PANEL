@@ -25,21 +25,18 @@ RUN apt-get update && apt-get install -y \
 # Instala Composer de forma global
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Forzar a Apache a otorgar todos los permisos de lectura
-RUN echo '<Directory /var/www/html/public/> \n\
-    Options Indexes FollowSymLinks \n\
-    AllowOverride All \n\
-    Require all granted \n\
-</Directory>' >> /etc/apache2/apache2.conf
+# Habilita el módulo de reescritura de Apache
+RUN a2enmod rewrite
 
 # Configura la carpeta pública de Laravel como la raíz de Apache
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Forzar a Apache a otorgar todos los permisos de lectura
+# Configurar Apache para que lea index.html de Angular primero y dar permisos totales
 RUN echo '<Directory /var/www/html/public/> \n\
-    Options Indexes FollowSymLinks \n\
+    DirectoryIndex index.html index.php \n\
+    Options FollowSymLinks \n\
     AllowOverride All \n\
     Require all granted \n\
 </Directory>' >> /etc/apache2/apache2.conf
