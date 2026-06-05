@@ -3,7 +3,7 @@ name: Deploy Angular to Cloud Run
 on:
   push:
     branches:
-      - main
+      - turrored-ui
 
 env:
   PROJECT_ID: panel-sgtech-20260603
