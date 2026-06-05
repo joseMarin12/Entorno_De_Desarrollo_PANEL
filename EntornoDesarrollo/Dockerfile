@@ -1,4 +1,4 @@
-# === ETAPA 1: Compilar la interfaz de Angular ===
+# === ETAPA 1: Compilar la interfaz de Angular 17 ===
 FROM node:18-alpine AS angular-build
 WORKDIR /app
 COPY ./angular/package*.json ./
@@ -33,7 +33,7 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Forzar a Apache a dar permisos de lectura en el directorio público
+# Forzar a Apache a otorgar todos los permisos de lectura
 RUN echo '<Directory /var/www/html/public/> \n\
     Options Indexes FollowSymLinks \n\
     AllowOverride All \n\
@@ -58,19 +58,12 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 # Genera la llave de seguridad obligatoria de Laravel
 RUN php artisan key:generate
 
-# --- UNIFICACIÓN MEJORADA (Copia Angular plano incluyendo subcarpetas browser) ---
-# Copia todo el contenido de dist a una ubicación temporal
-COPY --from=angular-build /app/dist/ /tmp/angular-dist/
-
-# Busca recursivamente cualquier archivo index.html dentro de la carpeta temporal 
-# y mueve todo su directorio contenedor directo a la raíz pública de Laravel
-RUN find /tmp/angular-dist/ -name "index.html" -exec dirname {} \; | head -n 1 > /tmp/target_dir.txt && \
-    if [ -s /tmp/target_dir.txt ]; then \
-        cp -r $(cat /tmp/target_dir.txt)/* /var/www/html/public/; \
-    fi
+# --- LA UNIFICACIÓN CON LA RUTA REAL DE TU APP ---
+# Copiamos los archivos directamente desde la carpeta exacta que generó tu Angular 17
+COPY --from=angular-build /app/dist/mi-panel/browser/ /var/www/html/public/
 
 # Da permisos correctos a todas las carpetas del proyecto para Apache
-RUN chown -R www-data:www-data /var/www/html
+RUN chown -R www-data:www-data /var/www/html /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Configuración de puertos requerida por Google Cloud Run
 EXPOSE 8080
