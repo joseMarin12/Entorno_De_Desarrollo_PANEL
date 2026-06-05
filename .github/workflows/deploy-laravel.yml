@@ -3,7 +3,7 @@ name: Deploy Laravel to Cloud Run
 on:
   push:
     branches:
-     - turrored-ui
+      - turrored-ui
 
 env:
   PROJECT_ID: panel-sgtech-20260603
@@ -42,5 +42,4 @@ jobs:
           --region ${{ env.REGION }} \
           --platform managed \
           --port 8080 \
-          --set-env-vars="DB_CONNECTION=sqlite,DB_DATABASE=:memory:,APP_ENV=production,APP_DEBUG=true" \
           --allow-unauthenticated
