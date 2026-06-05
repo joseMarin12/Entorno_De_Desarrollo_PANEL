@@ -1,8 +1,6 @@
 # === ETAPA 1: Compilar la interfaz de Angular 17 ===
 FROM node:18-alpine AS angular-build
 WORKDIR /app
-
-# Copiamos TODOS los archivos de la raíz para asegurar que encuentre los archivos de configuración
 COPY . .
 WORKDIR /app/angular
 RUN npm ci
@@ -40,9 +38,9 @@ RUN echo '<Directory /var/www/html/public/> \n\
 WORKDIR /var/www/html
 COPY ./laravel/ .
 RUN rm -f ./Dockerfile
-RUN cp .env.example .env
+RUN cp .env.example .env || true
 RUN composer install --no-interaction --optimize-autoloader --no-dev
-RUN php artisan key:generate
+RUN php artisan key:generate --force
 
 # --- UNIFICACIÓN BUSCADORA DESDE LA NUEVA RUTA ---
 RUN mkdir -p /tmp/angular-dist
@@ -58,4 +56,5 @@ EXPOSE 8080
 ENV PORT 8080
 RUN sed -i "s/Listen 80/Listen 8080/g" /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
 
-CMD ["php", "-d", "variables_order=EGPCS", "-S", "0.0.0.0:8080", "-t", "public"]
+# Comando nativo y correcto para iniciar Apache en Cloud Run
+CMD ["apache2-foreground"]
