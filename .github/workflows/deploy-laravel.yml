@@ -1,0 +1,45 @@
+name: Deploy Laravel to Cloud Run
+
+on:
+  push:
+    branches:
+      - turrored-ui
+
+env:
+  PROJECT_ID: panel-sgtech-20260603
+  SERVICE_NAME: panel
+  REPO_NAME: panel-docker
+  REGION: us-central1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Google Auth
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker
+      run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+    - name: Build and Push Laravel
+      run: |
+        IMAGE_URL=us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:latest
+        docker build -t $IMAGE_URL -f ./EntornoDesarrollo/laravel/Dockerfile ./EntornoDesarrollo/laravel
+        docker push $IMAGE_URL
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy ${{ env.SERVICE_NAME }} \
+          --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:latest \
+          --region ${{ env.REGION }} \
+          --platform managed \
+          --port 8080 \
+          --allow-unauthenticated
