@@ -33,16 +33,23 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
+# Forzar a Apache a dar permisos de lectura en el directorio público
+RUN echo '<Directory /var/www/html/public/> \n\
+    Options Indexes FollowSymLinks \n\
+    AllowOverride All \n\
+    Require all granted \n\
+</Directory>' >> /etc/apache2/apache2.conf
+
 # Directorio de trabajo en el servidor
 WORKDIR /var/www/html
 
 # Copiamos el contenido del Backend de Laravel
 COPY ./laravel/ .
 
-# Borramos el Dockerfile interno viejo si existe para evitar choques
+# Borramos el Dockerfile interno viejo si existe
 RUN rm -f ./Dockerfile
 
-# Creamos el archivo .env desde el ejemplo para que Laravel no falle
+# Creamos el archivo .env desde el ejemplo
 RUN cp .env.example .env
 
 # Instala las dependencias de código de Laravel
@@ -51,12 +58,19 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 # Genera la llave de seguridad obligatoria de Laravel
 RUN php artisan key:generate
 
-# --- AQUÍ OCURRE LA MAGIA DEL PROYECTO UNIFICADO ---
-# Copiamos todo lo que compile Angular a una carpeta temporal interna
+# --- UNIFICACIÓN MEJORADA (Copia Angular plano incluyendo subcarpetas browser) ---
+# Copia todo el contenido de dist a una ubicación temporal
 COPY --from=angular-build /app/dist/ /tmp/angular-dist/
 
-# Movemos los archivos de la subcarpeta interna directamente a la raíz pública de Laravel
-RUN cp -r /tmp/angular-dist/*/. /var/www/html/public/ 2>/dev/null || cp -r /tmp/angular-dist/* /var/www/html/public/
+# Busca recursivamente cualquier archivo index.html dentro de la carpeta temporal 
+# y mueve todo su directorio contenedor directo a la raíz pública de Laravel
+RUN find /tmp/angular-dist/ -name "index.html" -exec dirname {} \; | head -n 1 > /tmp/target_dir.txt && \
+    if [ -s /tmp/target_dir.txt ]; then \
+        cp -r $(cat /tmp/target_dir.txt)/* /var/www/html/public/; \
+    fi
+
+# Da permisos correctos a todas las carpetas del proyecto para Apache
+RUN chown -R www-data:www-data /var/www/html
 
 # Configuración de puertos requerida por Google Cloud Run
 EXPOSE 8080
