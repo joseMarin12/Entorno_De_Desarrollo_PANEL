@@ -113,7 +113,7 @@ jobs:
           --set-env-vars="POSTGRES_USER=admin,POSTGRES_PASSWORD=SGPasswordPostgres,POSTGRES_DB=panel" \
           --allow-unauthenticated
 
-  # ─── SERVICIO 4: AUTOMATIZACIONES (N8N INTEGRADO) ───
+   # ─── SERVICIO 4: AUTOMATIZACIONES (N8N INTEGRADO) ───
   deploy-n8n:
     runs-on: ubuntu-latest
     steps:
@@ -143,6 +143,6 @@ jobs:
           --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/panel-n8n:latest \
           --region ${{ env.REGION }} \
           --platform managed \
-          --port 5678 \
-          --set-env-vars="DB_TYPE=postgresdb,DB_POSTGRESDB_HOST=panel-db-1079064952465.us-central1.run.app,DB_POSTGRESDB_PORT=5432,DB_POSTGRESDB_DATABASE=panel,DB_POSTGRESDB_USER=admin,DB_POSTGRESDB_PASSWORD=SGPasswordPostgres,N8N_BASIC_AUTH_ACTIVE=true,N8N_BASIC_AUTH_USER=admin,N8N_BASIC_AUTH_PASSWORD=admin123" \
+          --port 8080 \
+          --set-env-vars="DB_TYPE=postgresdb,DB_POSTGRESDB_HOST=panel-db-1079064952465.us-central1.run.app,DB_POSTGRESDB_PORT=5432,DB_POSTGRESDB_DATABASE=panel,DB_POSTGRESDB_USER=admin,DB_POSTGRESDB_PASSWORD=SGPasswordPostgres,N8N_BASIC_AUTH_ACTIVE=true,N8N_BASIC_AUTH_USER=admin,N8N_BASIC_AUTH_PASSWORD=admin123,N8N_PORT=8080" \
           --allow-unauthenticated
