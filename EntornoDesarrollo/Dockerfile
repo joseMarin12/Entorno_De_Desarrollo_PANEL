@@ -35,28 +35,22 @@ RUN echo '<Directory /var/www/html/public/> \n\
     Require all granted \n\
 </Directory>' >> /etc/apache2/apache2.conf
 
-# ... (Todo lo anterior se queda igual)
-
 WORKDIR /var/www/html
 COPY ./laravel/ .
 RUN rm -f ./Dockerfile
 RUN cp .env.example .env || true
-
-# Optimizamos Composer eliminando scripts de desarrollo que puedan congelar el despliegue
 RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
-
-# Genera la llave de seguridad obligatoria sin detener el contenedor
 RUN php artisan key:generate --force
 
-# --- UNIFICACIÓN CON LA RUTA EXACTA DE TU PROYECTO ---
+# --- UNIFICACIÓN CON LA RUTA REAL QUE ENCONTRAMOS ---
+# Copiamos directamente los archivos de Angular 17 a la carpeta pública que lee Apache
 COPY --from=angular-build /app/angular/dist/mi-panel/browser/ /var/www/html/public/
 
-# Dar permisos de dueño y lectura absoluta a Apache para evitar el "Forbidden"
+# Asignamos permisos correctos del sistema operativo para evitar el error Forbidden
 RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
 
 EXPOSE 8080
 ENV PORT 8080
 RUN sed -i "s/Listen 80/Listen 8080/g" /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
 
-# Forzamos a Apache a iniciar de inmediato limpiando cualquier caché previa
 CMD ["apache2-foreground"]
