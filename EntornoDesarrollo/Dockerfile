@@ -33,7 +33,7 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Configurar Apache para que lea index.html de Angular primero y dar permisos totales
+# Configurar Apache para que lea index.html primero y otorgar permisos totales
 RUN echo '<Directory /var/www/html/public/> \n\
     DirectoryIndex index.html index.php \n\
     Options FollowSymLinks \n\
@@ -59,9 +59,14 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 # Genera la llave de seguridad obligatoria de Laravel
 RUN php artisan key:generate
 
-# --- LA UNIFICACIÓN CON LA RUTA REAL DE TU APP ---
-# Copiamos los archivos directamente desde la carpeta exacta que generó tu Angular 17
-COPY --from=angular-build /app/dist/mi-panel/browser/ /var/www/html/public/
+# --- UNIFICACIÓN BUSCADORA ---
+# Buscamos dónde quedó el index.html dentro de dist/ y copiamos su contenido directo a public/
+RUN mkdir -p /tmp/angular-dist
+COPY --from=angular-build /app/dist/ /tmp/angular-dist/
+RUN TARGET_DIR=$(find /tmp/angular-dist -name "index.html" -exec dirname {} \; | head -n 1) && \
+    if [ -n "$TARGET_DIR" ]; then \
+        cp -r $TARGET_DIR/* /var/www/html/public/; \
+    fi
 
 # Da permisos correctos a todas las carpetas del proyecto para Apache
 RUN chown -R www-data:www-data /var/www/html /var/www/html/storage /var/www/html/bootstrap/cache
