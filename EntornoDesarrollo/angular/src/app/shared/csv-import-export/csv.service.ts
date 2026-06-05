@@ -7,6 +7,7 @@ export interface CsvColumnDef {
   header: string;
   required?: boolean;
   type?: 'text' | 'number' | 'boolean' | 'date';
+  example?: string;
 }
 
 @Injectable({
@@ -178,11 +179,15 @@ export class CsvService {
   generateTemplate(columns: CsvColumnDef[], filename: string): void {
     const exampleRow: Record<string, any> = {};
     columns.forEach(col => {
-      switch (col.type) {
-        case 'number':  exampleRow[col.key] = ''; break;
-        case 'boolean': exampleRow[col.key] = ''; break;
-        case 'date':    exampleRow[col.key] = ''; break;
-        default:        exampleRow[col.key] = ''; break;
+      if (col.example !== undefined) {
+        exampleRow[col.key] = col.example;
+      } else {
+        switch (col.type) {
+          case 'number':  exampleRow[col.key] = '0'; break;
+          case 'boolean': exampleRow[col.key] = 'true/false'; break;
+          case 'date':    exampleRow[col.key] = 'YYYY-MM-DD'; break;
+          default:        exampleRow[col.key] = ''; break;
+        }
       }
     });
     const csvContent = this.toCsvString([exampleRow], columns);

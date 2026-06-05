@@ -41,4 +41,8 @@ export class EmpresasApiService extends BaseCrud<Empresa> {
   toggleStatus(id: number): Observable<Empresa> {
     return this._toggleStatus({ action: 'toggleEmpresaStatus', empresaId: id });
   }
+
+  createFromImport(data: { nombre: string; razonSocial: string; cif: string; tipo: string; comercial: string; activo: boolean }): Observable<Empresa> {
+    return this._create({ action: 'importEmpresa', empresaData: data });
+  }
 }

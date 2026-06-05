@@ -9,6 +9,8 @@ import { EmpToolbarComponent, EmpFilterType, EmpFilterTipoType } from '../../com
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
 import { EmpresasApiService } from '../../../../services/empresas-api.service';
 import { EmpresasModalComponent } from "../../components/empresas-modal/empresas-modal.component";
+import { CsvColumnDef } from '../../../../shared/csv-import-export/csv.service';
+import { CsvImportExportComponent } from '../../../../shared/csv-import-export/csv-import-export.component';
 
 @Component({
   selector: 'app-empresas-page',
@@ -20,7 +22,8 @@ import { EmpresasModalComponent } from "../../components/empresas-modal/empresas
     StatsRowComponent,
     EmpToolbarComponent,
     EmpresasModalComponent,
-    ConfirmationModalComponent
+    ConfirmationModalComponent,
+    CsvImportExportComponent
 ],
   templateUrl: './empresas-page.component.html',
 })
@@ -38,6 +41,15 @@ export class EmpresasPageComponent implements OnInit {
   readonly total = this._total.asReadonly();
   readonly totalActivos = this._totalActivos.asReadonly();
   readonly totalInactivos = this._totalInactivos.asReadonly();
+
+  csvColumns: CsvColumnDef[] = [
+    { key: 'nombre',      header: 'nombre',       type: 'text', example: 'Empresa Ejemplo' },
+    { key: 'razonSocial', header: 'razon_social',  type: 'text', example: 'Razón Social Ejemplo' },
+    { key: 'cif',         header: 'cif',           type: 'text', example: 'A12345678' },
+    { key: 'tipo',        header: 'tipo',          type: 'text', example: 'Tecnología' },
+    { key: 'comercial',   header: 'comercial',     type: 'text', example: 'Comercial Ejemplo' },
+    { key: 'activo',      header: 'activo',        type: 'boolean', example: 'true' },
+  ];
 
   // ── Filtros ──────────────────────────────────────
   searchQuery  = '';
@@ -169,6 +181,41 @@ export class EmpresasPageComponent implements OnInit {
     });
   }
 
+  onImportCsv(rows: any[]): void {
+    let success = 0;
+    let errors = 0;
+    
+    const importNext = (index: number) => {
+      if (index >= rows.length) {
+        this.toast.show(
+          errors === 0 ? 'success' : 'warning',
+          `Importación finalizada. ${success} correctos, ${errors} errores`
+        );
+        this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
+        return;
+      }
+
+      const row = rows[index];
+      const { id, created_at, updated_at, ...cleanRow } = row;
+
+      const payload = {
+        nombre: cleanRow.nombre ?? '',
+        razonSocial: cleanRow.razonSocial ?? '',
+        cif: cleanRow.cif ?? '',
+        tipo: cleanRow.tipo ?? '',
+        comercial: cleanRow.comercial ?? '',
+        activo: cleanRow.activo === 'true' || cleanRow.activo === true,
+      };
+
+      this.api.createFromImport(payload).subscribe({
+        next: () => { success++; importNext(index + 1); },
+        error: () => { errors++; importNext(index + 1); }
+      });
+    };
+
+    if (rows.length > 0) importNext(0);
+  } 
+
   getById(id: number): Empresa | undefined {
     return this._empresas().find(e => e.id === id);
   }
@@ -177,3 +224,4 @@ export class EmpresasPageComponent implements OnInit {
     return [e.nombre, e.razonSocial].filter(Boolean).join(' ');
   }
 }
+

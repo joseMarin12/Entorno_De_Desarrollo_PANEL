@@ -6,9 +6,12 @@ export interface Formacion {
   denominacion?: string;
   motivo?: string;
   id_area?: number;
+  area_nombre?: string;
   recursos?: string;
   id_responsable?: number;
+  responsable_nombre?: string;
   id_modalidad?: number;
+  modalidad_nombre?: string;
   duracion?: number;
   dentro_fuera_jornada?: string;
   observaciones?: string;
@@ -17,6 +20,7 @@ export interface Formacion {
   fecha_fin?: string;
   horario?: string;
   id_ejecucion?: number;
+  ejecucion_nombre?: string;
   eficacia?: string;
   anio?: number;
   coste?: number;

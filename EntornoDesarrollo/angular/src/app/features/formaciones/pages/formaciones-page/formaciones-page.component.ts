@@ -12,6 +12,8 @@ import { FormacionesTableComponent } from '../../components/formaciones-table/fo
 import { ModalFormacionComponent } from '../../components/modal-formacion/modal-formacion.component';
 import { ModalParticipantesComponent } from '../../components/modal-participantes/modal-participantes.component';
 import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
+import { CsvColumnDef } from '../../../../shared/csv-import-export/csv.service';
+import { CsvImportExportComponent } from '../../../../shared/csv-import-export/csv-import-export.component';
 
 @Component({
   selector: 'app-formaciones-page',
@@ -25,6 +27,7 @@ import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/conf
     ModalFormacionComponent,
     ModalParticipantesComponent,
     ConfirmationModalComponent,
+    CsvImportExportComponent
   ],
   templateUrl: './formaciones-page.component.html',
 })
@@ -32,6 +35,29 @@ export class FormacionesPageComponent implements OnInit {
   svc = inject(FormacionesService);
   toast = inject(ToastService);
   ConfirmMode = ConfirmMode;
+
+  csvColumns: CsvColumnDef[] = [
+    { key: 'curso',      header: 'curso',       type: 'text', example: 'Curso Ejemplo' },
+    { key: 'denominacion', header: 'denominacion',  type: 'text', example: 'Ej: Curso avanzado de...' },
+    { key: 'motivo',         header: 'motivo',           type: 'text', example: 'Ej: Formación técnica' },
+    { key: 'recursos',        header: 'recursos',          type: 'text', example: 'Ej: Aula, proyector...' },
+    { key: 'duracion',   header: 'duracion (horas)',     type: 'text', example: 'Ej: 2' },
+    { key: 'dentro_fuera_jornada',      header: 'dentro_fuera_jornada',        type: 'text', example: 'Dentro / Fuera' },
+    { key: 'observaciones',      header: 'observaciones',        type: 'text', example: 'Observaciones' },
+    { key: 'fecha_prevista',      header: 'fecha_prevista',        type: 'date', example: 'YYYY-MM-DD' },
+    { key: 'fecha_inicio',      header: 'fecha_inicio',        type: 'date', example: 'YYYY-MM-DD' },
+    { key: 'fecha_fin',      header: 'fecha_fin',        type: 'date', example: 'YYYY-MM-DD' },
+    { key: 'horario',      header: 'horario',        type: 'text', example: 'Ej: 10:00-12:00' },
+    { key: 'eficacia',     header: 'eficacia',        type: 'text', example: 'Ej: Alta' },
+    { key: 'anio',        header: 'anio',           type: 'number', example: 'Ej: 2024' },
+    { key: 'coste',       header: 'coste',          type: 'number', example: 'Ej: 1000' },
+    { key: 'bonificacion', header: 'bonificacion',    type: 'number', example: 'Ej: 200' },
+    { key: 'activo',      header: 'activo (true:1/false:0)',        type: 'boolean', example: 'Ej: true' },
+    { key: 'area_nombre', header: 'area', type: 'text', example: 'Ej: Técnica' },
+    { key: 'modalidad_nombre', header: 'modalidad', type: 'text', example: 'Ej: Presencial' },
+    { key: 'ejecucion_nombre', header: 'ejecucion', type: 'text', example: 'Ej: Interna' },
+    { key: 'responsable_nombre', header: 'responsable', type: 'text', example: 'Ej: Juan Pérez' },
+  ];
 
   // ── Filtros ──────────────────────────────────────
   searchQuery = '';
@@ -149,5 +175,9 @@ export class FormacionesPageComponent implements OnInit {
         this.toast.show('error', `✗ ${msg}`);
       },
     });
+  }
+
+  onImportCsv(rows: any[]): void {
+    console.log('Importar CSV:', rows);
   }
 }

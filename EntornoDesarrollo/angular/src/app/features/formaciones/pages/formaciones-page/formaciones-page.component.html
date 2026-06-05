@@ -21,11 +21,20 @@
   <app-stats-row [total]="svc.total()" [activas]="svc.totalActivos()" [inactivas]="svc.totalInactivos()" />
 
   <!-- Toolbar: búsqueda + filtros -->
-  <app-shared-filter 
-    placeholder="Buscar por curso o denominación..."
-    (searchChange)="onSearchChange($event)" 
-    (filterChange)="onFilterChange($event)" 
-  />
+  <div style="margin-bottom:16px; display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+    <app-shared-filter 
+      placeholder="Buscar por curso o denominación..."
+      (searchChange)="onSearchChange($event)" 
+      (filterChange)="onFilterChange($event)" 
+    />
+    <app-csv-import-export
+      [columns]="csvColumns"
+      [rows]="svc.formaciones()"
+      exportFilename="Formaciones_Export.csv"
+      templateFilename="Formaciones.csv"
+      (importData)="onImportCsv($event)"
+    />
+  </div>
 
   <!-- Tabla -->
   <app-formaciones-table [formaciones]="svc.formaciones()" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"

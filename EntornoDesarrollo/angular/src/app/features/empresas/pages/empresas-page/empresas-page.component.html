@@ -24,11 +24,20 @@
     />
 
     <!-- Toolbar: búsqueda + filtros -->
-    <app-toolbar
-      (searchChange)="onSearchChange($event)"
-      (filterChange)="onFilterChange($event)"
-      (tipoFilterChange)="onTypeFilterChange($event)"
-    />
+    <div style=" display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+      <app-toolbar style="flex: 1;"
+        (searchChange)="onSearchChange($event)"
+        (filterChange)="onFilterChange($event)"
+        (tipoFilterChange)="onTypeFilterChange($event)"
+      />
+      <app-csv-import-export style="margin-bottom: 16px;"
+        [columns]="csvColumns"
+        [rows]="empresas()"
+        exportFilename="Empresas_Export.csv"
+        templateFilename="Empresas.csv"
+        (importData)="onImportCsv($event)"
+      />
+    </div>
 
     <!-- Tabla -->
     <app-empresas-table
