@@ -39,9 +39,9 @@ jobs:
 
     - name: Deploy to Cloud Run
       run: |
-        gcloud run deploy ${{ env.SERVICE_NAME }} \
-          --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:latest \
-          --region ${{ env.REGION }} \
-          --platform managed \
-          --port 80 \
-          --allow-unauthenticated
+            gcloud run deploy ${{ env.SERVICE_NAME }} \
+              --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:latest \
+              --region ${{ env.REGION }} \
+              --platform managed \
+              --port 8080 \
+              --allow-unauthenticated
