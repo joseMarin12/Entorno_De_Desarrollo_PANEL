@@ -1,0 +1,692 @@
+{
+  "name": "Empresas",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getEmpresas",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8721f3fa-6cec-4ec7-8b2a-4cb18dc5021f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Empresas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "createEmpresa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a8a86114-c88e-40b0-8c6a-0f0c6e88afbb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Create Empresa"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "updateEmpresa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f425a091-dc7c-4731-8921-2e4d9a2ee6fa"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Update Empresa"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "toggleEmpresaStatus",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6d59afcf-533f-4cb0-b1d5-0bbfe135f13d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Toggle Empresa Status"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f08df66f-cda8-4483-8d0b-498a37768aa8",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getTiposEmpresa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Tipos Empresa"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Invalid Action"
+        }
+      },
+      "id": "67c6b610-288b-4d02-89c1-afaf7ca81aa6",
+      "name": "Route by Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(i => ({\n  id: i.json.id,\n  nombre: i.json.nombre,\n  razonSocial: i.json.razon_social,\n  cif: i.json.cif,\n  activo: i.json.activo,\n  id_tipo_empresa: i.json.id_tipo_empresa,\n  tipo: i.json.tipo,\n  id_comerciales: i.json.id_comerciales,\n  comercial: i.json.comercial,\n  direcciones: Number(i.json.direcciones),\n  contactos: Number(i.json.contactos)\n})),\n\"total\": $input.first().json.total_count,\n\"totalActivos\": $input.first().json.total_activos,\n\"totalInactivos\": $input.first().json.total_inactivos\n} }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "feddefd9-8b7e-4697-8bf4-3403e3827a90",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2192,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "2",
+              "name": "error",
+              "value": "Invalid action. Supported actions: getEmpresas, createEmpresa, updateEmpresa, toggleEmpresaStatus",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d9591d07-29e7-46ff-96c6-88446d59fcbd",
+      "name": "Invalid Action Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "11e5e307-aded-4917-bbf0-4654a25b0139",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1408,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Empresas Management API\n\n**Endpoint:** POST /webhook/gestion-empresas\n\n**Actions:**\n- getEmpresas: Obtiene las empresas clientes\n- createEmpresa: creación de empresa cliente\n- updateEmpresa: actualizar empresa cliente mediante ID\n- toggleEmpresaStatus: dar de baja a empresa cliente mediante ID\n- getTiposEmpresa: obtiene los tipos de las empresas",
+        "height": 312,
+        "width": 340,
+        "color": 4
+      },
+      "id": "bad02da0-40a8-4682-a9ab-da41725b7136",
+      "name": "Sticky Note 7ebaaad5",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gestion-empresas",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c116ae12-ce42-4fba-b117-b63f2c9396a5",
+      "name": "Gestión Empresas API",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        528
+      ],
+      "webhookId": "0105c6ba-d2f2-478a-87b6-cf65f658184e"
+    },
+    {
+      "parameters": {
+        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = $input.item.json.body.page || 1;\nconst limit = $input.item.json.body.limit || 10;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT e.id, e.nombre_empresa AS nombre, e.razon_social, e.cif, e.created_at, e.activo, e.id_tipo_empresa,\nt.tipo_empresa AS tipo, e.id_comerciales, NULLIF(CONCAT(com.nombre, ' ', com.primer_apellido), ' ') AS comercial, COUNT(DISTINCT d.id) AS direcciones, \nCOUNT(DISTINCT c.id) AS contactos, COUNT(*) OVER() AS total_count,\nCOUNT(*) FILTER (WHERE e.activo = true) OVER() AS total_activos, COUNT(*) FILTER (WHERE e.activo = false) OVER() AS total_inactivos\nFROM empresa e \nLEFT JOIN tipo_empresa t ON t.id = e.id_tipo_empresa\nLEFT JOIN comerciales com ON com.id = e.id_comerciales\nLEFT JOIN direccion_empresa d ON d.id_empresa = e.id \nLEFT JOIN contacto_empresa c ON c.id_empresa = e.id \nWHERE 1=1`;\n\nif (filters.searchText && filters.searchText.trim() !== '') {\n  conditions.push(`(e.nombre_empresa ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.tipo && filters.tipo.trim() !== '') {\n  conditions.push(`t.tipo_empresa = $${paramIndex}`);\n  params.push(filters.tipo);\n  paramIndex++;\n}\n\nif (filters.status && filters.status.trim() !== '') {\n  if (filters.status === 'activa') {\n    conditions.push(`e.activo = true`);\n  } else if (filters.status === 'baja') {\n    conditions.push(`e.activo = false`);\n  }\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\nquery += ' GROUP BY e.id, e.nombre_empresa, t.tipo_empresa, com.nombre, com.primer_apellido';\nquery += ' ORDER BY e.created_at ASC';\nquery += ` LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [{\n  json: {\n    query: query,\n    params: params.join(',')\n  }\n}];"
+      },
+      "id": "5c0375ea-63f8-42cb-b692-1802b9795dfb",
+      "name": "Build Get Empresas Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "id": "b8fbc43f-90d8-4d60-8538-109ca33a1334",
+      "name": "Get Empresas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1408,
+        176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "id": "18f5f80a-272a-41c2-897c-88d0485884eb",
+      "name": "Create Empresa",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1408,
+        352
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE empresa SET nombre_empresa = $1, razon_social = $2, cif = $3, id_tipo_empresa = $4, id_comerciales =  NULLIF(NULLIF($5::text, ''), 'null')::integer, activo = $6, updated_at = NOW() WHERE id = $7 RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ $json.body.empresaData.nombre }},{{ $json.body.empresaData.razonSocial }},{{ $json.body.empresaData.cif }},{{ $json.body.empresaData.id_tipo_empresa }},{{ $json.body.empresaData.id_comerciales }},{{ $json.body.empresaData.activo }},{{ $json.body.empresaId }}"
+        }
+      },
+      "id": "a6bc9718-9bae-45fa-a306-9bb367e10f11",
+      "name": "Update Empresa",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1408,
+        512
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE empresa \nSET activo = NOT activo, updated_at = NOW() \nWHERE id = $1\nRETURNING id;",
+        "options": {
+          "queryReplacement": "={{ $json.body.empresaId }}"
+        }
+      },
+      "id": "1c1112af-423f-4d82-b11d-740c277a408a",
+      "name": "Toggle Empresa Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1408,
+        640
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body;\n\nconst fields = ['nombre_empresa', 'razon_social', 'cif', 'id_tipo_empresa', 'activo'];\nconst values = [body.empresaData.nombre, body.empresaData.razonSocial, body.empresaData.cif, body.empresaData.id_tipo_empresa, body.empresaData.activo];\n\nif (body.empresaData.id_comerciales !== null && body.empresaData.id_comerciales !== undefined) {\n  fields.push('id_comerciales');\n  values.push(body.empresaData.id_comerciales);\n}\n\nconst placeholders = values.map((_, i) => `$${i + 1}`).join(', ');\n\nreturn [{\n  json: {\n    query: `INSERT INTO empresa (${fields.join(', ')})\n            VALUES (${placeholders})\n            RETURNING id, nombre_empresa AS nombre, razon_social, cif, id_tipo_empresa, id_comerciales, activo, created_at`,\n    params: values.join(',')\n  }\n}];"
+      },
+      "id": "01c9c80e-6f12-45d9-ac78-943532f9965b",
+      "name": "Build Create Empresas Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, tipo_empresa as nombre from tipo_empresa;",
+        "options": {}
+      },
+      "id": "c32c3c5b-c754-4752-87e7-88f92f2a1acf",
+      "name": "Get Tipos Empresa",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1408,
+        800
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const id = $input.item.json.id;\n\nreturn [{\n  json: {\n    query: `\n      SELECT \n        e.id,\n        e.nombre_empresa        AS nombre,\n        e.razon_social,\n        e.cif,\n        e.activo,\n        e.id_tipo_empresa,\n        t.tipo_empresa          AS tipo,\n        e.id_comerciales,\n        NULLIF(CONCAT(c.nombre, ' ', c.primer_apellido), ' ') AS comercial,\n        COUNT(DISTINCT d.id)    AS direcciones,\n        COUNT(DISTINCT co.id)   AS contactos\n      FROM empresa e\n      LEFT JOIN tipo_empresa t  ON t.id = e.id_tipo_empresa\n      LEFT JOIN comerciales c     ON c.id = e.id_comerciales\n      LEFT JOIN direccion_empresa d  ON d.id_empresa = e.id\n      LEFT JOIN contacto_empresa co  ON co.id_empresa = e.id\n      WHERE e.id = $1\n      GROUP BY e.id, t.tipo_empresa, c.nombre, c.primer_apellido\n    `,\n    params: String(id)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1632,
+        512
+      ],
+      "id": "a0500ee3-e750-4d31-97bc-a3405d35d74a",
+      "name": "Build Get Created Empresa"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "id": "a6252cf5-7368-4d9c-85bc-e8b99510a640",
+      "name": "Get Created Empresa",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1792,
+        512
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const jwt = require('jsonwebtoken');\n\nconst JWT_SECRET = 'passEncriptada';\nconst PUBLIC_ACTIONS = ['getRole'];\n\nconst body = $json.body;\nconst action = body?.action || '';\n\nif (PUBLIC_ACTIONS.includes(action)) {\n  return [{ json: { ...$json, _bypass: true } }];\n}\n\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst bodyToken  = body?.token || '';\nconst rawToken   = authHeader || bodyToken;\n\nconst token = rawToken.replace('Bearer ', '').trim();\n\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\n\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{\n    json: {\n      ...$json,\n      _auth: { id: decoded.id, email: decoded.email, role: decoded.role }\n    }\n  }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido o expirado - ' + err.message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        528
+      ],
+      "id": "2caa1458-5497-4329-8554-ebd2447b5ddc",
+      "name": "JWT Verify"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "auth-check-001",
+              "leftValue": "={{ $json._authError }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        528
+      ],
+      "id": "8b054755-5ed3-48e8-af31-050d7c837277",
+      "name": "Auth Error?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: $json.message }) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        960,
+        272
+      ],
+      "id": "4e0ab95b-9cd7-4f94-b282-862626136900",
+      "name": "Respond 401"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Route by Action": {
+      "main": [
+        [
+          {
+            "node": "Build Get Empresas Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Create Empresas Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Empresa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Toggle Empresa Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Tipos Empresa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Action Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid Action Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gestión Empresas API": {
+      "main": [
+        [
+          {
+            "node": "JWT Verify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Empresas Query": {
+      "main": [
+        [
+          {
+            "node": "Get Empresas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Empresas": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Empresa": {
+      "main": [
+        [
+          {
+            "node": "Build Get Created Empresa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Empresa": {
+      "main": [
+        [
+          {
+            "node": "Build Get Created Empresa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toggle Empresa Status": {
+      "main": [
+        [
+          {
+            "node": "Build Get Created Empresa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Create Empresas Query": {
+      "main": [
+        [
+          {
+            "node": "Create Empresa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tipos Empresa": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Created Empresa": {
+      "main": [
+        [
+          {
+            "node": "Get Created Empresa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Created Empresa": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JWT Verify": {
+      "main": [
+        [
+          {
+            "node": "Auth Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Error?": {
+      "main": [
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Route by Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b98215a5-7698-42d0-a786-781e9031f311",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
+  },
+  "id": "r86yuIN2Mr8fvtRp",
+  "tags": []
+}

@@ -1,0 +1,122 @@
+<div class="table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>Empresa</th>
+        <th>Tipo</th>
+        <th>CIF</th>
+        <th>Direcciones</th>
+        <th>Contacto</th>
+        <th>Comercial</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (empresas.length === 0) {
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">
+              <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+              </svg>
+              <div class="empty-title">No se encontraron empresas</div>
+              <div class="empty-sub">Prueba con otros filtros o añade una nueva</div>
+            </div>
+          </td>
+        </tr>
+      } @else {
+        @for (e of empresas; track e.id) {
+          <tr>
+            <td>
+              <div class="avatar-cell">
+                <div class="row-avatar"
+                  [style.background]="e.activo ? colorFor(e.id!) : 'linear-gradient(135deg,#9e9e9e,#bdbdbd)'">
+                  {{ initials(e) }}
+                </div>
+                <div>
+                  <div class="td-name" [style.color]="e.activo ? '' : '#9e9e9e'">
+                    {{ fullName(e) }}
+                  </div>
+                  <div class="td-sub">ID: {{ e.id }}</div>
+                </div>
+              </div>
+            </td>
+            <td [style.color]="e.activo ? '' : '#bbb'">{{ e.tipo }}</td>
+            <td [style.color]="e.activo ? '' : '#bbb'">{{ e.cif }}</td>
+            <td>
+              <button type="button" class="btn btn-outline-primary" [attr.disabled]="!e.activo ? '' : null" [style.color]="e.activo ? '' : '#bbb'" [style.background]="e.activo ? 'linear-gradient(135deg,#88b1db,#d0deec,#88b1db)' : ''" (click)="goToDirecciones(e.id!)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 6; vertical-align: middle;">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+                {{ e.direcciones }}
+              </button>
+            </td>
+            <td>
+              <button type="button" class="btn btn-outline-primary" [attr.disabled]="!e.activo ? '' : null" [style.color]="e.activo ? '' : '#bbb'" [style.background]="e.activo ? 'linear-gradient(135deg,#88b1db,#d0deec,#88b1db)' : ''" (click)="goToContactos(e.id!)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 6; vertical-align: middle;">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                {{ e.contactos }}
+              </button>
+            </td>
+            <td [style.color]="e.activo ? '' : '#bbb'">{{ e.comercial ?? '_' }}</td>
+            <td>
+              @if (e.activo) {
+                <span class="badge badge-active">
+                  <span class="badge-dot"></span>Activa
+                </span>
+              } @else {
+                <span class="badge badge-inactive">
+                  <span class="badge-dot"></span>Inactiva
+                </span>
+              }
+            </td>
+            <td>
+              <div class="actions">
+                <!-- Editar (clipboard con check azul) -->
+                <button class="action-btn edit" title="Editar" (click)="editClick.emit(e.id!)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#476fab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                    <path d="M9 14l2 2 4-4"/>
+                  </svg>
+                </button>
+
+                <!-- Dar de baja / Activar -->
+                @if (e.activo) {
+                  <button class="action-btn baja" title="Dar de Baja" (click)="bajaClick.emit(e.id!)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="8" x2="12" y2="12"/>
+                      <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  </button>
+                } @else {
+                  <button class="action-btn reactivar" title="Activar" (click)="bajaClick.emit(e.id!)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    <span>{{ paginationInfo }}</span>
+    <div class="page-btns">
+      @for (p of pages; track p) {
+        <button class="page-btn" [class.active]="p === currentPage" (click)="pageChange.emit(p)">{{ p }}</button>
+      }
+      @if (currentPage < totalPages) {
+        <button class="page-btn" (click)="pageChange.emit(currentPage + 1)">›</button>
+      }
+    </div>
+  </div>
+</div>

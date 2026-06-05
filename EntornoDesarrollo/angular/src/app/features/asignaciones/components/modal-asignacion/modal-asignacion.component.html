@@ -1,0 +1,72 @@
+<div class="modal-overlay open">
+  <div class="modal" style="max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">{{ isEdit ? 'Editar Asignación' : 'Nueva Asignación' }}</div>
+        <div class="modal-subtitle">
+          {{ isEdit ? 'Modifica los campos de la asignación' : 'Completa los datos para crear una nueva asignación' }}
+        </div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+
+        <div class="form-group full">
+          <app-lookup-select [apiUrl]="svc.API_URL" action="getEmpresas" label="Empresa" labelField="nombre_empresa"
+            placeholder="Seleccionar empresa..." [searchable]="true" [(ngModel)]="form.id_empresa"
+            [hasError]="!!errors['id_empresa']" [required]="true">
+          </app-lookup-select>
+          @if (errors['id_empresa']) { <span class="form-hint error-msg">{{ errors['id_empresa'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <app-lookup-select [apiUrl]="svc.API_URL" action="getTrabajadores" label="Trabajador"
+            labelField="nombre_completo" placeholder="Buscar trabajador..." [searchable]="true"
+            [(ngModel)]="form.id_trabajador" [hasError]="!!errors['id_trabajador']" [required]="true">
+          </app-lookup-select>
+          @if (errors['id_trabajador']) { <span class="form-hint error-msg">{{ errors['id_trabajador'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <app-lookup-select [apiUrl]="svc.API_URL" action="getComerciales" label="Comercial"
+            labelField="nombre_completo" placeholder="Buscar comercial..." [searchable]="true"
+            [(ngModel)]="form.id_comerciales" [hasError]="!!errors['id_comerciales']" [required]="true">
+          </app-lookup-select>
+          @if (errors['id_comerciales']) { <span class="form-hint error-msg">{{ errors['id_comerciales'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" [class.text-error]="errors['fecha_ini']">Fecha de Inicio <span class="text-error">*</span></label>
+          <input class="form-input" [class.border-error]="errors['fecha_ini']" type="date" [(ngModel)]="form.fecha_ini">
+          @if (errors['fecha_ini']) { <span class="form-hint error-msg">{{ errors['fecha_ini'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de Fin</label>
+          <input class="form-input" type="date" [(ngModel)]="form.fecha_fin">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" [class.text-error]="errors['tarifa']">Tarifa (€) <span class="text-error">*</span></label>
+          <input class="form-input" [class.border-error]="errors['tarifa']" type="number" step="0.01" [(ngModel)]="form.tarifa">
+          @if (errors['tarifa']) { <span class="form-hint error-msg">{{ errors['tarifa'] }}</span> }
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="close.emit()">Cancelar</button>
+      <button class="btn btn-primary" (click)="submit()">
+        {{ isEdit ? 'Guardar Cambios' : 'Crear Asignación' }}
+      </button>
+    </div>
+  </div>
+</div>

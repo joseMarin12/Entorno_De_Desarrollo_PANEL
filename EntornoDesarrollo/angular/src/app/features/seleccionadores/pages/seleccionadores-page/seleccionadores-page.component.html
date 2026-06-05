@@ -1,0 +1,78 @@
+<app-topbar pageTitle="Seleccionadores" />
+
+<div class="page-content">
+
+    <!-- Cabecera -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Seleccionadores</div>
+        <div class="page-subtitle">Gestiona tu equipo de seleccionadores internos y colaboradores externos</div>
+      </div>
+      <button class="btn btn-primary" (click)="openAdd()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Seleccionador
+      </button>
+    </div>
+
+  <!-- Estadísticas -->
+  <app-sel-stats-row 
+    [total]="statsTotal()"
+    [activos]="statsActivos()"
+    [inactivos]="statsInactivos()"
+    [externos]="statsExternos()"
+  />
+
+  <!-- Toolbar: búsqueda + filtros -->
+  <div style="margin-bottom:16px">
+    <app-sel-toolbar
+      (searchChange)="onSearchChange($event)"
+      (filterChange)="onFilterChange($event)"
+      (tipoFilterChange)="onTypeFilterChange($event)"
+    />
+  </div>
+
+  <!-- Tabla -->
+  <app-table
+    [columns]="tableColumns"
+    [rows]="seleccionadores()"
+    [currentPage]="currentPage()"
+    [pageSize]="PAGE_SIZE"
+    [totalFiltered]="totalFiltered()"
+    [entityLabel]="'seleccionadores'"
+    (actionClick)="onTableAction($event)"
+    (pageChange)="onPageChange($event)"
+  />
+
+</div>
+
+<!-- Modal añadir / editar -->
+@if (showForm) {
+  <app-sel-modal-form
+    [seleccionador]="selectedSeleccionador"
+    [empresasDisponibles]="empresasDisponibles()"
+    [existingEmails]="existingEmailsForEdit()"
+    (save)="onSaveForm($event)"
+    (close)="showForm = false; selectedId.set(null)"
+  />
+}
+
+<!-- Modal detalle (solo lectura) -->
+@if (showDetail && selectedSeleccionador) {
+  <app-sel-modal-detail
+    [seleccionador]="selectedSeleccionador"
+    (edit)="onEditClick($event); showDetail = false"
+    (close)="showDetail = false; selectedId.set(null)"
+  />
+}
+
+<!-- Modal confirmar baja / activar -->
+@if (showConfirm && selectedSeleccionadorNombre()) {
+  <app-confirmation-modal
+    [name]="selectedSeleccionadorNombre() ?? ''"
+    [mode]="confirmMode === ConfirmMode.DESACTIVAR ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
+    (confirm)="onConfirm()"
+    (closed)="showConfirm = false; selectedId.set(null)"
+  />
+}

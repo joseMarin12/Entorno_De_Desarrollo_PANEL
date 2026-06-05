@@ -1,0 +1,63 @@
+/* relation-chip */
+.chip {
+  display: inline-block;
+  background: #f0f4ff;
+  border: 1px solid #c5cae9;
+  color: #3949ab;
+  border-radius: 20px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.td-dash {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.action-btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* action button variant hover states */
+.action-btn--view:not([disabled]):hover    { border-color: #4c3f88;          color: #4c3f88;          background: #ede9ff; }
+.action-btn--edit:not([disabled]):hover    { border-color: #24508d;          color: #24508d;          background: #e7f1ff; }
+.action-btn--danger:not([disabled]):hover  { border-color: #991b1b;          color: #991b1b;          background: #fee2e2; }
+.action-btn--success:not([disabled]):hover { border-color: #065f46;          color: #065f46;          background: #d1fae5; }
+.action-btn--warning:not([disabled]):hover { border-color: #92400e;          color: #92400e;          background: #fef3c7; }
+
+/* icon-with-info cell */
+.icon-info-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.icon-info-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--bg-secondary, #f5f5f5);
+
+  svg {
+    color: inherit;
+  }
+}
+
+.icon-info-main {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text-primary, #333);
+}
+
+.icon-info-sub {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  margin-top: 2px;
+}

@@ -1,0 +1,70 @@
+<app-topbar pageTitle="Comerciales" />
+
+<div class="page-content">
+
+    <!-- Cabecera -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Comerciales</div>
+        <div class="page-subtitle">Gestiona el equipo comercial de Sg Tech</div>
+      </div>
+      <button class="btn btn-primary" (click)="openAdd()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Comercial
+      </button>
+    </div>
+
+    <!-- Estadísticas -->
+    <app-stats-row
+      [total]="statsTotal()"
+      [activos]="statsActivos()"
+      [inactivos]="statsInactivos()"
+    />
+
+    <!-- Toolbar: búsqueda + filtros -->
+    <app-toolbar
+      (searchChange)="onSearchChange($event)"
+      (filterChange)="onFilterChange($event)"
+    />
+
+    <!-- Tabla -->
+    <app-table
+      [columns]="columns"
+      [rows]="comerciales()"
+      [currentPage]="currentPage()"
+      [pageSize]="PAGE_SIZE"
+      [totalFiltered]="totalFiltered()"
+      entityLabel="comerciales"
+      (pageChange)="onPageChange($event)"
+      (actionClick)="onTableAction($event)"
+    />
+
+</div>
+<!-- Modales -->
+@if (showAdd) {
+  <app-modal-add
+    [existingEmails]="existingEmails"
+    (save)="onSaveAdd($event)"
+    (close)="showAdd = false"
+  />
+}
+
+@if (showEdit && selectedComercial) {
+  <app-modal-edit
+    [comercial]="selectedComercial"
+    [existingEmails]="existingEmailsForEdit"
+    (save)="onSaveEdit($event)"
+    (close)="showEdit = false; selectedId.set(null)"
+  />
+}
+
+@if (showBaja && selectedComercial) {
+  <app-confirmation-modal
+    [name]="selectedComercial ? selectedComercial.nombre + ' ' + selectedComercial.primer_apellido : ''"
+    [mode]="selectedComercial.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
+    (confirm)="onConfirmBaja()"
+    (closed)="showBaja = false; selectedId.set(null)"
+  />
+}

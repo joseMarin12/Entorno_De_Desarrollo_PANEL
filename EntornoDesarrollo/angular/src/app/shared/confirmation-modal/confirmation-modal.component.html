@@ -1,0 +1,59 @@
+<div class="modal-overlay open" (click)="closed.emit()" (keydown.enter)="closed.emit()">
+  <div class="sel-confirm-modal" [class.mode-baja]="isDesactivar()" [class.mode-activar]="!isDesactivar()" (keydown.enter)="$event.stopPropagation()" (click)="$event.stopPropagation()">
+
+    <!-- Barra de color superior -->
+    <div class="sel-confirm-bar" [style.background]="isDesactivar() ? '#dc2626' : '#059669'"></div>
+
+    <div class="sel-confirm-body">
+      <!-- Icono circular -->
+      <div class="sel-confirm-icon-wrap">
+        <div class="sel-confirm-icon" [style.background]="isDesactivar() ? '#fef2f2' : '#ecfdf5'" [style.color]="isDesactivar() ? '#dc2626' : '#059669'">
+          @if (isDesactivar()) {
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          } @else {
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          }
+        </div>
+      </div>
+
+      <!-- Título -->
+      <div class="sel-confirm-title">{{ title() }}</div>
+
+      <!-- Descripción -->
+      <div class="sel-confirm-desc">
+        @if (description()) {
+          <ng-container>{{ description() }}</ng-container>
+        } @else {
+          @if (isEliminar()) {
+            ¿Estás seguro de que deseas eliminar permanentemente <strong>{{ name() }}</strong>?<br>
+            Esta acción no se puede deshacer y borrará el documento del sistema.
+          } @else {
+            {{ isDesactivar() ? 'Dar de baja a ' : 'Activar a ' }}<strong>{{ name() }}</strong>.<br>
+            {{ isDesactivar() ? 'Pasará a estar ' : 'Volverá a estar ' }}<strong>{{ isDesactivar() ? 'inactivo' : 'activo' }}</strong> en el sistema.<br>
+            {{ isDesactivar() ? 'No se eliminarán sus datos y podrá reactivarlo cuando quiera.' : 'Su historial y datos se mantendrán completamente intactos.' }}
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Footer con botones -->
+    <div class="sel-confirm-footer">
+      <button class="sel-confirm-btn sel-confirm-btn-cancel" (click)="closed.emit()">{{cancelarButtonTitle()}}</button>
+      @if (isDesactivar()) {
+        <button class="sel-confirm-btn sel-confirm-btn-danger" (click)="confirmClicked()">
+          {{ isEliminar() ? eliminarButtonTitle() : desactivarButtonTitle() }}
+        </button>
+      } @else {
+        <button class="sel-confirm-btn sel-confirm-btn-success" (click)="confirmClicked()">{{ activarButtonTitle() }}</button>
+      }
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,808 @@
+{
+  "name": "Direcciones",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gestion-direcciones",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e960437d-bf8d-421d-9122-960b6639bca0",
+      "name": "Client Addresses Management API",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1024,
+        384
+      ],
+      "webhookId": "98ed4827-3b20-4ccd-b604-bef7b1e4d6c1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getDirecciones",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8721f3fa-6cec-4ec7-8b2a-4cb18dc5021f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Direcciones"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "createDireccion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a8a86114-c88e-40b0-8c6a-0f0c6e88afbb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Create Direccion"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "updateDireccion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f425a091-dc7c-4731-8921-2e4d9a2ee6fa"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Update Direccion"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "toggleDireccionStatus",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6d59afcf-533f-4cb0-b1d5-0bbfe135f13d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Toggle Direccion Status"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f08df66f-cda8-4483-8d0b-498a37768aa8",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getPaises",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Paises"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e7970345-b82c-4a90-8698-b6980baf92b9",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getProvincias",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Provincias"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "74716b11-de6e-4acc-9f1b-b60f17911bb9",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getLocalidades",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Localidades"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Invalid Action"
+        }
+      },
+      "id": "570cc1e2-5b81-4414-9ee8-8f66c754102d",
+      "name": "Route by Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -416,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(i => ({\n  id: i.json.id,\n  direccion: i.json.direccion,\n  codigoPostal: i.json.codigo_postal,\n  id_localidad: i.json.id_localidad,\n  activo: i.json.activo,\n  id_empresa: i.json.id_empresa,\n  localidad: i.json.localidad,\n  id_provincia: i.json.id_provincia,\n  provincia: i.json.provincia,\n  id_pais: i.json.id_pais,\n  pais: i.json.pais\n})),\n\"total\": $input.first().json.total_count,\n\"totalActivos\": $input.first().json.total_activos,\n\"totalInactivos\": $input.first().json.total_inactivos\n} }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "846c2839-73f9-409e-b9fd-cfef04da7b68",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        800,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "2",
+              "name": "error",
+              "value": "Invalid action. Supported actions: getEmpresas, createEmpresa, updateEmpresa, toggleEmpresaStatus",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "307b9b77-3428-4308-9932-b41a7bd5215a",
+      "name": "Invalid Action Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "3eaecd72-d691-4933-8154-83a1db6b9fb3",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        800,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst idEmpresa = $input.item.json.body.idEmpresa;\nconst conditions = [];\nconst params = [idEmpresa];\nconst page = $input.item.json.body.page || 1;\nconst limit = $input.item.json.body.limit || 10;\nconst offset = (page - 1) * limit;\nlet paramIndex = 2;\n\nlet query = `SELECT d.id, d.direccion, d.codigo_postal, d.id_localidad, d.id_empresa, d.activo, d.created_at, l.localidad, l.id_provincia, p.provincia, p.id_pais, pa.pais, COUNT(*) OVER() AS total_count, COUNT(*) FILTER (WHERE d.activo = true)  OVER() AS total_activos, COUNT(*) FILTER (WHERE d.activo = false)  OVER() AS total_inactivos\nFROM direccion_empresa d \nLEFT JOIN localidad l ON l.id = d.id_localidad\nLEFT JOIN provincia p ON p.id = l.id_provincia\nLEFT JOIN pais pa ON pa.id = p.id_pais \nWHERE d.id_empresa = $1`;\n\nif (filters.searchText && filters.searchText.trim() !== '') {\n  conditions.push(`(d.direccion ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.pais && filters.pais.trim() !== '') {\n  conditions.push(`pa.pais = $${paramIndex}`);\n  params.push(filters.pais);\n  paramIndex++;\n}\n\nif (filters.status && filters.status.trim() !== '') {\n  if (filters.status === 'activa') {\n    conditions.push(`d.activo = true`);\n  } else if (filters.status === 'baja') {\n    conditions.push(`d.activo = false`);\n  }\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\nquery += ' GROUP BY d.id, d.direccion, d.codigo_postal, d.id_localidad, d.id_empresa, d.activo, d.created_at, l.localidad, l.id_provincia, p.provincia, p.id_pais, pa.pais';\nquery += ' ORDER BY d.created_at ASC';\nquery += ` LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [{\n  json: {\n    query: query,\n    params: params.join(',')\n  }\n}];"
+      },
+      "id": "d03b824d-5515-4e46-883a-e853d5e57c4d",
+      "name": "Build Get Direcciones Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "id": "9aa1c18e-ebae-4bde-a577-bfcce40bb026",
+      "name": "Get Direcciones",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body;\n\nconst fields = ['direccion', 'codigo_postal', 'id_empresa', 'id_localidad', 'activo'];\nconst values = [body.direccionData.direccion, body.direccionData.codigoPostal, body.direccionData.id_empresa, body.direccionData.id_localidad, body.direccionData.activo];\n\nconst placeholders = values.map((_, i) => `$${i + 1}`).join(', ');\n\nreturn [{\n  json: {\n    query: `INSERT INTO direccion_empresa (${fields.join(', ')})\n            VALUES (${placeholders})\n            RETURNING id, direccion, codigo_postal, id_empresa, id_localidad, activo, created_at`,\n    params: values.join(',')\n  }\n}];"
+      },
+      "id": "915c1cdf-4502-4add-bad2-171ad7a7172c",
+      "name": "Build Create Direcciones Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "id": "2af913c1-83ef-49c4-8ae5-1ab6cf8e3a09",
+      "name": "Create Direccion",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const id = $input.item.json.id;\n\nreturn [{\n  json: {\n    query: `\n      SELECT \n      d.id,\n      d.direccion,\n      d.codigo_postal,\n      d.id_localidad,\n      d.id_empresa,\n      d.activo,\n      d.created_at,\n      l.localidad,\n      l.id_provincia,\n      p.provincia,\n      p.id_pais,\n      pa.pais\n      FROM direccion_empresa d \n      LEFT JOIN localidad l ON l.id = d.id_localidad\n      LEFT JOIN provincia p ON p.id = l.id_provincia\n      LEFT JOIN pais pa ON pa.id = p.id_pais \n      WHERE d.id = $1\n      GROUP BY d.id, d.direccion, d.codigo_postal, d.id_localidad, d.id_empresa,\n      d.activo, d.created_at, l.localidad, l.id_provincia, p.provincia,\n      p.id_pais, pa.pais\n    `,\n    params: String(id)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        336
+      ],
+      "id": "45d3b7b3-fcae-492e-b372-d1f5aff93b31",
+      "name": "Build Get Created Direccion"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "id": "dc08990f-28a5-4bb1-b58b-59a1b53e1d84",
+      "name": "Get Created Direccion",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        384,
+        336
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE direccion_empresa SET direccion = $1, codigo_postal = $2, id_empresa = $3, id_localidad = $4, activo = $5, updated_at = NOW() WHERE id = $6 RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ $json.body.direccionData.direccion }},{{ $json.body.direccionData.codigoPostal }},{{ $json.body.direccionData.id_empresa }},{{ $json.body.direccionData.id_localidad }},{{ $json.body.direccionData.activo }},{{ $json.body.direccionId }}"
+        }
+      },
+      "id": "1a4c90fb-257b-4092-ac8c-5752d1f33833",
+      "name": "Update Direccion",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        336
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE direccion_empresa \nSET activo = NOT activo, updated_at = NOW() \nWHERE id = $1\nRETURNING id;",
+        "options": {
+          "queryReplacement": "={{ $json.body.direccionId }}"
+        }
+      },
+      "id": "b6542f6b-16c9-4197-8471-ed81a30d332f",
+      "name": "Toggle Direccion Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        464
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, pais from pais;",
+        "options": {}
+      },
+      "id": "4d2ba8b7-f126-4707-8f1d-20ccbb305d42",
+      "name": "Get Paises",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        592
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, provincia from provincia where id_pais = $1;",
+        "options": {
+          "queryReplacement": "={{ $json.body.idPais }}"
+        }
+      },
+      "id": "47286b22-cdd7-489b-a528-747f2500a63d",
+      "name": "Get Provincias",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        720
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, localidad from localidad where id_provincia = $1;",
+        "options": {
+          "queryReplacement": "={{ $json.body.idProvincia }}"
+        }
+      },
+      "id": "d71b2bb8-15ee-4afb-b5ed-537dc91d9dc6",
+      "name": "Get Localidades",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        848
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const jwt = require('jsonwebtoken');\n\nconst JWT_SECRET = 'passEncriptada';\nconst PUBLIC_ACTIONS = ['getRole'];\n\nconst body = $json.body;\nconst action = body?.action || '';\n\nif (PUBLIC_ACTIONS.includes(action)) {\n  return [{ json: { ...$json, _bypass: true } }];\n}\n\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst bodyToken  = body?.token || '';\nconst rawToken   = authHeader || bodyToken;\n\nconst token = rawToken.replace('Bearer ', '').trim();\n\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\n\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{\n    json: {\n      ...$json,\n      _auth: { id: decoded.id, email: decoded.email, role: decoded.role }\n    }\n  }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido o expirado - ' + err.message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        384
+      ],
+      "id": "93a1a760-6f0e-45f9-9e97-e6076411f8b8",
+      "name": "JWT Verify"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "auth-check-001",
+              "leftValue": "={{ $json._authError }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -672,
+        384
+      ],
+      "id": "2046e4af-94eb-44be-851d-deafac5709bc",
+      "name": "Auth Error?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: $json.message }) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -432,
+        64
+      ],
+      "id": "5267dc62-02c2-4077-a169-107f943d84bd",
+      "name": "Respond 401"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Client Addresses Management API": {
+      "main": [
+        [
+          {
+            "node": "JWT Verify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Action": {
+      "main": [
+        [
+          {
+            "node": "Build Get Direcciones Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Create Direcciones Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Direccion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Toggle Direccion Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Paises",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Provincias",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Localidades",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Action Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid Action Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Direcciones Query": {
+      "main": [
+        [
+          {
+            "node": "Get Direcciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Direcciones": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Create Direcciones Query": {
+      "main": [
+        [
+          {
+            "node": "Create Direccion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Direccion": {
+      "main": [
+        [
+          {
+            "node": "Build Get Created Direccion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Created Direccion": {
+      "main": [
+        [
+          {
+            "node": "Get Created Direccion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Created Direccion": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Direccion": {
+      "main": [
+        [
+          {
+            "node": "Build Get Created Direccion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toggle Direccion Status": {
+      "main": [
+        [
+          {
+            "node": "Build Get Created Direccion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Paises": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Provincias": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Localidades": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JWT Verify": {
+      "main": [
+        [
+          {
+            "node": "Auth Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Error?": {
+      "main": [
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Route by Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "95cfdc51-0e63-423f-942a-63fd57d1d59c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
+  },
+  "id": "tYxTzaZGkKoGRQVw",
+  "tags": []
+}

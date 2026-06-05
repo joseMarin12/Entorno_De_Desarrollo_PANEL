@@ -1,0 +1,93 @@
+<app-topbar pageTitle="Trabajadores" />
+
+<div class="page-content">
+
+    
+    <div class="page-header">
+      <div>
+        <div class="page-title">Trabajadores</div>
+        <div class="page-subtitle">Gestiona tu equipo de trabajadores en plantilla y freelances</div>
+      </div>
+      <button class="btn btn-primary" (click)="openAdd()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Trabajador
+      </button>
+    </div>
+
+  
+  <app-trab-stats-row 
+    [total]="statsTotal()"
+    [activos]="statsActivos()"
+    [inactivos]="statsInactivos()"
+    [freelances]="statsFreelances()"
+  />
+
+  
+  <div style="margin-bottom:16px">
+    <app-trab-toolbar
+      (searchChange)="onSearchChange($event)"
+      (filterChange)="onFilterChange($event)"
+      (tipoFilterChange)="onTypeFilterChange($event)"
+    />
+  </div>
+
+  <!-- Tabla -->
+  <app-table
+    [columns]="tableColumns"
+    [rows]="trabajadores()"
+    [currentPage]="currentPage()"
+    [pageSize]="PAGE_SIZE"
+    [totalFiltered]="totalFiltered()"
+    [entityLabel]="'trabajadores'"
+    (actionClick)="onTableAction($event)"
+    (pageChange)="onPageChange($event)"
+  />
+
+</div>
+
+<!-- Modal añadir / editar -->
+@if (showForm) {
+  <app-trab-modal-form
+    [trabajador]="selectedTrabajador"
+    [existingEmails]="existingEmails()"
+    [existingDnis]="existingDnis()"
+    [seleccionadores]="seleccionadores()"
+    [provincias]="provincias()"
+    [localidadesTodas]="localidades()"
+    [tiposDoc]="tiposDoc()"
+    (save)="onSaveForm($event)"
+    (close)="closeModals()"
+  />
+}
+
+<!-- Modal detalle (solo lectura) -->
+@if (showDetail && selectedTrabajador) {
+  <app-trab-modal-detail
+    [trabajador]="selectedTrabajador"
+    [asignaciones]="detailAsignaciones()"
+    [formaciones]="detailFormaciones()"
+    [documentos]="detailDocumentos()"
+    [tiposDoc]="tiposDoc()"
+    (viewDoc)="onViewDoc($event)"
+    (downloadDoc)="onDownloadDoc($event)"
+    (deleteDoc)="onDeleteDoc($event)"
+    (uploadNewDoc)="onUploadNewDoc($event)"
+    (updateDoc)="onUpdateDoc($event)"
+    (edit)="onEditClick($event); showDetail = false"
+    (close)="closeModals()"
+  />
+}
+
+<!-- Modal confirmar baja / activar -->
+@if (showConfirm) {
+  <app-confirmation-modal
+    [mode]="confirmMode"
+    [name]="selectedTrabajadorNombre() || 'Trabajador'"
+    [title]="confirmCustomTitle() || '¿Seguro que quiere realizar esta acción?'"
+    [description]="confirmCustomDesc()"
+    (confirm)="onConfirmToggle()"
+    (closed)="showConfirm = false; confirmCustomTitle.set(undefined); confirmCustomDesc.set(null)"
+  />
+}

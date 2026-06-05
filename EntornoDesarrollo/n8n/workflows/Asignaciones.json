@@ -1,0 +1,767 @@
+{
+  "name": "Asignaciones",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "asignaciones",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "c70e4c9c-425f-4998-a692-f1306b79021c",
+      "name": "API Gestión Asignaciones1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1056,
+        784
+      ],
+      "webhookId": "81f69d30-0398-40cd-8782-1f30e75e9fed"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getAsignaciones",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-get-asignaciones"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Asignaciones"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "createAsignacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-create-asignacion"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Create Asignacion"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "updateAsignacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-update-asignacion"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Update Asignacion"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "toggleAsignacionStatus",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-toggle-asignacion"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Toggle Status"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getEmpresas",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-get-empresas"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Empresas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getTrabajadores",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-get-trabajadores"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Trabajadores"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getComerciales",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-get-comerciales"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Comerciales"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Invalid Action"
+        }
+      },
+      "id": "43f4362a-8d7e-4f8f-8d4b-d5ea1c35fb36",
+      "name": "Route by Action1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -304,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\n\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 10;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (\n  filters.searchText &&\n  typeof filters.searchText === 'string' &&\n  filters.searchText.trim() !== ''\n) {\n  whereClause += `\n    AND (\n      e.nombre_empresa ILIKE $${paramIndex}\n      OR CONCAT(t.nombre, ' ', t.primer_apellido) ILIKE $${paramIndex}\n    )\n  `;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (\n  filters.id_empresa !== undefined &&\n  filters.id_empresa !== null &&\n  filters.id_empresa !== ''\n) {\n  whereClause += ` AND a.id_empresa = $${paramIndex}`;\n  params.push(filters.id_empresa);\n  paramIndex++;\n}\n\nif (\n  filters.id_trabajador !== undefined &&\n  filters.id_trabajador !== null &&\n  filters.id_trabajador !== ''\n) {\n  whereClause += ` AND a.id_trabajador = $${paramIndex}`;\n  params.push(filters.id_trabajador);\n  paramIndex++;\n}\n\nif (\n  filters.id_comerciales !== undefined &&\n  filters.id_comerciales !== null &&\n  filters.id_comerciales !== ''\n) {\n  whereClause += ` AND a.id_comerciales = $${paramIndex}`;\n  params.push(filters.id_comerciales);\n  paramIndex++;\n}\n\nif (\n  filters.activo !== undefined &&\n  filters.activo !== null &&\n  filters.activo !== ''\n) {\n  whereClause += ` AND a.activo = $${paramIndex}`;\n  params.push(filters.activo);\n  paramIndex++;\n}\n\n// Paginación\nparams.push(pageSize);\nconst limitParam = paramIndex++;\n\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\n// Query principal\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT a.id) AS total\n  FROM asignacion a\n  LEFT JOIN empresa e ON e.id = a.id_empresa\n  LEFT JOIN trabajador t ON t.id = a.id_trabajador\n  LEFT JOIN comerciales c ON c.id = a.id_comerciales\n  ${whereClause}\n),\nglobal_counts AS (\n  SELECT \n    COUNT(*) AS total_global,\n    SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) AS total_activos,\n    SUM(CASE WHEN activo = false THEN 1 ELSE 0 END) AS total_inactivos\n  FROM asignacion\n),\npaginado AS (\n  SELECT\n    a.*,\n    e.nombre_empresa,\n    CONCAT(\n      t.nombre,\n      ' ',\n      t.primer_apellido,\n      COALESCE(' ' || t.segundo_apellido, '')\n    ) AS trabajador_nombre,\n    CONCAT(\n      c.nombre,\n      ' ',\n      c.primer_apellido,\n      COALESCE(' ' || c.segundo_apellido, '')\n    ) AS comercial_nombre\n  FROM asignacion a\n  LEFT JOIN empresa e ON e.id = a.id_empresa\n  LEFT JOIN trabajador t ON t.id = a.id_trabajador\n  LEFT JOIN comerciales c ON c.id = a.id_comerciales\n  ${whereClause}\n  ORDER BY a.id DESC\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\n\nSELECT \n  paginado.*,\n  total_count.total AS total_records,\n  global_counts.total_global,\n  global_counts.total_activos,\n  global_counts.total_inactivos\nFROM paginado, total_count, global_counts;\n`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      pageSize,\n    },\n  },\n];"
+      },
+      "id": "cf2a8c1c-d1ec-40fd-9f2d-ed11a97f845e",
+      "name": "Build Get Asignaciones Query1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "id": "cd80d3d0-5459-44ca-8942-eef89c7acda1",
+      "name": "Get Asignaciones1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        -144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO asignacion (id_empresa, id_trabajador, id_comerciales, fecha_ini, fecha_fin, tarifa, activo)\nVALUES ($1, $2, $3, $4, $5, $6, true)\nRETURNING *;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.asignacionData.id_empresa, $json.body.asignacionData.id_trabajador, $json.body.asignacionData.id_comerciales, $json.body.asignacionData.fecha_ini || null, $json.body.asignacionData.fecha_fin || null, $json.body.asignacionData.tarifa || null] }}"
+        }
+      },
+      "id": "43676583-f6e4-4841-a06d-7acf2b427cd1",
+      "name": "Insert Asignacion1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        32
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE asignacion SET\n  id_empresa = $1,\n  id_trabajador = $2,\n  id_comerciales = $3,\n  fecha_ini = $4,\n  fecha_fin = $5,\n  tarifa = $6\nWHERE id = $7\nRETURNING *;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.asignacionData.id_empresa, $json.body.asignacionData.id_trabajador, $json.body.asignacionData.id_comerciales, $json.body.asignacionData.fecha_ini || null, $json.body.asignacionData.fecha_fin || null, $json.body.asignacionData.tarifa || null, $json.body.asignacionId] }}"
+        }
+      },
+      "id": "c8a32072-8945-47ee-abcf-638fae631288",
+      "name": "Update Asignacion1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        224
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE asignacion SET activo = NOT activo WHERE id = $1 RETURNING id, activo;",
+        "options": {
+          "queryReplacement": "={{ $json.body.asignacionId }}"
+        }
+      },
+      "id": "ec58fa3e-c7ce-4fa3-a8af-d21bc1e50b1b",
+      "name": "Toggle Asignacion Status1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        416
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, nombre_empresa FROM empresa ORDER BY nombre_empresa;",
+        "options": {}
+      },
+      "id": "4f5b9129-f29e-43a8-86bc-28f2e901eab8",
+      "name": "Get Empresas1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        592
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, CONCAT(nombre, ' ', primer_apellido, COALESCE(' ' || segundo_apellido, '')) AS nombre_completo FROM trabajador WHERE activo = true ORDER BY primer_apellido, nombre;",
+        "options": {}
+      },
+      "id": "c601f3f7-d690-42a8-94d5-36ba5036240b",
+      "name": "Get Trabajadores1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        752
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, CONCAT(nombre, ' ', primer_apellido, COALESCE(' ' || segundo_apellido, '')) AS nombre_completo FROM comerciales WHERE activo = true ORDER BY primer_apellido, nombre;",
+        "options": {}
+      },
+      "id": "a940f737-e5f2-49f7-8c9c-2ee12a2ce1b9",
+      "name": "Get Comerciales1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        912
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "2",
+              "name": "error",
+              "value": "Acción inválida. Acciones permitidas: getAsignaciones, createAsignacion, updateAsignacion, toggleAsignacionStatus, getEmpresas, getTrabajadores, getComerciales",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a8652ef8-c7a7-4e69-9d36-8d1d1bbf9585",
+      "name": "Invalid Action Response1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item => item.json) }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "9b4aba77-4bd2-42fa-a0ba-e1f243cc8cd1",
+      "name": "Respond Success1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        992,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: $json.status, error: $json.error, message: $json.message, code: $json.code }) }}",
+        "options": {
+          "responseCode": "={{ $json.status }}"
+        }
+      },
+      "id": "7d7d805e-463b-4e7e-8c61-5353d30f60a4",
+      "name": "Respond Error1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1136,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst error = $input.item.json;\nconst pgCode = String(error.code || '');\nconst rawMessage = String(error.message || 'Error desconocido');\n\nlet status = 500;\nlet errorType = 'Internal Server Error';\nlet message = rawMessage;\nlet code = 'DB_ERROR';\n\nif (pgCode === '23505') {\n  status = 409;\n  errorType = 'Conflict';\n  code = 'DUPLICATE_ENTRY';\n  if (rawMessage.toLowerCase().includes('email')) {\n    message = 'El correo electrónico ya se encuentra registrado.';\n    code = 'EMAIL_ALREADY_EXISTS';\n  } else {\n    const match = rawMessage.match(/unique constraint \"(.+?)\"/i);\n    message = match\n      ? `Ya existe un registro que viola la restricción: ${match[1]}.`\n      : 'Ya existe un registro con esos datos.';\n  }\n} else if (pgCode === '23502') {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'MISSING_REQUIRED_FIELD';\n  const match = rawMessage.match(/column \"(.+?)\"/);\n  const field = match ? match[1] : 'desconocido';\n  message = `El campo \"${field}\" es obligatorio y no puede estar vacío.`;\n} else if (pgCode === '23503') {\n  status = 409;\n  errorType = 'Conflict';\n  code = 'FOREIGN_KEY_VIOLATION';\n  message = 'El registro referenciado no existe o ha sido eliminado.';\n} else if (pgCode === '23514') {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'CHECK_VIOLATION';\n  message = 'Los datos enviados no cumplen las restricciones requeridas.';\n}\n\nreturn [{ json: { status, error: errorType, message, code } }];\n"
+      },
+      "id": "dab31f2e-d39b-4a77-919e-4ebfb0ac90aa",
+      "name": "Handle DB Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const jwt = require('jsonwebtoken');\n\nconst JWT_SECRET = 'passEncriptada';\n\nconst body = $json.body;\n\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst bodyToken  = body?.token || '';\nconst rawToken   = authHeader || bodyToken;\n\nconst token = rawToken.replace('Bearer ', '').trim();\n\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\n\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{\n    json: {\n      ...$json,\n      _auth: { id: decoded.id, email: decoded.email, role: decoded.role }\n    }\n  }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido o expirado - ' + err.message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        784
+      ],
+      "id": "3026ea73-f797-4fd0-953e-6fc28bf4202e",
+      "name": "JWT Verify"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "auth-check-001",
+              "leftValue": "={{ $json._authError }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -656,
+        784
+      ],
+      "id": "c482a6c5-c6d6-41af-bce2-28d2b111d649",
+      "name": "Auth Error?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: $json.message }) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -480,
+        480
+      ],
+      "id": "4bbb186a-326e-4f40-85fe-0a272301ad39",
+      "name": "Respond 401"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "API Gestión Asignaciones1": {
+      "main": [
+        [
+          {
+            "node": "JWT Verify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Action1": {
+      "main": [
+        [
+          {
+            "node": "Build Get Asignaciones Query1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Asignacion1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Asignacion1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Toggle Asignacion Status1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Empresas1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Trabajadores1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Comerciales1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Action Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Asignaciones Query1": {
+      "main": [
+        [
+          {
+            "node": "Get Asignaciones1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Asignaciones1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Asignacion1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Asignacion1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toggle Asignacion Status1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Empresas1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Trabajadores1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Comerciales1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid Action Response1": {
+      "main": [
+        [
+          {
+            "node": "Respond Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle DB Error": {
+      "main": [
+        [
+          {
+            "node": "Respond Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JWT Verify": {
+      "main": [
+        [
+          {
+            "node": "Auth Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Error?": {
+      "main": [
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Route by Action1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ac6ed52d-f9d4-4754-8324-55aba01667de",
+  "meta": {
+    "instanceId": "68406e238b7dc5bdce60068f923199f237e1a3d96b618bf2b35e1281a86e782f"
+  },
+  "id": "ZuR0pcnpMBB50x5B",
+  "tags": []
+}

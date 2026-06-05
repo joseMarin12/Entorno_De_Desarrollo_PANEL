@@ -1,0 +1,1066 @@
+{
+  "name": "Formaciones",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const firstItem = $input.first() || {};\n\nconst errorObj = firstItem.error || {};\nconst cause = errorObj.cause || {};\n\nconst jsonObj = firstItem.json || {};\n\nconst nestedError = jsonObj.error || {};\nconst nestedCause = nestedError.cause || {};\n\nconst pgCode = String(\n  cause.code ||\n  errorObj.code ||\n  nestedCause.code ||\n  nestedError.code ||\n  jsonObj.code ||\n  ''\n);\n\nconst rawMessage = String(\n  jsonObj.message ||\n  cause.message ||\n  errorObj.message ||\n  errorObj.description ||\n  nestedCause.message ||\n  nestedError.message ||\n  nestedError.description ||\n  'Error desconocido'\n);\n\nlet status = 500;\nlet errorType = 'Internal Server Error';\nlet message = rawMessage;\nlet code = 'DB_ERROR';\n\n// Unique constraint violation\nif (\n  pgCode === '23505' ||\n  rawMessage.includes('unique constraint')\n) {\n  status = 409;\n  errorType = 'Conflict';\n  code = 'DUPLICATE_ENTRY';\n\n  if (rawMessage.toLowerCase().includes('email')) {\n    message = 'El correo electrónico ya se encuentra registrado.';\n    code = 'EMAIL_ALREADY_EXISTS';\n  } else {\n    const match = rawMessage.match(\n      /unique constraint \\\"(.+?)\\\"/i\n    );\n\n    message = match\n      ? `Ya existe un registro que viola la restricción: ${match[1]}.`\n      : 'Ya existe un registro con esos datos.';\n  }\n}\n\n// NOT NULL violation\nelse if (\n  pgCode === '23502' ||\n  rawMessage.includes('not-null constraint') ||\n  rawMessage.includes('violates not-null')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'MISSING_REQUIRED_FIELD';\n\n  const match = rawMessage.match(/column \\\"(.+?)\\\"/);\n\n  const field = match\n    ? match[1]\n    : 'desconocido';\n\n  message = `El campo \"${field}\" es obligatorio y no puede estar vacío.`;\n}\n\n// Foreign key violation\nelse if (\n  pgCode === '23503' ||\n  rawMessage.includes('foreign key constraint')\n) {\n  status = 409;\n  errorType = 'Conflict';\n  code = 'FOREIGN_KEY_VIOLATION';\n\n  message =\n    'El registro referenciado no existe o ha sido eliminado.';\n}\n\n// Check constraint violation\nelse if (\n  pgCode === '23514' ||\n  rawMessage.includes('check constraint')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'CHECK_VIOLATION';\n\n  message =\n    'Los datos enviados no cumplen las restricciones requeridas.';\n}\n\n// Invalid date format\nelse if (\n  rawMessage.includes('invalid input syntax for type date')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'INVALID_DATE_FORMAT';\n\n  message =\n    'El formato de fecha introducido no es válido o está vacío.';\n}\n\n// Generic invalid input\nelse if (\n  rawMessage.includes('invalid input syntax')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'INVALID_INPUT_FORMAT';\n\n  message =\n    'Uno de los campos introducidos tiene un formato incorrecto (ej: texto en lugar de número).';\n}\n\nreturn [\n  {\n    json: {\n      status,\n      error: errorType,\n      message,\n      code,\n    },\n  },\n];"
+      },
+      "id": "088550bc-9347-4215-9728-9ef6c44f0a52",
+      "name": "Handle DB Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gestion-formaciones",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -352,
+        576
+      ],
+      "id": "d804d0d4-f10f-4e08-a6d8-f4b0f4e936c7",
+      "name": "API Gestión Formaciones1",
+      "webhookId": "formaciones-gestion-uuid-0001"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getFormaciones",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-get-formaciones"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Formaciones"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "createFormacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-create-formacion"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Create Formacion"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "updateFormacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-update-formacion"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Update Formacion"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "toggleFormacionStatus",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-toggle-formacion"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Toggle Status"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getTrabajadores",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-get-trabajadores"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Trabajadores"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "addTrabajadorToFormacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-add-trabajador"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Add Trabajador"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "removeTrabajadorFromFormacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-remove-trabajador"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Remove Trabajador"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "09b0bb29-1f81-4e25-bebe-89bc918e3863",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getArea",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get area"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "975ea21f-634f-4978-811f-f0d9d8f5423c",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getModalidad",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get modalidad"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e64d30af-361a-49b3-be64-060ebca83b9b",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getEjecucion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "593f86a5-0c68-4d61-b5ef-cec872a160a3",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getResponsable",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Invalid Action"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        432
+      ],
+      "id": "c621900c-9991-4bc7-bddb-9c67f04ee521",
+      "name": "Route by Action1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\n\nconst page = parseInt(body.page) || 1;\nconst pageSize = parseInt(body.pageSize) || 10;\nconst offset = (page - 1) * pageSize;\n\nconst params = [];\nlet paramIndex = 1;\nlet whereClause = 'WHERE 1=1';\n\nif (\n  filters.searchText &&\n  typeof filters.searchText === 'string' &&\n  filters.searchText.trim() !== ''\n) {\n  whereClause += `\n    AND (\n      f.curso ILIKE $${paramIndex}\n      OR f.denominacion ILIKE $${paramIndex}\n    )\n  `;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (\n  filters.id_estado !== undefined &&\n  filters.id_estado !== null &&\n  filters.id_estado !== ''\n) {\n  whereClause += ` AND f.id_estado = $${paramIndex}`;\n  params.push(filters.id_estado);\n  paramIndex++;\n}\n\nif (\n  filters.activo !== undefined &&\n  filters.activo !== null &&\n  filters.activo !== ''\n) {\n  whereClause += ` AND f.activo = $${paramIndex}`;\n  params.push(filters.activo);\n  paramIndex++;\n}\n\n// Paginación\nparams.push(pageSize);\nconst limitParam = paramIndex++;\n\nparams.push(offset);\nconst offsetParam = paramIndex++;\n\n// Query principal\nconst query = `\nWITH total_count AS (\n  SELECT COUNT(DISTINCT f.id) AS total\n  FROM formacion f\n  ${whereClause}\n),\nglobal_counts AS (\n  SELECT \n    COUNT(*) AS total_global,\n    SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) AS total_activos,\n    SUM(CASE WHEN activo = false THEN 1 ELSE 0 END) AS total_inactivos\n  FROM formacion\n),\npaginado AS (\n  SELECT\n    f.*,\n    ef.nombre AS estado_nombre,\n    af.nombre AS area_nombre,\n    mf.nombre AS modalidad_nombre,\n    exe.nombre AS ejecucion_nombre,\n    COUNT(ft.id_trabajador) AS num_trabajadores\n  FROM formacion f\n  LEFT JOIN estado_formacion ef ON ef.id = f.id_estado\n  LEFT JOIN area_formacion af ON af.id = f.id_area\n  LEFT JOIN modalidad_formacion mf ON mf.id = f.id_modalidad\n  LEFT JOIN ejecucion_formacion exe ON exe.id = f.id_ejecucion\n  LEFT JOIN formacion_trabajador ft ON ft.id_formacion = f.id\n  ${whereClause}\n  GROUP BY \n    f.id,\n    ef.nombre,\n    af.nombre,\n    mf.nombre,\n    exe.nombre\n  ORDER BY f.created_at DESC NULLS LAST\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n)\n\nSELECT \n  paginado.*,\n  total_count.total AS total_records,\n  global_counts.total_global,\n  global_counts.total_activos,\n  global_counts.total_inactivos\nFROM paginado, total_count, global_counts;\n`;\n\nreturn [\n  {\n    json: {\n      query,\n      params,\n      page,\n      pageSize,\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -400
+      ],
+      "id": "63fdd2aa-633c-464b-b3d4-20f39e2741ad",
+      "name": "Build Get Formaciones Query1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        -400
+      ],
+      "id": "07f0ce20-a0b3-45fb-a98a-226a0a5dbac4",
+      "name": "Get Formaciones1",
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO formacion (\n  id_estado, curso, denominacion, motivo, id_area,\n  recursos, id_responsable, id_modalidad, duracion, dentro_fuera_jornada,\n  observaciones, fecha_prevista, fecha_inicio, fecha_fin, horario,\n  id_ejecucion, eficacia, anio, coste, bonificacion, total, activo\n) VALUES (\n  $1, $2, $3, $4, $5,\n  $6, $7, $8, $9, $10,\n  $11, $12, $13, $14, $15,\n  $16, $17, $18, $19, $20, $21, true\n) RETURNING *;",
+        "options": {
+          "queryReplacement": "={{ $json.body.formacionData.id_estado }},={{ $json.body.formacionData.curso }},={{ $json.body.formacionData.denominacion }},={{ $json.body.formacionData.motivo }},={{ $json.body.formacionData.id_area }},={{ $json.body.formacionData.recursos }},={{ $json.body.formacionData.id_responsable }},={{ $json.body.formacionData.id_modalidad }},={{ $json.body.formacionData.duracion }},={{ $json.body.formacionData.dentro_fuera_jornada }},={{ $json.body.formacionData.observaciones }},={{ $json.body.formacionData.fecha_prevista }},={{ $json.body.formacionData.fecha_inicio }},={{ $json.body.formacionData.fecha_fin }},={{ $json.body.formacionData.horario }},={{ $json.body.formacionData.id_ejecucion }},={{ $json.body.formacionData.eficacia }},={{ $json.body.formacionData.anio }},={{ $json.body.formacionData.coste }},={{ $json.body.formacionData.bonificacion }},={{ $json.body.formacionData.total }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        -224
+      ],
+      "id": "4afc947e-c68d-466c-9225-afc8c3eaaf34",
+      "name": "Insert Formacion1",
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE formacion SET\n  id_estado = $1, curso = $2, denominacion = $3, motivo = $4,\n  id_area = $5, recursos = $6, id_responsable = $7, id_modalidad = $8,\n  duracion = $9, dentro_fuera_jornada = $10, observaciones = $11,\n  fecha_prevista = $12, fecha_inicio = $13, fecha_fin = $14,\n  horario = $15, id_ejecucion = $16, eficacia = $17,\n  anio = $18, coste = $19, bonificacion = $20, total = $21,\n  updated_at = NOW()\nWHERE id = $22\nRETURNING *;",
+        "options": {
+          "queryReplacement": "={{ $json.body.formacionData.id_estado }},={{ $json.body.formacionData.curso }},={{ $json.body.formacionData.denominacion }},={{ $json.body.formacionData.motivo }},={{ $json.body.formacionData.id_area }},={{ $json.body.formacionData.recursos }},={{ $json.body.formacionData.id_responsable }},={{ $json.body.formacionData.id_modalidad }},={{ $json.body.formacionData.duracion }},={{ $json.body.formacionData.dentro_fuera_jornada }},={{ $json.body.formacionData.observaciones }},={{ $json.body.formacionData.fecha_prevista }},={{ $json.body.formacionData.fecha_inicio }},={{ $json.body.formacionData.fecha_fin }},={{ $json.body.formacionData.horario }},={{ $json.body.formacionData.id_ejecucion }},={{ $json.body.formacionData.eficacia }},={{ $json.body.formacionData.anio }},={{ $json.body.formacionData.coste }},={{ $json.body.formacionData.bonificacion }},={{ $json.body.formacionData.total }},={{ $json.body.formacionId }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        -32
+      ],
+      "id": "e7b8db89-6d73-4d0c-b572-e3379c3174d5",
+      "name": "Update Formacion1",
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE formacion SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING id, curso, activo, updated_at;",
+        "options": {
+          "queryReplacement": "={{ $json.body.formacionId }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        160
+      ],
+      "id": "14d4f213-e984-4879-9106-25e8bf346f15",
+      "name": "Toggle Formacion Status1",
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst idFormacion = body.id_formacion;\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT\n  t.id,\n  t.nombre,\n  t.primer_apellido,\n  t.segundo_apellido,\n  t.dni_nif_pasaporte,\n  t.email,\n  t.telefono,\n  t.activo,\n  CASE WHEN ft.id IS NOT NULL THEN true ELSE false END as asignado\nFROM trabajador t\nLEFT JOIN formacion_trabajador ft\n  ON ft.id_trabajador = t.id AND ft.id_formacion = $${paramIndex}\nWHERE t.activo = true`;\nparams.push(idFormacion);\nparamIndex++;\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  query += ` AND (CONCAT(t.nombre, ' ', t.primer_apellido, ' ', COALESCE(t.segundo_apellido,'')) ILIKE $${paramIndex} OR t.dni_nif_pasaporte ILIKE $${paramIndex})`;\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.soloDisponibles === true) {\n  query += ' AND ft.id IS NULL';\n}\n\nquery += ' ORDER BY t.primer_apellido, t.nombre';\n\nreturn [{ json: { query, params } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        336
+      ],
+      "id": "4dbacedc-b1e2-4791-ac49-81815a630310",
+      "name": "Build Get Trabajadores Query1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1184,
+        336
+      ],
+      "id": "d1d18da9-0fcf-4656-b6e9-500393e5f424",
+      "name": "Get Trabajadores1",
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO formacion_trabajador (id_formacion, id_trabajador)\nSELECT $1, $2\nWHERE NOT EXISTS (\n  SELECT 1 FROM formacion_trabajador\n  WHERE id_formacion = $1 AND id_trabajador = $2\n)\nRETURNING *;",
+        "options": {
+          "queryReplacement": "={{ $json.body.id_formacion }},={{ $json.body.id_trabajador }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        480
+      ],
+      "id": "7fff64d6-61e3-461f-bbd1-2433512c76d0",
+      "name": "Add Trabajador1",
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM formacion_trabajador\nWHERE id_formacion = $1 AND id_trabajador = $2\nRETURNING id;",
+        "options": {
+          "queryReplacement": "={{ $json.body.id_formacion }},={{ $json.body.id_trabajador }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        640
+      ],
+      "id": "b1ade61b-aa13-4c26-a869-1e5207c7b35e",
+      "name": "Remove Trabajador1",
+      "credentials": {
+        "postgres": {
+          "id": "PEj0EcRRiVkwps7h",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "2",
+              "name": "error",
+              "value": "Acción inválida. Acciones: getFormaciones, createFormacion, updateFormacion, toggleFormacionStatus, getTrabajadores, addTrabajadorToFormacion, removeTrabajadorFromFormacion",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        1424
+      ],
+      "id": "52505541-f5cc-4d8c-9f42-417af6f3da43",
+      "name": "Invalid Action Response1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ \"success\": true, \"data\": $input.all().map(item => item.json) }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1696,
+        576
+      ],
+      "id": "53e7c0bb-91b0-4889-b498-715669b28e33",
+      "name": "Respond Success1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: $json.status, error: $json.error, message: $json.message, code: $json.code }) }}",
+        "options": {
+          "responseCode": "={{ $json.status }}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1712,
+        864
+      ],
+      "id": "75d761f7-908a-4d9c-8337-e6ac6569f5d3",
+      "name": "Respond Error1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select id, nombre from area_formacion",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        784
+      ],
+      "id": "46fd9615-c1c7-4a9e-8226-90cf3c32ea70",
+      "name": "Execute a SQL query4",
+      "credentials": {
+        "postgres": {
+          "id": "ko5fFqsOIauxDSEd",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select id, nombre from modalidad_formacion",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        944
+      ],
+      "id": "373d9caa-baa2-4410-9db8-42793ce18730",
+      "name": "Execute a SQL query5",
+      "credentials": {
+        "postgres": {
+          "id": "ko5fFqsOIauxDSEd",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select id, nombre from ejecucion_formacion\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        1104
+      ],
+      "id": "12a9851e-3dae-4d63-a195-29e80c4748a4",
+      "name": "Execute a SQL query6",
+      "credentials": {
+        "postgres": {
+          "id": "ko5fFqsOIauxDSEd",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select id, name from \"user\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        1264
+      ],
+      "id": "08546d8c-9e25-4366-9d6c-57d18bdb4aa5",
+      "name": "Execute a SQL query7",
+      "credentials": {
+        "postgres": {
+          "id": "ko5fFqsOIauxDSEd",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const jwt = require('jsonwebtoken');\n\nconst JWT_SECRET = 'passEncriptada';\n\nconst body = $json.body;\n\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst bodyToken  = body?.token || '';\nconst rawToken   = authHeader || bodyToken;\n\nconst token = rawToken.replace('Bearer ', '').trim();\n\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\n\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{\n    json: {\n      ...$json,\n      _auth: { id: decoded.id, email: decoded.email, role: decoded.role }\n    }\n  }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido o expirado - ' + err.message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        576
+      ],
+      "id": "a88624a9-ef4a-4958-a4ba-0de0a241a22a",
+      "name": "JWT Verify"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "auth-check-001",
+              "leftValue": "={{ $json._authError }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        96,
+        576
+      ],
+      "id": "a98d862b-9db5-4e8b-b3fc-ce04ec5580e5",
+      "name": "Auth Error?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: $json.message }) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        272,
+        272
+      ],
+      "id": "729a22c5-af25-417c-8229-758fad532958",
+      "name": "Respond 401"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Handle DB Error": {
+      "main": [
+        [
+          {
+            "node": "Respond Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Gestión Formaciones1": {
+      "main": [
+        [
+          {
+            "node": "JWT Verify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Action1": {
+      "main": [
+        [
+          {
+            "node": "Build Get Formaciones Query1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Formacion1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Formacion1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Toggle Formacion Status1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Get Trabajadores Query1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Trabajador1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Remove Trabajador1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Action Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Formaciones Query1": {
+      "main": [
+        [
+          {
+            "node": "Get Formaciones1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Formaciones1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Formacion1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Formacion1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toggle Formacion Status1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Trabajadores Query1": {
+      "main": [
+        [
+          {
+            "node": "Get Trabajadores1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Trabajadores1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Trabajador1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Trabajador1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle DB Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid Action Response1": {
+      "main": [
+        [
+          {
+            "node": "Respond Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query4": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query5": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query6": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query7": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JWT Verify": {
+      "main": [
+        [
+          {
+            "node": "Auth Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Error?": {
+      "main": [
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Route by Action1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e098ac95-7c1c-4a53-a0c8-e56d31cab4d0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "68406e238b7dc5bdce60068f923199f237e1a3d96b618bf2b35e1281a86e782f"
+  },
+  "id": "R5yHppLWfre3MYim",
+  "tags": []
+}

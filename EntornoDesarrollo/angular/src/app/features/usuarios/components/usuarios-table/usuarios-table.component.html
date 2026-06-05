@@ -1,0 +1,10 @@
+<app-table
+  [columns]="columns"
+  [rows]="usuarios"
+  [currentPage]="currentPage"
+  [pageSize]="pageSize"
+  [totalFiltered]="totalFiltered"
+  entityLabel="usuarios"
+  (pageChange)="pageChange.emit($event)"
+  (actionClick)="onAction($event)">
+</app-table>

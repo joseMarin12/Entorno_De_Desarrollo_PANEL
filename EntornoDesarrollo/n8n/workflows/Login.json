@@ -1,0 +1,122 @@
+{
+  "name": "Login",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "login",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8e9d353c-3db8-488a-97e7-fc64914baf20",
+      "name": "Webhook",
+      "webhookId": "56be4f26-96d2-4249-8627-56e0dfe624c3"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, email, enabled, password, roleid, first_login\nFROM \"user\"\nWHERE email = '{{ $json.body.email }}'\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        256,
+        0
+      ],
+      "id": "868e9010-9a71-414b-8e38-3a2a7eef17a7",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "KezwkIj6LgJHArvL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const bcrypt = require('bcryptjs');\nconst jwt = require('jsonwebtoken');\n\nconst JWT_HASH = 'passEncriptada';\n\nconst inputPass = $('Webhook').first().json.body.password;\nconst usuario = $input.first().json;\n\nif (!usuario || !usuario.email) {\n  return [{ json: { success: false, message: 'Credenciales inválidas' } }];\n}\n\nif (!usuario.enabled) {\n  return [{ json: { success: false, message: 'Credenciales inválidas' } }];\n}\n\nconst isValid = await bcrypt.compare(inputPass, usuario.password);\n\nif (!isValid) {\n  return [{ json: { success: false, message: 'Credenciales inválidas' } }];\n}\n\nconst JWTexpired = '1h';\n\nconst token = jwt.sign(\n  {\n    id: usuario.id,\n    email: usuario.email,\n    role: usuario.roleid,\n    firstLogin: usuario.first_login\n  },\n  JWT_HASH,\n  { expiresIn: JWTexpired }\n);\n\nreturn [{\n  json: {\n    success: true,\n    token,\n    firstLogin: usuario.first_login,\n    user: {\n      id: usuario.id,\n      email: usuario.email\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "id": "171a9d00-6e28-4a86-a15f-1b1418434b45",
+      "name": "verificarEmail"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        688,
+        0
+      ],
+      "id": "eefe0a5f-30eb-4cf7-bc92-507ac66f354c",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "verificarEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verificarEmail": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4ee90f11-0822-4e0c-863d-a1c338654695",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
+  },
+  "id": "V0NZYOH21kvt6mCO",
+  "tags": []
+}

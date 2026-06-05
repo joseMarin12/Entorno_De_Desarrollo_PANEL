@@ -1,0 +1,104 @@
+<div class="modal-overlay open">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 540px;">
+
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Detalle del Seleccionador</div>
+        <div class="modal-subtitle">Información completa en modo lectura</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      
+      <div style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 30px;">
+        <div class="avatar-large" [style.background]="colorFor(seleccionador.id)">
+          {{ initials(seleccionador) }}
+        </div>
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px;">
+            {{ seleccionador.nombre }} {{ seleccionador.primer_apellido }} {{ seleccionador.segundo_apellido }}
+          </h2>
+          <div style="display: flex; gap: 8px;">
+            @if (seleccionador.tipo === 'interno') {
+              <span class="badge badge-tipo-interno" style="background: #e8eaf6; color: #3949ab; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;">INTERNO</span>
+            } @else {
+              <span class="badge badge-tipo-externo" style="background: #fff3e0; color: #e65100; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;">EXTERNO</span>
+            }
+            <span class="badge" [class.badge-active]="seleccionador.activo" [class.badge-inactive]="!seleccionador.activo">
+              {{ statusLabel | uppercase }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenedor unificado para Detalles (Atenuado dinámicamente) -->
+      <div class="external-badge-info" [class.field-disabled]="seleccionador.tipo === 'interno'">
+        
+        <!-- Bloque completo de datos (Contactos y Comerciales) -->
+        <div class="detail-grid" style="margin-bottom: 20px;">
+          <div class="detail-item" style="margin-bottom: 0;">
+            <div class="detail-label">Email</div>
+            <div class="detail-value">
+              @if (seleccionador.email) { {{ seleccionador.email }} } 
+              @else { <span class="empty-dash">—</span> }
+            </div>
+          </div>
+          <div class="detail-item" style="margin-bottom: 0;">
+            <div class="detail-label">Teléfono</div>
+            <div class="detail-value">
+              @if (seleccionador.telefono) { {{ seleccionador.telefono }} } 
+              @else { <span class="empty-dash">—</span> }
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-item" style="margin-bottom: 16px;">
+          <div class="detail-label">Empresa vinculada</div>
+          <div class="detail-value">
+            @if (seleccionador.empresa) { {{ seleccionador.empresa.nombre }} } 
+            @else { <span class="empty-dash">—</span> }
+          </div>
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-item" style="margin-bottom: 0;">
+            <div class="detail-label">Fecha de inicio</div>
+            <div class="detail-value">
+              @if (seleccionador.fecha_ini) { {{ seleccionador.fecha_ini | date:'dd/MM/yyyy' || seleccionador.fecha_ini }} } 
+              @else { <span class="empty-dash">—</span> }
+            </div>
+          </div>
+          <div class="detail-item" style="margin-bottom: 0;">
+            <div class="detail-label">Salario bruto anual</div>
+            <div class="detail-value">
+              @if (seleccionador.salario) { {{ seleccionador.salario | currency:'EUR':'symbol':'1.0-0' }} } 
+              @else { <span class="empty-dash">—</span> }
+            </div>
+          </div>
+          <div class="detail-item" style="margin-bottom: 0;">
+            <div class="detail-label">Fee acordado</div>
+            <div class="detail-value">
+              @if (seleccionador.fee) { {{ seleccionador.fee }}% } 
+              @else { <span class="empty-dash">—</span> }
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="modal-footer" style="background: #fafbff; border-top: 1px solid var(--border);">
+      <button class="btn btn-outline" (click)="close.emit()">Cerrar</button>
+      <button class="btn btn-primary" (click)="edit.emit(seleccionador.id); close.emit()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Editar información
+      </button>
+    </div>
+
+  </div>
+</div>
