@@ -3,7 +3,7 @@ name: Deploy Angular to Cloud Run
 on:
   push:
     branches:
-      - main     # Si tu rama se llama 'master' o 'developer', cambia este texto
+      - main
 
 env:
   PROJECT_ID: panel-sgtech-20260603
