@@ -21,11 +21,11 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Nos movemos al directorio web
+# Nos movemos al directorio de trabajo del servidor web
 WORKDIR /var/www/html
 
-# Copiamos ÚNICAMENTE el contenido de la carpeta laravel
-COPY ./laravel .
+# COPIAMOS ÚNICAMENTE EL CONTENIDO DE LA CARPETA LARAVEL A LA RAÍZ DEL SERVIDOR
+COPY ./laravel/ .
 
 # Da permisos correctos a las carpetas de Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
