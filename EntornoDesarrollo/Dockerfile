@@ -29,7 +29,7 @@ RUN echo 'server { \
 
 # Copiamos los archivos compilados de Angular al servidor web
 # NOTA: Revisa si tu proyecto compila dentro de una subcarpeta (ej. dist/tu-app-name)
-COPY --from=build /app/dist/ /usr/share/nginx/html/
+COPY --from=build /app/dist/* /usr/share/nginx/html/
 
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
