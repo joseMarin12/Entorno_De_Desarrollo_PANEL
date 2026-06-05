@@ -38,7 +38,7 @@ RUN cp .env.example .env || true
 RUN composer install --no-interaction --optimize-autoloader --no-dev || true
 
 # Genera la llave de seguridad obligatoria
-RUN php artisan key:generate --force || true
+RUN php artisan migrate --force --seed || true
 
 # Da permisos correctos a las carpetas de almacenamiento para Apache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true
