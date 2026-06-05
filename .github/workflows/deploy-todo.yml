@@ -145,5 +145,5 @@ jobs:
           --platform managed \
           --port 8080 \
           --timeout 600 \
-          --set-env-vars="DB_TYPE=sqlite,N8N_PORT=8080,N8N_BASIC_AUTH_ACTIVE=true,N8N_BASIC_AUTH_USER=admin,N8N_BASIC_AUTH_PASSWORD=admin123" \
+          --set-env-vars="DB_TYPE=sqlite,PORT=8080,N8N_PORT=8080,N8N_BASIC_AUTH_ACTIVE=true,N8N_BASIC_AUTH_USER=admin,N8N_BASIC_AUTH_PASSWORD=admin123" \
           --allow-unauthenticated
