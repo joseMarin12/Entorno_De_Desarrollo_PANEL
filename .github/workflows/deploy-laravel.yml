@@ -3,13 +3,11 @@ name: Deploy Laravel to Cloud Run
 on:
   push:
     branches:
-      - main
-    paths:
-      - 'EntornoDesarrollo/laravel/**'
+      - main  # Se ejecuta automáticamente al subir cambios a main
 
 env:
   PROJECT_ID: panel-sgtech-20260603
-  SERVICE_NAME: panel  # El servicio principal para el backend
+  SERVICE_NAME: panel
   REPO_NAME: panel-docker
   REGION: us-central1
 
@@ -44,4 +42,6 @@ jobs:
           --region ${{ env.REGION }} \
           --platform managed \
           --port 8080 \
+          --timeout 600 \
+          --set-env-vars="DB_CONNECTION=sqlite,DB_DATABASE=:memory:,APP_ENV=production,APP_URL=https://run.app,SANCTUM_STATEFUL_DOMAINS=panel-frontend-1079064952465.us-central1.run.app" \
           --allow-unauthenticated
