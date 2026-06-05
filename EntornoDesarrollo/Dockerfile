@@ -42,17 +42,18 @@ RUN cp .env.example .env || true
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 RUN php artisan key:generate --force
 
-# --- UNIFICACIÓN BUSCADORA DESDE LA NUEVA RUTA ---
-RUN mkdir -p /tmp/angular-dist
-COPY --from=angular-build /app/angular/dist/ /tmp/angular-dist/
-RUN TARGET_DIR=$(find /tmp/angular-dist -name "index.html" -exec dirname {} \; | head -n 1) && \
-    if [ -n "$TARGET_DIR" ]; then \
-        cp -r $TARGET_DIR/* /var/www/html/public/; \
-    fi
+# --- UNIFICACIÓN CON LA RUTA EXACTA DE TU PROYECTO ---
+COPY --from=angular-build /app/angular/dist/mi-panel/browser/ /var/www/html/public/
 
-RUN chown -R www-data:www-data /var/www/html /var/www/html/storage /var/www/html/bootstrap/cache
+# REGLA MAESTRA: Dar permisos de dueño y lectura absoluta a Apache para evitar el "Forbidden"
+RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
 
 EXPOSE 8080
+ENV PORT 8080
+RUN sed -i "s/Listen 80/Listen 8080/g" /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
+
+CMD ["apache2-foreground"]
+
 ENV PORT 8080
 RUN sed -i "s/Listen 80/Listen 8080/g" /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
 
