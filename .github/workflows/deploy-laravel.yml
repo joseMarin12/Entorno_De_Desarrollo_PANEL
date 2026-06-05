@@ -3,13 +3,11 @@ name: Deploy Laravel to Cloud Run
 on:
   push:
     branches:
-      - main
-    paths:
-      - 'laravel/**' # Solo se activa si cambias cosas en la carpeta de Laravel
+      - main     # Si tu rama se llama 'master' o 'developer', cambia este texto
 
 env:
   PROJECT_ID: panel-sgtech-20260603
-  SERVICE_NAME: panel # Usa el servicio principal que te asignaron
+  SERVICE_NAME: panel
   REPO_NAME: panel-docker
   REGION: us-central1
 
