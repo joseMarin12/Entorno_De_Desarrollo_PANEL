@@ -1,35 +1,66 @@
-# --- ETAPA 1: Compilar la aplicación de Angular ---
-FROM node:18-alpine AS build
+# === ETAPA 1: Compilar la interfaz de Angular ===
+FROM node:18-alpine AS angular-build
 WORKDIR /app
-
-# Copiamos los archivos de configuración de Angular
 COPY ./angular/package*.json ./
-
-# Instalamos las dependencias de Angular
 RUN npm ci
-
-# Copiamos todo el código de la carpeta angular
 COPY ./angular/ .
-
-# Compilamos el proyecto para producción
 RUN npm run build -- --configuration=production
 
-# --- ETAPA 2: Servir la aplicación con Nginx ---
-FROM nginx:alpine
+# === ETAPA 2: Configurar el servidor de Laravel (Apache + PHP) ===
+FROM php:8.2-apache
 
-# Copiamos la configuración de Nginx para soportar rutas de Angular
-RUN echo 'server { \
-    listen 8080; \
-    location / { \
-        root /usr/share/nginx/html; \
-        index index.html index.htm; \
-        try_files $uri $uri/ /index.html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Instala extensiones necesarias para Laravel y bases de datos
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libpq-dev \
+    zip \
+    unzip \
+    git \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql pdo_pgsql pgsql gd \
+    && apt-get clean && rm -rf /var/lib/lists/*
 
-# Copiamos los archivos compilados de Angular al servidor web
-# NOTA: Revisa si tu proyecto compila dentro de una subcarpeta (ej. dist/tu-app-name)
-COPY --from=build /app/dist/* /usr/share/nginx/html/
+# Instala Composer de forma global
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Habilita el módulo de reescritura de Apache
+RUN a2enmod rewrite
+
+# Configura la carpeta pública de Laravel como la raíz de Apache
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# Directorio de trabajo en el servidor
+WORKDIR /var/www/html
+
+# Copiamos el contenido del Backend de Laravel
+COPY ./laravel/ .
+
+# Borramos el Dockerfile interno viejo si existe para evitar choques
+RUN rm -f ./Dockerfile
+
+# Creamos el archivo .env desde el ejemplo para que Laravel no falle
+RUN cp .env.example .env
+
+# Instala las dependencias de código de Laravel
+RUN composer install --no-interaction --optimize-autoloader --no-dev
+
+# Genera la llave de seguridad obligatoria de Laravel
+RUN php artisan key:generate
+
+# --- AQUÍ OCURRE LA MAGIA DEL PROYECTO UNIFICADO ---
+# Tomamos la interfaz de Angular compilada en la Etapa 1 y la metemos en la carpeta pública de Laravel
+COPY --from=angular-build /app/dist/* /var/www/html/public/
+
+# Da permisos correctos a las carpetas de almacenamiento para que no de errores de escritura
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Configuración de puertos requerida por Google Cloud Run
 EXPOSE 8080
-CMD ["nginx", "-g", "daemon off;"]
+ENV PORT 8080
+RUN sed -i "s/Listen 80/Listen 8080/g" /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
+
+CMD ["apache2-foreground"]
