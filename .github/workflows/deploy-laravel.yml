@@ -3,7 +3,7 @@ name: Deploy Laravel to Cloud Run
 on:
   push:
     branches:
-      - main     # Si tu rama se llama 'master' o 'developer', cambia este texto
+      - main
 
 env:
   PROJECT_ID: panel-sgtech-20260603
@@ -32,7 +32,7 @@ jobs:
     - name: Build and Push Laravel
       run: |
         IMAGE_URL=us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:latest
-        docker build -t $IMAGE_URL -f ./laravel/Dockerfile ./laravel
+        docker build -t $IMAGE_URL -f ./EntornoDesarrollo/laravel/Dockerfile ./EntornoDesarrollo/laravel
         docker push $IMAGE_URL
 
     - name: Deploy to Cloud Run
