@@ -7,7 +7,9 @@ on:
 
 env:
   PROJECT_ID: panel-sgtech-20260603
-  SERVICE_NAME: panel-service
+  SERVICE_NAME: panel
+  REPO_NAME: panel-docker
+  IMAGE_NAME: panel
   REGION: us-central1
 
 jobs:
@@ -30,14 +32,14 @@ jobs:
 
     - name: Build and Push Docker Image
       run: |
-        IMAGE_URL=us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-source-deploy/${{ env.SERVICE_NAME }}:${{ github.sha }}
+        IMAGE_URL=us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest
         docker build -t $IMAGE_URL ./EntornoDesarrollo
         docker push $IMAGE_URL
 
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy ${{ env.SERVICE_NAME }} \
-          --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-source-deploy/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+          --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest \
           --region ${{ env.REGION }} \
           --platform managed \
           --allow-unauthenticated
