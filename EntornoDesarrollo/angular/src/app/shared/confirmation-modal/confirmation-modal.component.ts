@@ -27,11 +27,13 @@ export class ConfirmationModalComponent {
   confirm = output<void>();
   closed = output<void>();
 
-  isDesactivar = computed<boolean>(() => this.mode() === ConfirmMode.DESACTIVAR || this.mode() === ConfirmMode.ELIMINAR);
+  isDesactivar = computed<boolean>(() =>
+    this.mode() === ConfirmMode.DESACTIVAR
+    || this.mode() === ConfirmMode.ELIMINAR
+  );
   isEliminar = computed<boolean>(() => this.mode() === ConfirmMode.ELIMINAR);
 
   confirmClicked(): void {
-    console.log('confirmClicked', this.name());
     this.confirm.emit();
   }
 }

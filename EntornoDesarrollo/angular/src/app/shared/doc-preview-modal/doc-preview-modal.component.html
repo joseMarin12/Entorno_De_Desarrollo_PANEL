@@ -1,0 +1,58 @@
+@if (open()) {
+  <div class="doc-preview-overlay" (click)="cerrar()" role="dialog" aria-modal="true" aria-labelledby="doc-preview-title">
+    <div class="doc-preview-modal" (click)="$event.stopPropagation()">
+
+      <div class="doc-preview-header">
+        <div class="doc-preview-title">
+          <div class="doc-preview-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          </div>
+          <div style="min-width: 0; flex: 1;">
+            <div class="doc-preview-name" id="doc-preview-title">{{ nombre() }}</div>
+            @if (meta()) {
+              <div class="doc-preview-meta">{{ meta() }}</div>
+            }
+          </div>
+        </div>
+        <button type="button" class="doc-preview-close" (click)="cerrar()" title="Cerrar (Esc)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="doc-preview-body">
+        @if (esPdf() && pdfSrc()) {
+          <iframe [src]="pdfSrc()" title="Vista previa del documento"></iframe>
+        } @else if (esImagen() && imgSrc()) {
+          <img [src]="imgSrc()" [alt]="nombre()" />
+        } @else {
+          <div class="doc-preview-placeholder">
+            <div class="doc-preview-placeholder-icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+            </div>
+            <h3>{{ nombre() }}</h3>
+            @if (noPreviewable()) {
+              <p>Este formato no se puede previsualizar.</p>
+              <p class="hint">Descarga el archivo para abrirlo.</p>
+            } @else {
+              <p>Vista previa no disponible en este momento.</p>
+              <p class="hint">El archivo se mostrará aquí cuando se cargue su contenido.</p>
+            }
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+}

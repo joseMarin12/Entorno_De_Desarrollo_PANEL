@@ -1,0 +1,372 @@
+<div class="modal-overlay open">
+  <div class="modal modal-firma" (click)="$event.stopPropagation()">
+
+    <!-- ═══ HEADER ═══ -->
+    <div class="header-hero">
+      <div class="worker-chip">
+        <div class="avatar-mini" [style.background]="colorFor(trabajador.id)">
+          {{ initials(trabajador) }}
+        </div>
+        <div>
+          <div class="worker-name">{{ tituloModal }}</div>
+          <div class="worker-sub">
+            {{ trabajador.nombre }} {{ trabajador.primer_apellido }}
+            @if (firma?.sinatura_id) {
+              · ID Sinatura: <strong>{{ firma?.sinatura_id }}</strong>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="estado-banner" [ngClass]="estadoCssClass">
+          <span class="dot"></span>
+          {{ estadoLabel }}
+        </span>
+        <button class="modal-close" (click)="close.emit()" style="width: 36px; height: 36px; border-radius: 10px; border: none; background: #f3f4f6; color: #6b7280;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+
+    <div class="body-modal">
+
+
+      <div>
+        <div class="section-title">Documento</div>
+        <div class="doc-summary">
+          <div class="doc-summary-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          </div>
+          <div style="flex: 1; overflow: hidden;">
+            <div class="doc-summary-name">{{ firma?.nombre_fichero || '—' }}</div>
+            <div class="doc-summary-meta">
+              {{ firma?.tipo_nombre || '—' }}
+              @if (firma?.fecha_asignacion) { · subido el {{ firma?.fecha_asignacion }} }
+            </div>
+          </div>
+
+          @if (!puedeUbicarFirmas) {
+            <button type="button" class="doc-summary-preview-btn"
+                    (click)="abrirPreview()" title="Vista previa del documento">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              Ver documento
+            </button>
+          }
+
+          @if (puedeUbicarFirmas) {
+            <button type="button" class="doc-summary-preview-btn"
+                    (click)="abrirPlacement()" title="Ubicar las firmas en el documento">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/>
+              </svg>
+              Ubicar firmas
+            </button>
+          }
+        </div>
+      </div>
+
+
+      @if (puedeUbicarFirmas) {
+
+
+        <div>
+          <div class="section-title">¿Quién firma?</div>
+          <div class="firmantes-grid">
+            <div class="firmante-card" [class.active]="modoFirmantes === 'solo'" (click)="modoFirmantes = 'solo'">
+              <div class="firmante-radio">
+                @if (modoFirmantes === 'solo') { <span class="firmante-radio-inner"></span> }
+              </div>
+              <div class="firmante-info">
+                <div class="firmante-title">Solo el trabajador</div>
+                <div class="firmante-desc">Recibirá el enlace por correo y firmará en Sinatura.</div>
+              </div>
+            </div>
+            <div class="firmante-card" [class.active]="modoFirmantes === 'doble'" (click)="modoFirmantes = 'doble'">
+              <div class="firmante-radio">
+                @if (modoFirmantes === 'doble') { <span class="firmante-radio-inner"></span> }
+              </div>
+              <div class="firmante-info">
+                <div class="firmante-title">Trabajador + RRHH</div>
+                <div class="firmante-desc">Doble firma: primero el trabajador, después un responsable.</div>
+              </div>
+            </div>
+          </div>
+
+
+          <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <div class="field-label">Correo del trabajador</div>
+              <input class="form-input" type="email"
+                     placeholder="correo@empresa.com"
+                     [(ngModel)]="emailTrabajador"
+                     style="padding: 11px 14px; font-size: 14px; height: auto; width: 100%;" />
+              <span class="form-hint" style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">
+                Prellenado desde la ficha del trabajador. Puedes ajustarlo si el correo de firma es distinto.
+              </span>
+            </div>
+
+            @if (modoFirmantes === 'doble') {
+              <div>
+                <div class="field-label">Correo del segundo firmante</div>
+                <input class="form-input" type="email"
+                       placeholder="responsable@empresa.com"
+                       [(ngModel)]="emailSegundoFirmante"
+                       style="padding: 11px 14px; font-size: 14px; height: auto; width: 100%;" />
+                <span class="form-hint" style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">
+                  Persona a la que se enviará el documento para firmar después del trabajador.
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+
+
+        <div>
+          <div class="section-title">Mensaje del correo</div>
+          <div class="field-label">Texto que recibirá el firmante junto al enlace de Sinatura</div>
+          <textarea class="form-textarea" [(ngModel)]="mensajeCorreo" rows="8"></textarea>
+        </div>
+      }
+
+      @if (vistaEsProgreso && (esEnFirma || esCompletado || esTerminalNoExitoso)) {
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div class="section-title" style="margin-bottom: 0;">Trazabilidad</div>
+            @if (esEnFirma) {
+
+              <span class="auto-update-badge">
+                <span class="auto-update-dot"></span>
+                Actualización en tiempo real
+              </span>
+            }
+          </div>
+          <div class="timeline">
+
+            <div class="timeline-step" [class.done]="pasoCompletado('creado')">
+              <div class="timeline-marker">
+                @if (pasoCompletado('creado')) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                } @else { 1 }
+              </div>
+              <div class="timeline-content">
+                <div class="step-title">Documento creado</div>
+                <div class="step-meta">{{ formatFecha(firma?.fecha_asignacion) }}</div>
+              </div>
+            </div>
+
+            <div class="timeline-step"
+              [class.done]="pasoCompletado('enviado')"
+              [class.current]="pasoActual('enviado')">
+              <div class="timeline-marker">
+                @if (pasoCompletado('enviado')) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                } @else { 2 }
+              </div>
+              <div class="timeline-content">
+                <div class="step-title">Enviado al firmante</div>
+                <div class="step-meta">
+                  @if (firma?.fecha_envio) { {{ formatFecha(firma?.fecha_envio) }} }
+                  @else { Pendiente }
+                  @if (firma?.sinatura_id) { · ID: {{ firma?.sinatura_id }} }
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-step"
+              [class.done]="pasoCompletado('firmado')"
+              [class.fail]="pasoFallido('firmado')"
+              [class.cancel]="pasoCancelado('firmado')"
+              [style.opacity]="pasoNoAlcanzado('firmado') ? '0.45' : '1'">
+              <div class="timeline-marker">
+                @if (pasoCompletado('firmado')) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                } @else if (pasoFallido('firmado')) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                } @else if (pasoCancelado('firmado')) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                } @else { 3 }
+              </div>
+              <div class="timeline-content">
+                <div class="step-title">
+                  @if (esRechazado) { Firma rechazada por el trabajador }
+                  @else if (pasoCancelado('firmado')) { Firma del trabajador }
+                  @else { Firmado por el trabajador }
+                </div>
+                <div class="step-meta">
+                  @if (firma?.fecha_firma_trabajador) {
+                    {{ formatFecha(firma?.fecha_firma_trabajador) }}
+                  } @else if (esRechazado) {
+                    <span style="color: #b91c1c; font-weight: 600;">
+                      {{ firma?.motivo || 'El firmante rechazó el documento.' }}
+                    </span>
+                  } @else if (pasoCancelado('firmado')) {
+                    <span style="color: #6b7280; font-weight: 600;">
+                      {{ firma?.motivo || motivoCancelacion }}
+                    </span>
+                  } @else {
+                    Esperando firma
+                  }
+                </div>
+              </div>
+            </div>
+
+            @if (modoFirmantes === 'doble') {
+              <div class="timeline-step"
+                [class.done]="pasoCompletado('rrhh')"
+                [class.cancel]="pasoCancelado('rrhh')"
+                [style.opacity]="(esTerminalNoExitoso && !pasoCompletado('rrhh') && !pasoCancelado('rrhh')) ? '0.45' : '1'">
+                <div class="timeline-marker">
+                  @if (pasoCompletado('rrhh')) {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  } @else if (pasoCancelado('rrhh')) {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  } @else { 4 }
+                </div>
+                <div class="timeline-content">
+                  <div class="step-title">Firmado por RRHH</div>
+                  <div class="step-meta">
+                    @if (pasoCompletado('rrhh') && firma?.fecha_firma_rrhh) {
+                      {{ formatFecha(firma?.fecha_firma_rrhh) }} · {{ emailSegundoFirmante }}
+                    } @else if (pasoCancelado('rrhh')) {
+                      <span style="color: #6b7280; font-weight: 600;">{{ firma?.motivo || motivoCancelacion }}</span>
+                    } @else if (esTerminalNoExitoso) {
+                      No se llegó a este paso
+                    } @else {
+                      Pendiente — {{ emailSegundoFirmante || 'sin asignar' }}
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+
+            <div class="timeline-step"
+              [class.done]="pasoCompletado('completado')"
+              [class.cancel]="pasoCancelado('completado')"
+              [style.opacity]="(esTerminalNoExitoso && !pasoCancelado('completado')) ? '0.45' : '1'">
+              <div class="timeline-marker">
+                @if (pasoCompletado('completado')) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                } @else if (pasoCancelado('completado')) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                } @else { ✓ }
+              </div>
+              <div class="timeline-content">
+                <div class="step-title">Completado</div>
+                <div class="step-meta">
+                  @if (esCompletado && firma?.fecha_completado) {
+                    {{ formatFecha(firma?.fecha_completado) }} · Documento firmado y archivado
+                  } @else if (pasoCancelado('completado')) {
+                    <span style="color: #6b7280; font-weight: 600;">{{ firma?.motivo || motivoCancelacion }}</span>
+                  } @else if (esTerminalNoExitoso) {
+                    No se llegó a este paso
+                  } @else {
+                    Pendiente
+                  }
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      }
+
+    </div>
+
+
+    <div class="footer-modal">
+      @if (esEnFirma) {
+
+        <button class="btn btn-danger-outline" (click)="onCancelarFirma()" style="margin-right: auto; padding: 8px 14px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; vertical-align: -2px;">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          Cancelar firma
+        </button>
+      }
+      @if (esTerminalNoExitoso && vistaEsProgreso) {
+
+        <button class="btn btn-danger-outline" (click)="onEliminarDoc()" style="margin-right: auto; padding: 8px 14px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; vertical-align: -2px;">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          Eliminar documento
+        </button>
+      }
+      @if (esTerminalNoExitoso && vistaEsFormulario) {
+        <button class="btn btn-outline" (click)="volverAProgreso()" style="margin-right: auto; padding: 8px 14px; font-size: 13px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 6px; vertical-align: -2px;">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Volver al progreso
+        </button>
+      }
+      <button class="btn btn-outline" (click)="close.emit()" [disabled]="enviando">Cerrar</button>
+
+      @if (esTerminalNoExitoso && vistaEsProgreso) {
+       
+        <button class="btn btn-primary" (click)="irAFormulario()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 6px;">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+          </svg>
+          Reenviar
+        </button>
+      } @else if (mostrarAccionPrincipal) {
+        <button class="btn btn-primary" (click)="onAccionPrincipal()" [disabled]="accionPrincipalDeshabilitada || enviando">
+          @if (enviando) {
+            <span class="btn-spinner"></span>
+            Enviando…
+          } @else {
+            @if (esPendiente || esTerminalNoExitoso) {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 6px;">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            } @else {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 6px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            }
+            {{ accionPrincipalLabel }}
+          }
+        </button>
+      }
+    </div>
+
+  </div>
+</div>
+
+<app-doc-preview-modal
+  [open]="showPreview()"
+  [nombre]="firma?.nombre_fichero || 'Documento'"
+  [meta]="previewMeta"
+  [base64]="previewBase64"
+  (closed)="showPreview.set(false)" />
+
+@if (mostrarPlacement()) {
+  <app-firma-placement
+    [base64]="previewBase64"
+    [modoFirmantes]="modoFirmantes"
+    [posicionesIniciales]="posiciones()"
+    (guardar)="onGuardarPosiciones($event)"
+    (cancelar)="onCancelarPlacement()" />
+}
