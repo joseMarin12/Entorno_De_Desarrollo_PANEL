@@ -52,11 +52,11 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 RUN php artisan key:generate
 
 # --- AQUÍ OCURRE LA MAGIA DEL PROYECTO UNIFICADO ---
-# Tomamos la interfaz de Angular compilada en la Etapa 1 y la metemos en la carpeta pública de Laravel
-COPY --from=angular-build /app/dist/* /var/www/html/public/
+# Copiamos todo lo que compile Angular a una carpeta temporal interna
+COPY --from=angular-build /app/dist/ /tmp/angular-dist/
 
-# Da permisos correctos a las carpetas de almacenamiento para que no de errores de escritura
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Movemos los archivos de la subcarpeta interna directamente a la raíz pública de Laravel
+RUN cp -r /tmp/angular-dist/*/. /var/www/html/public/ 2>/dev/null || cp -r /tmp/angular-dist/* /var/www/html/public/
 
 # Configuración de puertos requerida por Google Cloud Run
 EXPOSE 8080
