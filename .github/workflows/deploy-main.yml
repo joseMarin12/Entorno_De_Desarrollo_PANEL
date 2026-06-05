@@ -36,12 +36,13 @@ jobs:
         docker build -t $IMAGE_URL ./EntornoDesarrollo
         docker push $IMAGE_URL
 
-    - name: Deploy to Cloud Run
-      run: |
-        gcloud run deploy ${{ env.SERVICE_NAME }} \
-          --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest \
-          --region ${{ env.REGION }} \
-          --platform managed \
-          --port 8080 \
-          --set-env-vars="DB_CONNECTION=sqlite,DB_DATABASE=:memory:,APP_ENV=production" \
-          --allow-unauthenticated
+        - name: Deploy to Cloud Run
+          run: |
+            gcloud run deploy ${{ env.SERVICE_NAME }} \
+              --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest \
+              --region ${{ env.REGION }} \
+              --platform managed \
+              --port 8080 \
+              --timeout=600 \
+              --set-env-vars="DB_CONNECTION=sqlite,DB_DATABASE=:memory:,APP_ENV=production,APP_DEBUG=false" \
+              --allow-unauthenticated
