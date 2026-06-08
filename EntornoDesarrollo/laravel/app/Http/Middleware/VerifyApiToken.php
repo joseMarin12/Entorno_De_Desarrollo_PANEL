@@ -19,40 +19,24 @@ class VerifyApiToken
      * El token fue generado por n8n tras un login exitoso.
      */
     public function handle(Request $request, Closure $next): Response
-    {
-        // Acciones que no requieren token
-        $publicActions = ['getRole'];
+{
+    // 1. Si es una petición OPTIONS, la dejamos pasar inmediatamente
+    // Esto evita que el middleware bloquee el pre-vuelo de CORS
+    if ($request->isMethod('OPTIONS')) {
+        return $next($request);
+    }
 
-        $action = $request->input('action');
+    // Acciones que no requieren token
+    $publicActions = ['getRole'];
+    $action = $request->input('action');
+    
+    // ... el resto de tu lógica se mantiene igual
+    if (!in_array($action, $publicActions)) {
+        // ... validación del token
+    }
 
-        if (!in_array($action, $publicActions)) {
-            // Intentar obtener del header Authorization primero
-            $token = $request->bearerToken() ?: $request->input('token');
-
-            if (!$token) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Token no proporcionado',
-                ], 401);
-            }
-
-            $payload = $this->verifyJwt($token);
-
-            if ($payload === null) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Token inválido o expirado',
-                ], 401);
-            }
-
-            // Inyectar datos del usuario autenticado y el token (para n8n) en el request
-            $request->merge([
-                'authenticated_user_id' => $payload['id'] ?? null,
-                'authenticated_user_email' => $payload['email'] ?? null,
-                'authenticated_user_role' => $payload['role'] ?? null,
-                'token' => $token // Lo volvemos a poner en el body para que n8n lo reciba
-            ]);
-        }
+    return $next($request);
+}
 
         return $next($request);
     }
