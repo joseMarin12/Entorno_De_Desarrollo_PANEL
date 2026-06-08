@@ -23,16 +23,20 @@ export interface LoginResponse {
 export class AutenticadorService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  
+  // Aquí usamos la variable apiUrl de environment.prod.ts
+  // Y apuntamos directamente al endpoint /login
   private readonly API_URL = `${environment.apiUrl}/login`;
 
   // Signal para el estado del usuario
   currentUser = signal<User | null>(this.getUserFromStorage());
 
   login(credentials: { email: string; password: string }): Observable<LoginResponse> {
+    // La petición ya apunta al backend correctamente ahora
     return this.http.post<LoginResponse>(this.API_URL, credentials).pipe(
       tap(response => {
         if (response.success && response.user) {
-          // Normalizar el user para asegurar que roleid existe
+          // Normalización de roleid
           const rawUser = response.user as any;
           response.user.roleid = Number(rawUser.roleid || rawUser.role_id || rawUser.id_rol || rawUser.ID_ROL || 2);
           
@@ -65,7 +69,6 @@ export class AutenticadorService {
     
     try {
       const user = JSON.parse(userJson);
-      // Asegurar normalización incluso al cargar de storage
       if (user && !user.roleid) {
         user.roleid = Number(user.roleid || user.role_id || user.id_rol || user.ID_ROL || 2);
       }
