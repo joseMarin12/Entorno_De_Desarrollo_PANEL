@@ -12,8 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Middleware de CORS - DEBE IR PRIMERO
-        $middleware->append(\Fruitcake\Cors\HandleCors::class);
+        
+        // El middleware de CORS ya se ejecuta nativa y automáticamente en Laravel 11.
+        // Hemos removido la línea rota de Fruitcake aquí.
         
         // API Stateful
         $middleware->statefulApi();
