@@ -1,0 +1,393 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "876bb53f-a21d-4d39-8a67-80dfd1a9b890",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3360,
+        2992
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getDocumentosByTrabajador",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getDocumentos"
+            },
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "createDocumento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "create"
+            },
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "uploadDocumento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "upload"
+            },
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "updateDocumento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "update"
+            },
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "deleteDocumento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "delete"
+            },
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getDocumentoArchivo",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getArchivo"
+            },
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getTiposDoc",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getTipos"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      },
+      "id": "a9c803e6-4dd4-42e7-907c-09630c3187e3",
+      "name": "Switch Sub-Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -3104,
+        2944
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  d.id,\n  d.nombre_fichero,\n  td.nombre AS tipo_nombre,\n  d.id_tipo_documento AS tipo_id,\n  d.descripcion,\n  d.created_at AS fecha_creacion,\n  CASE WHEN f.id IS NULL THEN NULL ELSE json_build_object(\n    'id', f.id,\n    'estado', f.estado,\n    'fecha_asignacion', d.created_at,\n    'sinatura_id', f.sinatura_id,\n    'requiere_firma_rrhh', f.requiere_firma_rrhh,\n    'email_segundo_firmante', f.email_segundo_firmante,\n    'motivo', f.motivo,\n    'fecha_envio', f.fecha_envio,\n    'fecha_firma_trabajador', f.fecha_firma_trabajador,\n    'fecha_firma_rrhh', f.fecha_firma_rrhh,\n    'fecha_completado', f.fecha_completado\n  ) END AS firma\nFROM documento d\nLEFT JOIN tipo_documento td ON td.id = d.id_tipo_documento\nLEFT JOIN firma f ON f.id_documento = d.id\nWHERE d.id_trabajador = $1 \nORDER BY d.created_at DESC;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.trabajadorId] }}"
+        }
+      },
+      "id": "3710b95a-7a41-443a-9f7e-788d28e651fe",
+      "name": "SQL: Get Documentos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "alwaysOutputData": true,
+      "position": [
+        -2720,
+        2480
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normaliza el payload de creación de documento. El front manda `createDocumento` con todo\n// bajo `body.documentoData`; el alta al crear un trabajador manda `uploadDocumento` con los\n// campos planos en `body`. Unificamos ambas formas y convertimos los ids a enteros.\n// Procesa TODOS los items: soporta varios documentos en una misma alta de trabajador.\nconst toInt = (v) => (v === null || v === undefined || v === '') ? null : parseInt(v, 10);\nreturn $input.all().map((item) => {\n  const b = item.json.body || {};\n  const d = b.documentoData || b;\n  return {\n    json: {\n      id_trabajador: toInt(d.id_trabajador ?? d.trabajadorId ?? b.trabajadorId),\n      tipoId: toInt(d.tipoId),\n      descripcion: d.descripcion || '',\n      requiere_firma: d.requiere_firma === true,\n      fileName: d.fileName || d.nombre || null,\n      base64: d.base64 || ''\n    }\n  };\n});"
+      },
+      "id": "48bf43fe-e89e-4c8e-a1dd-2600d78d6fb3",
+      "name": "JS: Normalizar Create",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2688,
+        2768
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Alta de documento (archivo subido por el usuario). Inserta documento + su contenido y,\n-- si requiere firma, crea el registro de firma en PENDIENTE_ENVIO (aún no se envía a Sinatura;\n-- eso lo hace el Motor Firmas con la acción enviarFirma).\nWITH nuevo_doc AS (\n  INSERT INTO documento (id_trabajador, id_tipo_documento, nombre_fichero, descripcion, requiere_firma)\n  VALUES ($1, $2, $3, $4, $5)\n  RETURNING id\n),\narchivo AS (\n  INSERT INTO documento_archivo (id_documento, contenido_b64)\n  SELECT id, $6 FROM nuevo_doc\n  RETURNING id_documento\n),\nnueva_firma AS (\n  INSERT INTO firma (id_documento, estado, requiere_firma_rrhh)\n  SELECT id, 'PENDIENTE_ENVIO', $7 FROM nuevo_doc WHERE $5 = true\n  RETURNING id_documento\n)\nSELECT id FROM nuevo_doc;",
+        "options": {
+          "queryReplacement": "={{ [$json.id_trabajador, $json.tipoId || null, $json.fileName || 'documento.pdf', $json.descripcion || '', $json.requiere_firma === true, $json.base64 || '', false] }}"
+        }
+      },
+      "id": "87729188-d8f1-450d-8af6-728f556b0645",
+      "name": "SQL: Insert Manual",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2368,
+        2800
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Actualiza descripción y, opcionalmente, nombre y contenido del archivo.\n-- El reemplazo de archivo solo ocurre si llega base64 (el front lo bloquea si hay firma).\nWITH upd AS (\n  UPDATE documento SET\n    descripcion = COALESCE($2, descripcion),\n    nombre_fichero = CASE WHEN $3 <> '' THEN $3 ELSE nombre_fichero END,\n    updated_at = NOW()\n  WHERE id = $1\n  RETURNING id\n),\nupd_arch AS (\n  UPDATE documento_archivo SET contenido_b64 = $4, updated_at = NOW()\n  WHERE id_documento = $1 AND $4 <> ''\n  RETURNING id_documento\n)\nSELECT id FROM upd;",
+        "options": {
+          "queryReplacement": "={{ [($json.body.documentoData||{}).id, ($json.body.documentoData||{}).descripcion || null, ($json.body.documentoData||{}).fileName || '', ($json.body.documentoData||{}).base64 || ''] }}"
+        }
+      },
+      "id": "adaf1126-5e38-417f-9428-0d010296b71f",
+      "name": "SQL: Update Documento",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2720,
+        2960
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Borrado físico: el ON DELETE CASCADE arrastra documento_archivo y firma.\nDELETE FROM documento WHERE id = $1 RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.documentoId] }}"
+        }
+      },
+      "id": "c47adcfc-3655-4a65-b449-0cfd5df1a7b5",
+      "name": "SQL: Delete Documento",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2720,
+        3104
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Contenido del archivo bajo demanda (descarga / previsualización).\nSELECT contenido_b64 FROM documento_archivo WHERE id_documento = $1;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.documentoId] }}"
+        }
+      },
+      "id": "5224507d-2780-4ed4-8b0a-04086286f1f6",
+      "name": "SQL: Get Archivo",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "alwaysOutputData": true,
+      "position": [
+        -2720,
+        3248
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Catálogo de tipos de documento (grupo \"Manuales\" del desplegable del front).\nSELECT id, nombre AS tipo FROM tipo_documento ORDER BY nombre ASC;",
+        "options": {}
+      },
+      "id": "fc67573c-ceb3-4b39-8351-7aae6e35811f",
+      "name": "SQL: Get Tipos Doc",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "alwaysOutputData": true,
+      "position": [
+        -2720,
+        3392
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch Sub-Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Sub-Action": {
+      "main": [
+        [
+          {
+            "node": "SQL: Get Documentos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "JS: Normalizar Create",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "JS: Normalizar Create",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL: Update Documento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL: Delete Documento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL: Get Archivo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL: Get Tipos Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JS: Normalizar Create": {
+      "main": [
+        [
+          {
+            "node": "SQL: Insert Manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "04ef1316631ad25151bd9872e1ab2ae90a1247075d8a98db4baa86e84aca6b57"
+  }
+}

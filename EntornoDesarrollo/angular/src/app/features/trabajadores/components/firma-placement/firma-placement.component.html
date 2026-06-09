@@ -1,0 +1,91 @@
+<div class="fp-overlay" role="dialog" aria-modal="true">
+  <div class="fp-modal">
+
+    <div class="fp-header">
+      <div class="fp-title">Ubicar firmas en el documento</div>
+      <button type="button" class="fp-close" (click)="onCancelar()" title="Cancelar">✕</button>
+    </div>
+
+    <div class="fp-body">
+
+      <!-- Índice de páginas -->
+      <aside class="fp-thumbs">
+        <div class="fp-thumbs-title">Índice de páginas</div>
+        @if (loading()) { <div class="fp-muted">Cargando…</div> }
+        @for (t of thumbs(); track $index) {
+          <div class="fp-thumb" [class.active]="currentPage() === $index + 1" (click)="irAPagina($index + 1)">
+            <img [src]="t" [alt]="'Página ' + ($index + 1)" />
+            <span class="fp-thumb-num">Página {{ $index + 1 }}/{{ numPages() }}</span>
+          </div>
+        }
+      </aside>
+
+      <!-- Página actual -->
+      <section class="fp-page">
+        <div class="fp-page-title">Página: {{ currentPage() }} / {{ numPages() || '—' }}</div>
+
+        <div class="fp-canvas-wrap" #canvasWrap>
+          @if (error()) { <div class="fp-error">{{ error() }}</div> }
+          <div class="fp-stage" #stage (mousedown)="deseleccionar()">
+            <canvas #mainCanvas class="fp-canvas"></canvas>
+
+            @for (box of cajas(); track box.id) {
+              @if (box.page === currentPage()) {
+                <div class="fp-sign-box" [class.sel]="seleccionadaId() === box.id"
+                     [style.left.%]="box.leftPct" [style.top.%]="box.topPct"
+                     [style.width.%]="box.widthPct" [style.height.%]="box.heightPct"
+                     [style.borderColor]="rolInfo[box.rol].color"
+                     [style.background]="rolFondo(box.rol)"
+                     (mousedown)="startDrag(box.id, $event)">
+                  <span class="fp-sign-label" [style.color]="rolInfo[box.rol].color">{{ rolInfo[box.rol].label }}</span>
+                  <div class="fp-resize" [style.background]="rolInfo[box.rol].color"
+                       (mousedown)="startResize(box.id, $event)" title="Redimensionar"></div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <div class="fp-nav">
+          <button type="button" (click)="prev()" [disabled]="currentPage() <= 1">◀ Anterior</button>
+          <span>{{ currentPage() }} / {{ numPages() || '—' }}</span>
+          <button type="button" (click)="next()" [disabled]="currentPage() >= numPages()">Siguiente ▶</button>
+        </div>
+      </section>
+
+      <!-- Panel -->
+      <aside class="fp-panel">
+        <div class="fp-panel-title">✒️ Firmas</div>
+
+        @for (rol of signers; track rol) {
+          <div class="fp-signer-card" [style.borderLeftColor]="rolInfo[rol].color">
+            <div class="fp-signer-head">
+              <span class="fp-dot" [style.background]="rolInfo[rol].color"></span>
+              <b>{{ rolInfo[rol].label }}</b>
+              <span class="fp-count">{{ contarRol(rol) }}</span>
+            </div>
+            <button type="button" class="fp-mini fp-mini-add" (click)="anadir(rol)">＋ Añadir firma</button>
+          </div>
+        }
+
+        @if (seleccionada(); as sel) {
+          <div class="fp-sel" [style.borderColor]="rolInfo[sel.rol].color">
+            <div class="fp-sel-title">Firma seleccionada · {{ rolInfo[sel.rol].label }}</div>
+            <div class="fp-coords-row">Página: {{ sel.page }}</div>
+            <div class="fp-coords-row">xo: {{ redondear(sel.leftPct) }}% · yo: {{ redondear(sel.topPct) }}%</div>
+            <div class="fp-coords-row">ancho: {{ redondear(sel.widthPct) }}% · alto: {{ redondear(sel.heightPct) }}%</div>
+            <button type="button" class="fp-mini fp-mini-del" (click)="eliminar(sel.id)">🗑 Eliminar esta firma</button>
+          </div>
+        } @else {
+          <p class="fp-hint">Apretá “Añadir firma”, arrastrá el cuadrito a su lugar y estiralo desde la esquina. Hacé clic en una firma para ver su ubicación y poder eliminarla.</p>
+        }
+
+        <div class="fp-panel-actions">
+          <button type="button" class="fp-btn fp-btn-save" (click)="onGuardar()">💾 Guardar</button>
+          <button type="button" class="fp-btn fp-btn-cancel" (click)="onCancelar()">✖ Cancelar</button>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</div>

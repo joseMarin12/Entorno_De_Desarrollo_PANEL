@@ -26,7 +26,6 @@ export type TrabFilterTipoType = '' | 'plantilla' | 'freelance';
         />
       </div>
 
-      <!-- Filtro por estado -->
       <select
         class="form-select custom-select"
         [(ngModel)]="filterValue"
@@ -37,7 +36,7 @@ export type TrabFilterTipoType = '' | 'plantilla' | 'freelance';
         <option value="inactivo">De baja</option>
       </select>
 
-      <!-- Filtro por tipo -->
+
       <select
         class="form-select custom-select"
         [(ngModel)]="tipoValue"
@@ -59,7 +58,7 @@ export type TrabFilterTipoType = '' | 'plantilla' | 'freelance';
       height: 38px;
       cursor: pointer;
     }
-    
+
     @media (max-width: 768px) {
       .custom-select { width: 100%; }
       .search-wrap { max-width: 100% !important; }

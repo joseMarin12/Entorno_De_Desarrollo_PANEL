@@ -1,13 +1,14 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Trabajador } from '../../../../models/trabajador.model';
+import { Trabajador, TrabajadorFormData } from '../../../../models/trabajador.model';
 import { ToastService } from '../../../../services/toast.service';
+import { DocUploadFormComponent, NuevoDocumento } from '../doc-upload-form/doc-upload-form.component';
 
 @Component({
   selector: 'app-trab-modal-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DocUploadFormComponent],
   templateUrl: './trab-modal-form.component.html',
   styles: [`
     .type-selector {
@@ -72,6 +73,35 @@ import { ToastService } from '../../../../services/toast.service';
       border-radius: 50%; background: var(--danger);
       margin-right: 6px; vertical-align: middle;
     }
+
+    /* Tarjeta de doc pendiente bloqueado (requiere firma) */
+    .pending-doc-card { transition: background 0.2s, border-color 0.2s; }
+    .pending-doc-card.blocked {
+      opacity: 0.78;
+      background: #f9fafb !important;
+      border-style: dashed !important;
+    }
+    .pending-doc-icon-blocked {
+      width: 44px; height: 44px;
+      background: #e5e7eb; color: #9ca3af;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Badge de estado en pendientes */
+    .pending-estado-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.3px;
+      background: #f1f5f9; color: #475569;
+    }
+    .pending-estado-badge .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #94a3b8;
+    }
+
   `]
 })
 export class TrabModalFormComponent implements OnChanges {
@@ -87,7 +117,7 @@ export class TrabModalFormComponent implements OnChanges {
   @Input() localidadesTodas: {id: number, id_provincia: number, nombre: string}[] = [];
   @Input() tiposDoc: {id: number, tipo: string}[] = [];
 
-  @Output() save = new EventEmitter<any>();
+  @Output() save = new EventEmitter<TrabajadorFormData>();
   @Output() close = new EventEmitter<void>();
 
   // Form state (ngModel-driven, same pattern as Seleccionadores)
@@ -96,39 +126,14 @@ export class TrabModalFormComponent implements OnChanges {
   activeTab = signal<'personales' | 'laborales' | 'documentos'>('personales');
   localidadesFiltradas: {id: number, nombre: string}[] = [];
 
-  // Documentos State
-  plantillas = [
-    { id: 'contrato_laboral', nombre: 'Contrato Laboral' },
-    { id: 'nda', nombre: 'Contrato de Confidencialidad (NDA)' },
-    { id: 'autorizacion_datos', nombre: 'Autorización Tratamiento de Datos' }
-  ];
-  // UI Form Unificado (Custom Dropdown)
-  newDocSelection = ''; // Format: "manual:tipoId" or "plantilla:templateId"
-  isDocDropdownOpen = false;
-  newDocDesc = '';
-
-  get selectedDocName(): string {
-    if (!this.newDocSelection) return 'Selecciona un documento...';
-    if (this.isSelectedPlantilla) {
-      const p = this.plantillas.find(x => 'plantilla:' + x.id === this.newDocSelection);
-      return p ? '⚡ ' + p.nombre : '';
-    } else {
-      const m = this.tiposDoc.find(x => 'manual:' + x.id === this.newDocSelection);
-      return m ? '📄 ' + m.tipo : '';
-    }
-  }
-  newDocFile: File | null = null;
-
-  get isSelectedPlantilla(): boolean { return this.newDocSelection.startsWith('plantilla:'); }
-  get isSelectedManual(): boolean { return this.newDocSelection.startsWith('manual:'); }
-
+  // Documentos pendientes (se procesan al guardar el trabajador).
   pendingDocs = signal<{
-    origen: 'subir' | 'plantilla';
-    tipoId?: string; // Solo para manuales (o si mapeamos la plantilla a un tipo)
+    origen: 'subir';
+    tipoId?: string;
     descripcion: string;
     file?: File;
     base64?: string;
-    templateId?: string;
+    requiere_firma: boolean;
   }[]>([]);
 
   get isEdit(): boolean { return this.trabajador !== null; }
@@ -156,7 +161,6 @@ export class TrabModalFormComponent implements OnChanges {
       this.errors = {};
       this.activeTab.set('personales');
       this.pendingDocs.set([]);
-      this.resetDocForm();
     }
   }
 
@@ -217,96 +221,22 @@ export class TrabModalFormComponent implements OnChanges {
     this.form.id_seleccionadores = selId ? Number(selId) : undefined;
   }
 
-  // ACCIONES DOCUMENTOS
-  onFileSelected(event: any): void {
-    const file = event.target.files[0] as File;
-    if (file) {
-      // 1. Validar tipo de archivo
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-      if (!allowedTypes.includes(file.type)) {
-        this.toast.show('warning', 'Formato no permitido. Sube PDF, JPG o PNG.');
-        this.resetDocForm();
-        return;
-      }
-      
-      // 2. Validar tamaño (5MB = 5 * 1024 * 1024 bytes)
-      const maxSize = 5 * 1024 * 1024;
-      if (file.size > maxSize) {
-        this.toast.show('warning', 'El archivo supera el límite de 5MB.');
-        this.resetDocForm();
-        return;
-      }
-
-      this.newDocFile = file;
-    }
-  }
-
-  addPendingDoc(): void {
-    if (!this.newDocSelection) {
-      this.toast.show('warning', 'Selecciona el tipo de documento o plantilla.');
-      return;
-    }
-
-    // 4. Guardia de Capacidad: Límite de 5 documentos
-    if (this.pendingDocs().length >= 5) {
-      this.toast.show('warning', 'Límite alcanzado. Máximo 5 documentos al crear.');
-      return;
-    }
-
-    if (this.isSelectedManual) {
-      if (!this.newDocFile) {
-        this.toast.show('warning', 'Selecciona un archivo a subir.');
-        return;
-      }
-      const tipoId = this.newDocSelection.replace('manual:', '');
-      const reader = new FileReader();
-      reader.readAsDataURL(this.newDocFile);
-      reader.onload = () => {
-        const base64 = reader.result as string;
-        const current = this.pendingDocs();
-        this.pendingDocs.set([...current, {
-          origen: 'subir',
-          tipoId: tipoId,
-          descripcion: this.newDocDesc,
-          file: this.newDocFile!,
-          base64
-        }]);
-        this.resetDocForm();
-      };
-    } else if (this.isSelectedPlantilla) {
-      const templateId = this.newDocSelection.replace('plantilla:', '');
-      
-      // 3. Guardia de Duplicados: Evitar plantillas duplicadas
-      const current = this.pendingDocs();
-      const isDuplicate = current.some(doc => doc.origen === 'plantilla' && doc.templateId === templateId);
-      if (isDuplicate) {
-        this.toast.show('warning', 'Esta plantilla ya fue agregada para este trabajador.');
-        return;
-      }
-
-      this.pendingDocs.set([...current, {
-        origen: 'plantilla',
-        descripcion: this.newDocDesc,
-        templateId: templateId
-      }]);
-      this.resetDocForm();
-    }
+  // ── Documentos 
+  onDocAdded(doc: NuevoDocumento): void {
+    this.pendingDocs.set([...this.pendingDocs(), {
+      origen: 'subir',
+      tipoId: doc.tipoId,
+      descripcion: doc.descripcion,
+      file: doc.file,
+      base64: doc.base64,
+      requiere_firma: doc.requiereFirma,
+    }]);
   }
 
   removePendingDoc(index: number): void {
     const current = [...this.pendingDocs()];
     current.splice(index, 1);
     this.pendingDocs.set(current);
-  }
-
-  private resetDocForm(): void {
-    this.newDocSelection = '';
-    this.newDocDesc = '';
-    this.newDocFile = null;
-    
-    // Clear file input visually
-    const input = document.getElementById('fileUploadInput') as HTMLInputElement;
-    if (input) input.value = '';
   }
 
   // TABS CON ERRORES
@@ -343,7 +273,9 @@ export class TrabModalFormComponent implements OnChanges {
     }
 
     // ── Validaciones Contacto ──
-    if (this.form.email?.trim()) {
+    if (!this.form.email?.trim()) {
+      this.errors['email'] = 'Campo obligatorio';
+    } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(this.form.email.trim())) {
         this.errors['email'] = 'Formato de correo inválido';
@@ -355,7 +287,9 @@ export class TrabModalFormComponent implements OnChanges {
       }
     }
 
-    if (this.form.telefono?.trim()) {
+    if (!this.form.telefono?.trim()) {
+      this.errors['telefono'] = 'Campo obligatorio';
+    } else {
       const phoneRegex = /^[0-9\+\s\-]{6,15}$/;
       if (!phoneRegex.test(this.form.telefono.trim())) {
         this.errors['telefono'] = 'Formato de teléfono inválido';
@@ -380,20 +314,16 @@ export class TrabModalFormComponent implements OnChanges {
       return;
     }
 
-    // Limpieza de undefined a null para el backend
-    const payload = Object.fromEntries(
-      Object.entries(this.form).map(([key, val]) => [key, val === undefined ? null : val])
-    );
-
+    // El servicio normaliza undefined→null en el borde con el backend; aquí emitimos el form tal cual.
     this.save.emit({
-      ...payload,
+      ...this.form,
       documentos: this.pendingDocs().map(doc => ({
         origen: doc.origen,
         tipoId: doc.tipoId,
         descripcion: doc.descripcion,
         base64: doc.base64 ? doc.base64.split(',')[1] : null,
-        templateId: doc.templateId,
-        nombre: doc.file?.name || (doc.templateId ? `Plantilla_${doc.templateId}.pdf` : 'documento.bin')
+        nombre: doc.file?.name || 'documento.bin',
+        requiere_firma: doc.requiere_firma
       }))
     });
   }

@@ -48,4 +48,4 @@ EXPOSE 8080
 ENV PORT 8080
 RUN sed -i "s/Listen 80/Listen 8080/g" /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
 
-CMD ["apache2-foreground"]
+CMD ["apache2-foreground", "php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

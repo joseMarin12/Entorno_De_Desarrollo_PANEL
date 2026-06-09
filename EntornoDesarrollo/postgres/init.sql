@@ -42,8 +42,8 @@ CREATE TABLE "user" (
     CONSTRAINT fk_user_role FOREIGN KEY (roleid) REFERENCES role(id) ON DELETE SET NULL
 );
 --Creación de usuario primera vez (Contraseña admin)
-INSERT INTO "user" (name, surname, email, roleid, enabled, password)
-VALUES ('admin', 'admin', 'administrador@example.com', 1, true, '$2a$10$7UKIy//QMfkq2ec2d5znR.EaOFTjzuD/CohXMHSbNw9OfMnh5zyW.');
+INSERT INTO "user" (name, surname, email, roleid, enabled, password, first_login)
+VALUES ('admin', 'admin', 'administrador@example.com', 1, true, '$2a$10$7UKIy//QMfkq2ec2d5znR.EaOFTjzuD/CohXMHSbNw9OfMnh5zyW.', true);
 
 -- Localizaciones
 
@@ -244,30 +244,14 @@ CREATE TABLE seleccionadores (
     FOREIGN KEY (id_empresa) REFERENCES empresa(id) ON DELETE SET NULL
 );
 
-INSERT INTO seleccionadores (
-    nombre,
-    primer_apellido,
-    segundo_apellido,
-    tipo,
-    email,
-    telefono,
-    id_empresa,
-    fecha_ini,
-    salario,
-    fee
-)
-VALUES
-    ('María', 'Fernández', 'López', 'interno', 'maria.fernandez@example.com', '633444555', 1, '2024-01-15', 32000, NULL),
-    ('Javier', 'Moreno', 'Sánchez', 'externo', 'javier.moreno@example.com', '644555666', 2, '2024-02-01', NULL, 1500);
-
 CREATE TABLE trabajador (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(45) NOT NULL,
     primer_apellido VARCHAR(45),
     segundo_apellido VARCHAR(45),
     telefono VARCHAR(20),
-    email VARCHAR(64) UNIQUE,
-    dni_nif_pasaporte VARCHAR(10) UNIQUE,
+    email VARCHAR(128) UNIQUE,
+    dni_nif_pasaporte VARCHAR(20) UNIQUE,
     salario DOUBLE PRECISION,
     cheques_guarderia INT,
     cheques_restaurante INT,
@@ -278,7 +262,7 @@ CREATE TABLE trabajador (
     activo BOOLEAN DEFAULT TRUE,
     fecha_ini DATE,
     fecha_fin DATE,
-    codigo_postal VARCHAR(5),
+    codigo_postal VARCHAR(10),
     id_localidad INT,
     freelance BOOLEAN DEFAULT FALSE,
     id_provincia INT,
@@ -289,58 +273,52 @@ CREATE TABLE trabajador (
     FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE SET NULL
 );
 
-INSERT INTO trabajador (
-    nombre,
-    primer_apellido,
-    segundo_apellido,
-    telefono,
-    email,
-    dni_nif_pasaporte,
-    salario,
-    cheques_guarderia,
-    cheques_restaurante,
-    direccion,
-    nacionalidad,
-    fecha_nacimiento,
-    id_seleccionadores,
-    fecha_ini,
-    codigo_postal,
-    id_localidad,
-    freelance,
-    id_provincia
-)
-VALUES
-    ('David', 'Navarro', 'Gil', '655111222', 'david.navarro@example.com', '12345678A', 28000, 100, 150, 'Calle Luna 5', 'Española', '1995-04-20', 1, '2024-03-01', '28001', 7, FALSE, 4),
-    ('Elena', 'Torres', 'Ruiz', '666222333', 'elena.torres@example.com', '87654321B', 35000, 0, 200, 'Avenida Sol 8', 'Española', '1990-08-12', 2, '2024-03-10', '08018', 9, TRUE, 5);
-
--- Documentacion
-
-CREATE TABLE tipoDoc (
+CREATE TABLE tipo_documento (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    tipo VARCHAR(100) NOT NULL
+    nombre VARCHAR(100) NOT NULL
 );
 
-INSERT INTO tipoDoc (tipo) VALUES 
-    ('Identificación (DNI/Pasaporte)'),
-    ('Certificado Bancario'),
-    ('Certificado Médico'),
+INSERT INTO tipo_documento (nombre) VALUES
     ('Contrato Laboral'),
-    ('Acuerdo de Confidencialidad (NDA)'),
-    ('Curriculum Vitae (CV)'),
-    ('Títulos o Diplomas'),
-    ('Otros Documentos');
+    ('Certificado Bancario');
 
-CREATE TABLE documentacion (
+CREATE TABLE documento (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_trabajador INT,
-    id_tipoDoc INT,
+    id_trabajador INT NOT NULL,
+    id_tipo_documento INT,
     nombre_fichero VARCHAR(255),
-    doc BYTEA,
     descripcion TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE,
-    FOREIGN KEY (id_tipoDoc) REFERENCES tipoDoc(id) ON DELETE CASCADE
+    requiere_firma BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_trabajador)     REFERENCES trabajador(id)          ON DELETE CASCADE,
+    FOREIGN KEY (id_tipo_documento) REFERENCES tipo_documento(id)      ON DELETE SET NULL
+);
+
+CREATE TABLE documento_archivo (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_documento INT UNIQUE NOT NULL,
+    contenido_b64 TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_documento) REFERENCES documento(id) ON DELETE CASCADE
+);
+
+CREATE TABLE firma (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_documento INT UNIQUE NOT NULL,
+    estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE_ENVIO' CHECK (estado IN ('PENDIENTE_ENVIO', 'EN_SINATURA', 'COMPLETADO', 'RECHAZADO', 'CANCELADO')),
+    sinatura_id VARCHAR(100) UNIQUE,
+    requiere_firma_rrhh BOOLEAN NOT NULL DEFAULT FALSE,
+    email_segundo_firmante VARCHAR(254), 
+    motivo VARCHAR(255),                  
+    fecha_envio            TIMESTAMP,
+    fecha_firma_trabajador TIMESTAMP,
+    fecha_firma_rrhh       TIMESTAMP,
+    fecha_completado       TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_documento) REFERENCES documento(id) ON DELETE CASCADE
 );
 
 -- Asignaciones
@@ -359,18 +337,6 @@ CREATE TABLE asignacion (
     FOREIGN KEY (id_comerciales) REFERENCES comerciales(id)
 );
 
-
-INSERT INTO asignacion (
-    id_empresa,
-    id_trabajador,
-    id_comerciales,
-    fecha_ini,
-    fecha_fin,
-    tarifa
-)
-VALUES
-    (1, 1, 1, '2024-04-01', '2024-12-31', 350.50),
-    (2, 2, 2, '2024-05-01', NULL, 420.00);
 -- Formación
 
 CREATE TABLE estado_formacion (
@@ -511,45 +477,6 @@ CREATE TABLE formacion_trabajador (
     FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE
 );
 
-INSERT INTO formacion_trabajador (
-    id_formacion,
-    id_trabajador,
-    asistencia,
-    eficacia
-)
-VALUES
-    (1, 1, TRUE, 'Alta'),
-    (1, 2, FALSE, 'Pendiente');
-
-
--- Documentos para firmar
-
-CREATE TABLE tipo_documento_firma (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE documento_firma (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    nombre_fichero VARCHAR(255),
-    id_tipo_documento INT,
-    id_trabajador INT,
-    link_sharepoint VARCHAR(500),
-    estado VARCHAR(45),
-    fecha_asignacion DATE,
-    FOREIGN KEY (id_tipo_documento) REFERENCES tipo_documento_firma(id) ON DELETE SET NULL,
-    FOREIGN KEY (id_trabajador) REFERENCES trabajador(id) ON DELETE CASCADE
-);
-
-CREATE TABLE documento_firma_historial (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_documento_firma INT,
-    nombre_fichero VARCHAR(255),
-    link_sharepoint VARCHAR(500),
-    fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_documento_firma) REFERENCES documento_firma(id) ON DELETE CASCADE
-);
-
 -- Indices
 
 CREATE INDEX idx_trabajador_seleccionadores ON trabajador(id_seleccionadores);
@@ -557,12 +484,15 @@ CREATE INDEX idx_trabajador_localidad ON trabajador(id_localidad);
 CREATE INDEX idx_asignacion_empresa ON asignacion(id_empresa);
 CREATE INDEX idx_asignacion_trabajador ON asignacion(id_trabajador);
 CREATE INDEX idx_empresa_tipo ON empresa(id_tipo_empresa);
+CREATE INDEX idx_documento_trabajador ON documento(id_trabajador);
+CREATE INDEX idx_documento_tipo ON documento(id_tipo_documento);
+CREATE INDEX idx_firma_estado ON firma(estado);
 
 
 -- Inserts necesarios
 
 INSERT INTO tipo_empresa (tipo_empresa)
-VALUES 
+VALUES
     ('Tecnológica'),
     ('Consultoría'),
     ('Logística'),
