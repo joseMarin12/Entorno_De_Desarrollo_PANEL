@@ -11,15 +11,18 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
-        ->withMiddleware(function (Middleware $middleware): void {
-            // Permitir peticiones desde Angular (CORS)
-            $middleware->append(\Fruitcake\Cors\HandleCors::class);
-            
-            // Configuración de CORS
-            $middleware->statefulApi();
-            
-            // Registrar alias para el middleware de verificación de token
-            $middleware->alias([
-                'verify.token' => \App\Http\Middleware\VerifyApiToken::class,
-            ]);
-        })
+    ->withMiddleware(function (Middleware $middleware): void {
+        // Middleware de CORS - DEBE IR PRIMERO
+        $middleware->append(\Fruitcake\Cors\HandleCors::class);
+        
+        // API Stateful
+        $middleware->statefulApi();
+        
+        // Alias de middleware
+        $middleware->alias([
+            'verify.token' => \App\Http\Middleware\VerifyApiToken::class,
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })->create();
