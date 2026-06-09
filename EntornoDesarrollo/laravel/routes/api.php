@@ -14,8 +14,10 @@ Route::options('{any}', function () {
 | API Routes - Auth
 |--------------------------------------------------------------------------
 */
-Route::post('/login', [AutenticadorController::class, 'login']);
-
+Route::prefix('api')->group(function () {
+    Route::post('/login', [AutenticadorController::class, 'login']);
+    // ... resto de rutas
+});
 /*
 |--------------------------------------------------------------------------
 | API Routes - Protegidas con verify.token
