@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AutenticadorController extends Controller
 {
@@ -15,23 +16,32 @@ class AutenticadorController extends Controller
         $this->n8nUrl = env('N8N_WEBHOOK_LOGIN_URL', 'http://n8n:5678/webhook/login');
     }
 
-    /**
-     * Proxy de Login: reenvía email y password a n8n.
-     * n8n verifica credenciales con bcrypt y genera un JWT firmado.
-     * Laravel simplemente reenvía la respuesta (que incluye el token) a Angular.
-     */
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
 
-        $response = Http::post($this->n8nUrl, [
-            'email' => $request->email,
-            'password' => $request->password,
-        ]);
+            // Log para debugging
+            Log::info('Login attempt', ['email' => $request->email]);
 
-        return response()->json($response->json(), $response->status());
+            $response = Http::timeout(30)
+                ->post($this->n8nUrl, [
+                    'email' => $request->email,
+                    'password' => $request->password,
+                ]);
+
+            return response()->json($response->json(), $response->status());
+            
+        } catch (\Exception $e) {
+            Log::error('Login error', ['error' => $e->getMessage()]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en el servidor: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
