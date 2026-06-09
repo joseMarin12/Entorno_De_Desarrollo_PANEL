@@ -43,7 +43,7 @@ CREATE TABLE "user" (
 );
 --Creación de usuario primera vez (Contraseña admin)
 INSERT INTO "user" (name, surname, email, roleid, enabled, password, first_login)
-VALUES ('admin', 'admin', 'administrador@example.com', 1, true, '$2a$10$7UKIy//QMfkq2ec2d5znR.EaOFTjzuD/CohXMHSbNw9OfMnh5zyW.', true);
+VALUES ('admin', 'admin', 'administrador@example.com', 1, true, '$2a$10$7UKIy//QMfkq2ec2d5znR.EaOFTjzuD/CohXMHSbNw9OfMnh5zyW.');
 
 -- Localizaciones
 
