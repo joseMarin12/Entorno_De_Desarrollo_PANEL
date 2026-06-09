@@ -14,27 +14,32 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo_mysql pdo_pgsql pgsql gd \
     && apt-get clean && rm -rf /var/lib/lists/*
 
-# Instala Composer de forma global
+# Instala Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Habilita módulos de Apache
 RUN a2enmod rewrite
 
-# CONFIGURACIÓN CRÍTICA: Escuchar en puerto 8080 ANTES de cualquier otra cosa
-RUN mkdir -p /etc/apache2/ports.d && \
-    echo "Listen 8080" > /etc/apache2/ports.d/custom.conf && \
-    sed -i 's/^Listen 80$/# Listen 80 disabled/' /etc/apache2/ports.conf
+# ⭐ CONFIGURACIÓN CRÍTICA PARA CLOUD RUN - Puerto 8080
+# 1. Reemplaza Puerto 80 por 8080 en ports.conf
+RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf
 
-# Configura la carpeta pública de Laravel como la raíz de Apache
+# 2. Reemplaza Puerto 80 por 8080 en configuración de sitios
+RUN for file in /etc/apache2/sites-available/*.conf; do \
+      sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' "$file"; \
+    done
+
+# Configura document root
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-RUN echo '<Directory /var/www/html/public/> \n\
-    DirectoryIndex index.html index.php \n\
-    Options FollowSymLinks \n\
-    AllowOverride All \n\
-    Require all granted \n\
+# Agrega configuración de directorio
+RUN echo '\n<Directory /var/www/html/public/>\n\
+    DirectoryIndex index.html index.php\n\
+    Options FollowSymLinks\n\
+    AllowOverride All\n\
+    Require all granted\n\
 </Directory>' >> /etc/apache2/apache2.conf
 
 # Directorio de trabajo
@@ -43,27 +48,28 @@ WORKDIR /var/www/html
 # Copia archivos
 COPY . .
 
-# Crea .env si no existe
+# Crea .env
 RUN cp .env.example .env || true
 
-# Instala dependencias
+# Instala dependencias de Composer
 RUN composer install --no-interaction --optimize-autoloader --no-dev || true
 
-# Genera la llave
+# Genera llave
 RUN php artisan key:generate --force || true
 
-# ⭐ CACHEA CONFIGURACIÓN Y RUTAS
+# ⭐ CACHEA CONFIGURACIÓN Y RUTAS ANTES DE INICIAR
 RUN php artisan config:clear || true
 RUN php artisan config:cache || true
 RUN php artisan route:clear || true
 RUN php artisan route:cache || true
 
 # Permisos
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true
 RUN chown -R www-data:www-data /var/www/html || true
+RUN chmod -R 755 /var/www/html || true
 
-# Asegura que Apache escuche en 8080
-ENV PORT=8080
+# Puertos y variables
 EXPOSE 8080
+ENV PORT=8080
 
+# Inicia Apache
 CMD ["apache2-foreground"]
