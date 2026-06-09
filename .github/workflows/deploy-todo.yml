@@ -76,7 +76,6 @@ jobs:
           --platform managed \
           --port 8080 \
           --timeout 600 \
-          --set-env-vars="DB_CONNECTION=pgsql,DB_HOST=panel-db-1079064952465.us-central1.run.app,DB_PORT=5432,DB_DATABASE=panel,DB_USERNAME=admin,DB_PASSWORD=SGPasswordPostgres,APP_ENV=production,APP_URL=https://run.app" \
           --allow-unauthenticated
 
   # ─── SERVICIO 3: LA BASE DE DATOS (POSTGRES) ───
