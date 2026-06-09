@@ -1,11 +1,5 @@
 {
-  "updatedAt": "2026-04-27T14:13:43.682Z",
-  "createdAt": "2026-04-27T13:15:32.879Z",
-  "id": "VQeWJYRxOGnvxX4X",
-  "name": "My workflow",
-  "description": null,
-  "active": true,
-  "isArchived": false,
+  "name": "Login",
   "nodes": [
     {
       "parameters": {
@@ -20,27 +14,14 @@
         0,
         0
       ],
-      "id": "a8024b37-0531-43ba-9e59-4357e6bb4c33",
+      "id": "8e9d353c-3db8-488a-97e7-fc64914baf20",
       "name": "Webhook",
       "webhookId": "56be4f26-96d2-4249-8627-56e0dfe624c3"
     },
     {
       "parameters": {
-        "jsCode": "const inputPass = $input.first().json.password;\n\nif (items.length === 0) {\n  return [{\n    json: {\n      success: false,\n      message: \"Usuario no encontrado\"\n    }\n  }];\n}\n\nconst usuario = items[0].json;\nconst dbPass = String(usuario.password).trim();\n\nif (dbPass !== inputPass) {\n  return [{\n    json: {\n      success: false,\n      message: \"Contraseña incorrecta\"\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    success: true,\n    user: {\n      id: usuario.id,\n      email: usuario.email\n    }\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        480,
-        0
-      ],
-      "id": "c3d2e6f3-5f23-43f6-bd44-eca6d26799f9",
-      "name": "verificarEmail"
-    },
-    {
-      "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, email, password \nFROM \"user\"\nwhere email = '{{ $json.body.email }}'\nLIMIT 1;",
+        "query": "SELECT id, email, enabled, password, roleid, first_login\nFROM \"user\"\nWHERE email = '{{ $json.body.email }}'\nLIMIT 1;",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
@@ -49,14 +30,27 @@
         256,
         0
       ],
-      "id": "a703302d-eb68-4a50-866c-28a749a30961",
+      "id": "868e9010-9a71-414b-8e38-3a2a7eef17a7",
       "name": "Execute a SQL query",
       "credentials": {
         "postgres": {
-          "id": "Kih4P6xJ67gZaubs",
+          "id": "KezwkIj6LgJHArvL",
           "name": "Postgres account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const bcrypt = require('bcryptjs');\nconst jwt = require('jsonwebtoken');\n\nconst JWT_HASH = 'passEncriptada';\n\nconst inputPass = $('Webhook').first().json.body.password;\nconst usuario = $input.first().json;\n\nif (!usuario || !usuario.email) {\n  return [{ json: { success: false, message: 'Credenciales inválidas' } }];\n}\n\nif (!usuario.enabled) {\n  return [{ json: { success: false, message: 'Credenciales inválidas' } }];\n}\n\nconst isValid = await bcrypt.compare(inputPass, usuario.password);\n\nif (!isValid) {\n  return [{ json: { success: false, message: 'Credenciales inválidas' } }];\n}\n\nconst JWTexpired = '1h';\n\nconst token = jwt.sign(\n  {\n    id: usuario.id,\n    email: usuario.email,\n    role: usuario.roleid,\n    firstLogin: usuario.first_login\n  },\n  JWT_HASH,\n  { expiresIn: JWTexpired }\n);\n\nreturn [{\n  json: {\n    success: true,\n    token,\n    firstLogin: usuario.first_login,\n    user: {\n      id: usuario.id,\n      email: usuario.email\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "id": "171a9d00-6e28-4a86-a15f-1b1418434b45",
+      "name": "verificarEmail"
     },
     {
       "parameters": {
@@ -72,27 +66,17 @@
         688,
         0
       ],
-      "id": "efd02858-5412-4fb4-969c-f72655d724dd",
+      "id": "eefe0a5f-30eb-4cf7-bc92-507ac66f354c",
       "name": "Respond to Webhook"
     }
   ],
+  "pinData": {},
   "connections": {
     "Webhook": {
       "main": [
         [
           {
             "node": "Execute a SQL query",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "verificarEmail": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook",
             "type": "main",
             "index": 0
           }
@@ -109,43 +93,30 @@
           }
         ]
       ]
+    },
+    "verificarEmail": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
+  "active": false,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate"
+    "binaryMode": "separate",
+    "availableInMCP": false
   },
-  "staticData": null,
+  "versionId": "4ee90f11-0822-4e0c-863d-a1c338654695",
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
   },
-  "pinData": {},
-  "versionId": "2184afff-d59b-4788-97ee-4970a1c73f26",
-  "activeVersionId": "2184afff-d59b-4788-97ee-4970a1c73f26",
-  "versionCounter": 131,
-  "triggerCount": 1,
-  "tags": [],
-  "shared": [
-    {
-      "updatedAt": "2026-04-27T13:15:32.879Z",
-      "createdAt": "2026-04-27T13:15:32.879Z",
-      "role": "workflow:owner",
-      "workflowId": "VQeWJYRxOGnvxX4X",
-      "projectId": "scuB9Y3NwfAwv0vk",
-      "project": {
-        "updatedAt": "2026-04-22T09:42:42.949Z",
-        "createdAt": "2026-04-22T09:42:05.392Z",
-        "id": "scuB9Y3NwfAwv0vk",
-        "name": "p v <daniel.pedrero@sgtech.tech>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "creatorId": "06b871d4-11e0-4b54-8aa7-b150c2e36810"
-      }
-    }
-  ],
-  "versionMetadata": {
-    "name": "Version 2184afff",
-    "description": ""
-  }
+  "id": "V0NZYOH21kvt6mCO",
+  "tags": []
 }
