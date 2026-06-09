@@ -11,19 +11,21 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        
-        // El middleware de CORS ya se ejecuta nativa y automáticamente en Laravel 11.
-        // Hemos removido la línea rota de Fruitcake aquí.
-        
-        // API Stateful
-        $middleware->statefulApi();
-        
-        // Alias de middleware
-        $middleware->alias([
-            'verify.token' => \App\Http\Middleware\VerifyApiToken::class,
-        ]);
-    })
+        ->withMiddleware(function (Middleware $middleware): void {
+                
+                // 🛡️ EXCEPCIÓN CSRF: Permite que Angular le pegue a /login sin el token web
+                $middleware->validateCsrfTokens(except: [
+                    'login',
+                ]);
+                
+                // API Stateful
+                $middleware->statefulApi();
+                
+                // Alias de middleware
+                $middleware->alias([
+                    'verify.token' => \App\Http\Middleware\VerifyApiToken::class,
+                ]);
+            })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
