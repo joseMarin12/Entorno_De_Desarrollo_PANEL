@@ -16,15 +16,11 @@ Route::options('{any}', function () {
     return response()->json([], 200);
 })->where('any', '.*');
 
+// ⭐ RUTA DE LOGIN SIN /api
+Route::post('/login', [AutenticadorController::class, 'login']);
+
+// Resto de rutas con prefijo /api
 Route::prefix('api')->group(function () {
-    
-    /*
-    |--------------------------------------------------------------------------
-    | Auth Routes (Sin protección)
-    |--------------------------------------------------------------------------
-    */
-    Route::post('/login', [AutenticadorController::class, 'login']);
-    
     /*
     |--------------------------------------------------------------------------
     | Protected Routes (Con verify.token)
