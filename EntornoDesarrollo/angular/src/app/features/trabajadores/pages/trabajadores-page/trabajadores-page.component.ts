@@ -52,10 +52,7 @@ export class TrabajadoresPageComponent implements OnInit, OnDestroy {
   readonly statsInactivos = computed(() => this._stats().inactivos);
   readonly statsFreelances = computed(() => this._stats().freelances);
 
-  // Lookups reales (cargados desde n8n)
-  readonly provincias = signal<{id: number, nombre: string}[]>([]);
-  readonly localidades = signal<{id: number, id_provincia: number, nombre: string}[]>([]);
-  readonly seleccionadores = signal<{id: number, nombre: string, tipo: string}[]>([]);
+  // Lookup de tipos de documento (los demás lookups los cargan los <app-lookup-select>).
   readonly tiposDoc = signal<TipoDocLookup[]>([]);
 
   // Datos de relaciones para el modal de detalle
@@ -109,9 +106,6 @@ export class TrabajadoresPageComponent implements OnInit, OnDestroy {
   }
 
   loadLookups(): void {
-    this.api.getProvincias().subscribe({ next: (data) => this.provincias.set(data) });
-    this.api.getLocalidades().subscribe({ next: (data) => this.localidades.set(data) });
-    this.api.getSeleccionadoresLookup().subscribe({ next: (data) => this.seleccionadores.set(data) });
     this.docsApi.getTiposDoc().subscribe({ next: (data) => this.tiposDoc.set(data) });
   }
 

@@ -23,10 +23,6 @@ export interface Seleccionador {
   updated_at?: string;
 }
 
-export function getFullName(s: Seleccionador): string {
-  return [s.nombre, s.primer_apellido, s.segundo_apellido].filter(Boolean).join(' ');
-}
-
 export function getInitials(s: Seleccionador): string {
   return ((s.nombre?.[0] ?? '') + (s.primer_apellido?.[0] ?? '')).toUpperCase();
 }

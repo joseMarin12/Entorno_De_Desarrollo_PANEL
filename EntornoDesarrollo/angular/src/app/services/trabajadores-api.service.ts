@@ -20,7 +20,7 @@ export interface TrabajadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
-  protected readonly API_URL = `${environment.apiUrl}/trabajadores`;
+  public readonly API_URL = `${environment.apiUrl}/trabajadores`;
 
   
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
@@ -79,21 +79,6 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   }
 
   
-  getProvincias(): Observable<{id: number, nombre: string}[]> {
-    return this.http.post<{data: {id: number, nombre: string}[]}>(this.API_URL, { action: 'getProvincias' })
-      .pipe(map(res => res.data ?? []));
-  }
-
-  getLocalidades(): Observable<{id: number, id_provincia: number, nombre: string}[]> {
-    return this.http.post<{data: {id: number, id_provincia: number, nombre: string}[]}>(this.API_URL, { action: 'getLocalidades' })
-      .pipe(map(res => res.data ?? []));
-  }
-
-  getSeleccionadoresLookup(): Observable<{id: number, nombre: string, tipo: string}[]> {
-    return this.http.post<{data: {id: number, nombre: string, tipo: string}[]}>(this.API_URL, { action: 'getSeleccionadoresLookup' })
-      .pipe(map(res => res.data ?? []));
-  }
-
   getAsignacionesByTrabajador(trabajadorId: number): Observable<any[]> {
     return this.http.post<{data: any[]}>(this.API_URL, { action: 'getAsignacionesByTrabajador', trabajadorId })
       .pipe(map(res => res.data ?? []));
