@@ -1,12 +1,12 @@
 <?php
 
 return [
-    'paths' => ['api/*', 'login', 'logout'],
-    'allowed_methods' => ['*'],
-    'allowed_origins' => ['https://panel-frontend-1079064952465.us-central1.run.app'],
+    'paths' => [], // <-- Cambia esto a un array vacío
+    'allowed_methods' => [],
+    'allowed_origins' => [],
     'allowed_origins_patterns' => [],
-    'allowed_headers' => ['*'],
+    'allowed_headers' => [],
     'exposed_headers' => [],
     'max_age' => 0,
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 ];
