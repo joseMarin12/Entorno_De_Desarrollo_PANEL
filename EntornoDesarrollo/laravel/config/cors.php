@@ -6,23 +6,27 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    // 1. Asegúrate de incluir '*' o específicamente 'login' si tu ruta no empieza con api/
-    'paths' => [*],
+    // Solo aplicará a las rutas necesarias (añade aquí más si usas /api/*)
+    'paths' => ['login', 'api/*', 'sanctum/csrf-cookie'],
 
-    'allowed_methods' => ['*'],
+    // Solo permitimos los métodos que tu app realmente utiliza
+    'allowed_methods' => ['GET', 'POST', 'OPTIONS'],
 
-    // 2. Coloca aquí la URL exacta de tu frontend (sin la barra / al final)
+    // RESTRICCIÓN TOTAL: Solo tu URL de Angular puede hablar con el backend
     'allowed_origins' => [
         'https://panel-frontend-1079064952465.us-central1.run.app'
     ],
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*'],
+    // Solo permitimos los encabezados estándar de peticiones HTTP y autenticación
+    'allowed_headers' => ['Content-Type', 'X-Requested-With', 'Authorization', 'Accept', 'X-XSRF-TOKEN'],
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    // Cachea la respuesta del OPTIONS por 24 horas para que el navegador no sature a Laravel
+    'max_age' => 86400,
 
-    'supports_credentials' => true, // Déjalo en true si usas cookies/Sanctum para sesiones
+    // Manténlo en true solo si manejas cookies o sesiones compartidas (Sanctum)
+    'supports_credentials' => true,
 ];
