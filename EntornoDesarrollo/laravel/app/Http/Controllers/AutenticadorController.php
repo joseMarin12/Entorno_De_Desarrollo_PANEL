@@ -4,50 +4,66 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 
-class AutenticadorController extends Controller
+class AuthController extends Controller
 {
-    private string $n8nUrl;
-
-    public function __construct()
-    {
-        // Limpiamos la URL de cualquier espacio accidental al cargarla
-        $this->n8nUrl = trim(env('N8N_WEBHOOK_LOGIN_URL', ''));
-    }
-
     public function login(Request $request)
     {
+        // 1. Validamos que lleguen los datos del formulario frontend
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
         try {
-            // Enviamos la petición a n8n
-            $response = Http::timeout(30)
-                ->withHeaders(['Accept' => 'application/json'])
-                ->post($this->n8nUrl, [
-                    'email' => $request->email,
-                    'password' => $request->password,
-                ]);
+            // 2. Enviamos el email a n8n para que busque al usuario en Supabase
+            // Nota: Laravel ya no necesita enviarle la contraseña plana a n8n
+            $response = Http::post('https://n8n.srv1128480.hstgr.cloud/webhook/login', [
+                'email' => $request->email
+            ]);
 
-            // Obtenemos el cuerpo de la respuesta
-            $responseData = $response->json();
-            $status = $response->status();
+            // Convertimos la respuesta de n8n a un array de PHP
+            $userData = $response->json();
 
-            // Log de depuración para ver qué está pasando
-            Log::info('Respuesta de n8n', ['status' => $status, 'data' => $responseData]);
+            // 3. Verificamos si n8n encontró al usuario
+            // Si llega un array vacío o no viene el campo password, el usuario no existe
+            if (empty($userData) || !isset($userData['password'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El correo electrónico no está registrado.'
+                ], 404);
+            }
 
-            // Retornamos exactamente lo que n8n nos envía
-            return response()->json($responseData, $status);
-            
-        } catch (\Exception $e) {
-            Log::error('Error crítico en el login', ['error' => $e->getMessage()]);
-            
+            // 4. LA MAGIA: Laravel compara la contraseña plana con el Hash de Supabase
+            // Hash::check toma la clave en texto plano ('admin') y la valida contra el hash ($2a$10$...)
+            if (Hash::check($request->password, $userData['password'])) {
+                
+                // [OPCIONAL] Aquí puedes autenticar al usuario en Laravel, iniciar sesión o generar tu token JWT propio
+                // auth()->loginUsingId($userData['id']); 
+
+                return response()->json([
+                    'success' => true,
+                    'message' => '¡Login exitoso!',
+                    'redirect' => '/dashboard',
+                    'user' => [
+                        'name' => $userData['name'] ?? '',
+                        'email' => $userData['email']
+                    ]
+                ], 200);
+            }
+
+            // Si la contraseña no coincide
             return response()->json([
                 'success' => false,
-                'message' => 'Error de conexión: ' . $e->getMessage()
+                'message' => 'La contraseña es incorrecta.'
+            ], 401);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de conexión con el servicio de autenticación.',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
