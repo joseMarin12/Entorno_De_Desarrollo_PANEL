@@ -26,28 +26,23 @@ export class LoginPageComponent {
   loading = false;
 
   onSubmit(): void {
-    // ... (código existente)
-    this.authService.login({ email: email!, password: password! }).subscribe({
-      next: (response) => {
-        console.log('Respuesta del servidor:', response); // 👈 ¡AGREGA ESTO!
-        
-        if (response && response.success === true) { // 👈 Aseguramos que sea estrictamente true
-          this.toastService.show('success', '¡Bienvenido!');
-          this.router.navigate(['/usuarios']); 
-        } else {
-          this.toastService.show('error', response.message || 'Error desconocido');
-        }
-        this.loading = false;
-      },
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
 
     this.loading = true;
     const { email, password } = this.loginForm.getRawValue();
 
     this.authService.login({ email: email!, password: password! }).subscribe({
       next: (response) => {
-        if (response.success) {
+        console.log('Respuesta del servidor:', response);
+        
+        // Verificamos si la respuesta indica éxito
+        if (response && response.success) {
           this.toastService.show('success', '¡Bienvenido!');
-          this.router.navigate(['/usuarios']); // O la ruta que prefieras por defecto
+          // Redirección exitosa
+          this.router.navigate(['/usuarios']);
         } else {
           this.toastService.show('error', response.message || 'Credenciales incorrectas');
         }
