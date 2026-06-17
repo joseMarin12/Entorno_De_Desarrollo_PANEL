@@ -24,15 +24,13 @@ export class AutenticadorService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   
-  // Aquí usamos la variable apiUrl de environment.prod.ts
-  // Y apuntamos directamente al endpoint /login
-  private readonly API_URL = `${environment.apiUrl}/login`;
+  // 🚀 CORREGIDO: Ahora incluye /api/ para conectar con routes/api.php en Laravel
+  private readonly API_URL = `${environment.apiUrl}/api/login`;
 
   // Signal para el estado del usuario
   currentUser = signal<User | null>(this.getUserFromStorage());
 
   login(credentials: { email: string; password: string }): Observable<LoginResponse> {
-    // La petición ya apunta al backend correctamente ahora
     return this.http.post<LoginResponse>(this.API_URL, credentials).pipe(
       tap(response => {
         if (response.success && response.user) {
