@@ -27,7 +27,7 @@ class AutenticadorController extends Controller
 
         try {
             // 2. Hacer la petición a tu webhook de n8n
-            // (Asegúrate de reemplazar esta URL con tu enlace real de n8n)
+            // (Coloca aquí tu URL real de n8n)
             $response = Http::post('https://n8n.srv1128480.hstgr.cloud/webhook/login', [
                 'email'    => $request->email,
                 'password' => $request->password
@@ -41,7 +41,8 @@ class AutenticadorController extends Controller
                 ], 502);
             }
 
-            $data n8n = $response->json();
+            // VARIABLE CORREGIDA: Sin espacios en blanco
+            $data_n8n = $response->json();
 
             // 3. Verificar si n8n encontró al usuario
             if (empty($data_n8n) || !isset($data_n8n['password'])) {
@@ -52,7 +53,6 @@ class AutenticadorController extends Controller
             }
 
             // 4. Validar la contraseña usando el Hash que nos dio n8n
-            // Nota: PHP password_verify es compatible con hashes $2a$ y $2y$ de forma nativa
             if (!password_verify($request->password, $data_n8n['password'])) {
                 return response()->json([
                     'success' => false,
@@ -74,7 +74,6 @@ class AutenticadorController extends Controller
             ], 200);
 
         } catch (\Throwable $e) {
-            // TRUCO DE ORO: Si algo falla aquí adentro, te lo expondrá directo en el navegador
             return response()->json([
                 'success' => false,
                 'message' => 'Ocurrió un error interno en el controlador de Laravel.',
