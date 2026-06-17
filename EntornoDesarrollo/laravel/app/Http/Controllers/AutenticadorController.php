@@ -7,6 +7,12 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator; // 💡 Importante para evitar redirecciones ocultas
 
+public function login(Request $request)
+{
+    // ⚡ PRUEBA DE FUEGO: Pon esto en la mismísima primera línea y despliega
+    die(json_encode(['mensaje' => '¡Hola! El controlador SÍ se está ejecutando.']));
+
+
 class AutenticadorController extends Controller // ⭐ Nombre corregido para coincidir con tus rutas
 {
     public function login(Request $request)
@@ -78,4 +84,5 @@ class AutenticadorController extends Controller // ⭐ Nombre corregido para coi
             ], 500);
         }
     }
+}
 }
