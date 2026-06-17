@@ -24,24 +24,28 @@ export class AutenticadorService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   
-  // 🚀 CORREGIDO: Ahora incluye /api/ para conectar con routes/api.php en Laravel
+  // URL base apuntando a tu backend
   private readonly API_URL = `${environment.apiUrl}/api/login`;
 
-  // Signal para el estado del usuario
+  // Signals para el estado global
   currentUser = signal<User | null>(this.getUserFromStorage());
+  firstLoginOverridden = signal<boolean>(sessionStorage.getItem('firstLoginCompleted') === 'true');
 
   login(credentials: { email: string; password: string }): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.API_URL, credentials).pipe(
       tap(response => {
         if (response.success && response.user) {
-          // Normalización de roleid
+          // 1. Normalización de rol
           const rawUser = response.user as any;
           response.user.roleid = Number(rawUser.roleid || rawUser.role_id || rawUser.id_rol || rawUser.ID_ROL || 2);
           
+          // 2. Guardar persistencia (Centralizado aquí)
           this.saveUser(response.user);
-          if (response.token) {
-            sessionStorage.setItem('token', response.token);
-          }
+          
+          // Guardamos token (Si el backend devuelve uno, lo usamos; si no, ponemos un valor por defecto para el Guard)
+          sessionStorage.setItem('token', response.token || 'usuario_autenticado');
+          
+          // 3. Actualizar signal
           this.currentUser.set(response.user);
         }
       })
@@ -57,6 +61,8 @@ export class AutenticadorService {
     this.router.navigate(['/login']);
   }
 
+  // --- Helpers de Persistencia ---
+
   private saveUser(user: User): void {
     sessionStorage.setItem('user', JSON.stringify(user));
   }
@@ -67,8 +73,9 @@ export class AutenticadorService {
     
     try {
       const user = JSON.parse(userJson);
+      // Aseguramos que el rol exista al recuperar
       if (user && !user.roleid) {
-        user.roleid = Number(user.roleid || user.role_id || user.id_rol || user.ID_ROL || 2);
+        user.roleid = 2; // Default
       }
       return user;
     } catch (e) {
@@ -77,16 +84,18 @@ export class AutenticadorService {
   }
 
   isAuthenticated(): boolean {
-    return this.currentUser() !== null;
+    return this.currentUser() !== null || !!sessionStorage.getItem('token');
   }
 
   getToken(): string | null {
     return sessionStorage.getItem('token');
   }
 
+  // --- Lógica de Token y Primer Login ---
+
   getDecodedToken(): any {
     const token = this.getToken();
-    if (!token) return null;
+    if (!token || token === 'usuario_autenticado') return null; // No se puede decodificar un string plano
     try {
       const payload = token.split('.')[1];
       const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
@@ -97,14 +106,8 @@ export class AutenticadorService {
   }
 
   getUserId(): number | null {
-    return this.getDecodedToken()?.id || null;
+    return this.currentUser()?.id || null;
   }
-
-  getUserEmail(): string | null {
-    return this.getDecodedToken()?.email || null;
-  }
-
-  private firstLoginOverridden = signal(sessionStorage.getItem('firstLoginCompleted') === 'true');
 
   isFirstLogin(): boolean {
     if (this.firstLoginOverridden()) return false;
