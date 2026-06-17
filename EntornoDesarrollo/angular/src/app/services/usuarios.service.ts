@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class UsuariosService extends BaseCrud<Usuario> {
 
-  public override readonly API_URL = `${environment.apiUrl}/usuarios`;
+  public override readonly API_URL = `${environment.apiUrl}/api/usuarios`;
 
   private _usuarios = signal<Usuario[]>([]);
   readonly loading  = signal(false);
