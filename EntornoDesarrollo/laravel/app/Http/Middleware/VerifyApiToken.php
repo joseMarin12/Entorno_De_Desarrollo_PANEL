@@ -17,12 +17,17 @@ class VerifyApiToken
             return $next($request);
         }
 
-        // Acciones que no requieren token
+        // 🔓 REGLA DE EXCEPCIÓN: Si la ruta es /login o api/login, saltarse la validación del token
+        if ($request->is('login') || $request->is('api/login')) {
+            return $next($request);
+        }
+
+        // Acciones que no requieren token (para endpoints basados en el parámetro 'action')
         $publicActions = ['getRole'];
         $action = $request->input('action');
 
         if (!in_array($action, $publicActions)) {
-            // Intentar obtener del header Authorization o del body
+            // Intentar obtener el token del header Authorization o del body
             $token = $request->bearerToken() ?: $request->input('token');
 
             if (!$token) {
@@ -41,7 +46,7 @@ class VerifyApiToken
                 ], 401);
             }
 
-            // Inyectar datos para n8n
+            // Inyectar los datos decodificados en la petición para n8n o controladores internos
             $request->merge([
                 'authenticated_user_id' => $payload['id'] ?? null,
                 'authenticated_user_email' => $payload['email'] ?? null,
@@ -53,6 +58,9 @@ class VerifyApiToken
         return $next($request);
     }
 
+    /**
+     * Verifica la firma y expiración del token JWT manual.
+     */
     private function verifyJwt(string $token): ?array
     {
         $parts = explode('.', $token);
@@ -82,6 +90,9 @@ class VerifyApiToken
         return $payload;
     }
 
+    /**
+     * Helpers de codificación Base64 URL Safe
+     */
     private function base64UrlEncode(string $data): string
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
