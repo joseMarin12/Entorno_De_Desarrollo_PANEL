@@ -158,31 +158,19 @@
         <!-- CASCADE SELECT: Provincia → Localidad -->
         <div class="form-grid" style="margin-bottom: 16px;">
           <div class="form-group">
-            <label class="form-label">Provincia</label>
-            <select
-              class="form-select"
-              [ngModel]="form.id_provincia"
-              (ngModelChange)="onProvinciaChange($event)"
-            >
-              <option [ngValue]="undefined">Seleccionar provincia...</option>
-              @for (prov of provincias; track prov.id) {
-                <option [value]="prov.id">{{ prov.nombre }}</option>
-              }
-            </select>
+            <app-lookup-select
+              [apiUrl]="api.API_URL" action="getProvincias" [searchable]="true"
+              label="Provincia" placeholder="Seleccionar provincia..."
+              [(ngModel)]="form.id_provincia" (ngModelChange)="onProvinciaChange()">
+            </app-lookup-select>
           </div>
           <div class="form-group">
-            <label class="form-label">Localidad</label>
-            <select
-              class="form-select"
-              [ngModel]="form.id_localidad"
-              (ngModelChange)="onLocalidadChange($event)"
-              [attr.disabled]="localidadesFiltradas.length === 0 ? true : null"
-            >
-              <option [ngValue]="undefined">{{ localidadesFiltradas.length ? 'Seleccionar localidad...' : 'Selecciona primero una provincia' }}</option>
-              @for (loc of localidadesFiltradas; track loc.id) {
-                <option [value]="loc.id">{{ loc.nombre }}</option>
-              }
-            </select>
+            <app-lookup-select
+              [apiUrl]="api.API_URL" action="getLocalidades" [searchable]="true"
+              label="Localidad" placeholder="Seleccionar localidad..."
+              filterField="id_provincia" [filterValue]="form.id_provincia"
+              [(ngModel)]="form.id_localidad">
+            </app-lookup-select>
           </div>
         </div>
 
@@ -224,17 +212,11 @@
 
         <!-- ── Seleccionador ── -->
         <div class="form-group" style="margin-bottom: 16px;">
-          <label class="form-label">Seleccionador (¿Quién lo reclutó?)</label>
-          <select
-            class="form-select"
-            [ngModel]="form.id_seleccionadores"
-            (ngModelChange)="onSeleccionadorChange($event)"
-          >
-            <option [ngValue]="undefined">Seleccionar reclutador...</option>
-            @for (sel of seleccionadores; track sel.id) {
-              <option [value]="sel.id">{{ sel.nombre }}</option>
-            }
-          </select>
+          <app-lookup-select
+            [apiUrl]="api.API_URL" action="getSeleccionadoresLookup" [searchable]="true"
+            label="Seleccionador (¿Quién lo reclutó?)" placeholder="Seleccionar reclutador..."
+            [(ngModel)]="form.id_seleccionadores">
+          </app-lookup-select>
         </div>
 
         <!-- ── Divisor ── -->

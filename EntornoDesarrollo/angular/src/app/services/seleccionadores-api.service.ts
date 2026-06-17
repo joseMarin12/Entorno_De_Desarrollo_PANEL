@@ -20,7 +20,7 @@ export interface SeleccionadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
-  protected readonly API_URL = `${environment.apiUrl}/seleccionadores`;
+  public readonly API_URL = `${environment.apiUrl}/seleccionadores`;
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<SeleccionadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {

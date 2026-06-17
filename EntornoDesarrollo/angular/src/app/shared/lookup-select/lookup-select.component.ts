@@ -30,7 +30,7 @@ import { LookupService } from '../../services/lookup.service';
               <option [value]="null">Cargando opciones...</option>
             } @else {
               <option [value]="null">{{ placeholder }}</option>
-              @for (opt of options(); track $index) {
+              @for (opt of baseOptions(); track $index) {
                 <option [value]="getValue(opt)">{{ getLabel(opt) }}</option>
               }
             }
@@ -150,11 +150,16 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
   @Input() required = false;
   @Input() searchable = false;
 
+  /** Cascada: muestra solo las opciones cuyo [filterField] coincide con [filterValue]. */
+  @Input() filterField = '';
+  @Input() set filterValue(v: any) { this._filterValue.set(v); }
+
   // ── Estado ────────────────────────────────────────────────────────────────
   options = signal<any[]>([]);
   isLoading = signal(false);
   isOpen = signal(false);
   searchText = signal('');   // ← signal para que computed() reaccione
+  private _filterValue = signal<any>(null);
 
   internalValue: any = null;
   disabled = false;
@@ -162,10 +167,20 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
   onChange: any = () => { };
   onTouched: any = () => { };
 
-  // Solo filtra cuando searchText cambia (gracias a que es signal)
+  // Opciones tras el filtro de cascada (filterField/filterValue). Si hay filterField
+  // pero aún no hay valor padre, no se muestra nada (ej. localidad sin provincia elegida).
+  baseOptions = computed(() => {
+    const all = this.options();
+    if (!this.filterField) return all;
+    const fv = this._filterValue();
+    if (fv === null || fv === undefined || fv === '') return [];
+    return all.filter(o => o[this.filterField] == fv);
+  });
+
+  // Filtra por el texto del buscador sobre las opciones ya filtradas por cascada.
   filteredOptions = computed(() => {
     const q = this.searchText().toLowerCase().trim();
-    const all = this.options();
+    const all = this.baseOptions();
     if (!q) return all;
     return all.filter(opt => this.getLabel(opt).toLowerCase().includes(q));
   });

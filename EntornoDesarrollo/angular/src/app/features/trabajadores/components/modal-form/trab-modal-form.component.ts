@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { Trabajador, TrabajadorFormData } from '../../../../models/trabajador.model';
 import { ToastService } from '../../../../services/toast.service';
 import { DocUploadFormComponent, NuevoDocumento } from '../doc-upload-form/doc-upload-form.component';
+import { TrabajadoresApiService } from '../../../../services/trabajadores-api.service';
+import { LookupSelectComponent } from '../../../../shared/lookup-select/lookup-select.component';
 
 @Component({
   selector: 'app-trab-modal-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, DocUploadFormComponent],
+  imports: [CommonModule, FormsModule, DocUploadFormComponent, LookupSelectComponent],
   templateUrl: './trab-modal-form.component.html',
   styles: [`
     .type-selector {
@@ -106,15 +108,13 @@ import { DocUploadFormComponent, NuevoDocumento } from '../doc-upload-form/doc-u
 })
 export class TrabModalFormComponent implements OnChanges {
   private toast = inject(ToastService);
+  protected api = inject(TrabajadoresApiService);
 
   @Input() trabajador: Trabajador | null = null;
   @Input() existingEmails: string[] = [];
   @Input() existingDnis: string[] = [];
 
   // Lookups
-  @Input() seleccionadores: {id: number, nombre: string}[] = [];
-  @Input() provincias: {id: number, nombre: string}[] = [];
-  @Input() localidadesTodas: {id: number, id_provincia: number, nombre: string}[] = [];
   @Input() tiposDoc: {id: number, tipo: string}[] = [];
 
   @Output() save = new EventEmitter<TrabajadorFormData>();
@@ -124,7 +124,6 @@ export class TrabModalFormComponent implements OnChanges {
   form: Omit<Trabajador, 'id'> = this.getDefaultForm();
   errors: Record<string, string> = {};
   activeTab = signal<'personales' | 'laborales' | 'documentos'>('personales');
-  localidadesFiltradas: {id: number, nombre: string}[] = [];
 
   // Documentos pendientes (se procesan al guardar el trabajador).
   pendingDocs = signal<{
@@ -146,18 +145,7 @@ export class TrabModalFormComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if ('trabajador' in changes) {
-      if (this.trabajador) {
-        this.form = { ...this.trabajador };
-        // Cascade: cargar localidades de la provincia guardada
-        if (this.trabajador.id_provincia) {
-          this.localidadesFiltradas = this.localidadesTodas.filter(
-            l => l.id_provincia == this.trabajador!.id_provincia
-          );
-        }
-      } else {
-        this.form = this.getDefaultForm();
-        this.localidadesFiltradas = [];
-      }
+      this.form = this.trabajador ? { ...this.trabajador } : this.getDefaultForm();
       this.errors = {};
       this.activeTab.set('personales');
       this.pendingDocs.set([]);
@@ -201,24 +189,9 @@ export class TrabModalFormComponent implements OnChanges {
     this.form.freelance = val;
   }
 
-  // CASCADE SELECT
-  onProvinciaChange(provinciaId: string): void {
-    const id = provinciaId ? Number(provinciaId) : undefined;
-    this.form.id_provincia = id;
+  /** Al cambiar la provincia se limpia la localidad; el cascade lo aplica el lookup-select. */
+  onProvinciaChange(): void {
     this.form.id_localidad = undefined;
-    if (id) {
-      this.localidadesFiltradas = this.localidadesTodas.filter(l => l.id_provincia == id);
-    } else {
-      this.localidadesFiltradas = [];
-    }
-  }
-
-  onLocalidadChange(localidadId: string): void {
-    this.form.id_localidad = localidadId ? Number(localidadId) : undefined;
-  }
-
-  onSeleccionadorChange(selId: string): void {
-    this.form.id_seleccionadores = selId ? Number(selId) : undefined;
   }
 
   // ── Documentos 

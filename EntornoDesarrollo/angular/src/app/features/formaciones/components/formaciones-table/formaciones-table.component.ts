@@ -76,7 +76,7 @@ export class FormacionesTableComponent {
         {
           type: 'baja',
           title: 'Dar de baja',
-          icon: 'ban',
+          icon: 'alert-circle',
           variant: 'danger',
           showWhen: 'active',
           activeField: 'activo',
@@ -84,7 +84,7 @@ export class FormacionesTableComponent {
         {
           type: 'baja',
           title: 'Reactivar',
-          icon: 'refresh',
+          icon: 'check-circle',
           variant: 'success',
           showWhen: 'inactive',
           activeField: 'activo',

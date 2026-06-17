@@ -10,10 +10,6 @@
     </div>
 
     <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
-      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">
-        Los campos marcados con <em style="color:var(--danger)">*</em> son obligatorios.
-      </p>
-
       <span class="section-title">Datos personales</span>
 
       <!-- Nombre -->
@@ -105,18 +101,11 @@
 
           <div class="form-grid" style="margin-bottom: 16px;">
             <div class="form-group">
-              <label class="form-label">Empresa vinculada <em style="color:var(--danger)">*</em></label>
-              <select 
-                class="form-select" 
-                [class.error]="errors['empresa']"
-                [ngModel]="form.id_empresa" 
-                (ngModelChange)="onEmpresaChange($event)"
-              >
-                <option [ngValue]="undefined">Selecciona empresa...</option>
-                @for (e of empresasDisponibles; track e.id) {
-                  <option [value]="e.id">{{ e.nombre }}</option>
-                }
-              </select>
+              <app-lookup-select
+                [apiUrl]="api.API_URL" action="getEmpresas" [searchable]="true"
+                label="Empresa vinculada" [required]="true" placeholder="Selecciona empresa..."
+                [(ngModel)]="form.id_empresa" [hasError]="!!errors['empresa']">
+              </app-lookup-select>
               @if (errors['empresa']) { <span class="form-hint error-msg">{{ errors['empresa'] }}</span> }
             </div>
             <div class="form-group">
