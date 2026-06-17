@@ -12,9 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        
-        // 🚀 1. AGREGAR ESTA LÍNEA: Activa las cabeceras CORS automáticas de Laravel
-        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
+      
 
         // 2. Exceptuar la ruta de login de la verificación CSRF
         $middleware->validateCsrfTokens(except: [
