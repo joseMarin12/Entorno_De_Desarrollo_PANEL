@@ -9,11 +9,12 @@ use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\DireccionesEmpresaController;
 use App\Http\Controllers\AsignacionController;
 use App\Http\Controllers\TrabajadorController;
+use App\Http\Controllers\AutenticadorController;
 
 Route::options('{any}', function () {
     return response()->json([], 200);
 })->where('any', '.*');
-
+Route::post('/login', [AutenticadorController::class, 'login']);
 Route::middleware('verify.token')->group(function () {
     
     Route::post('/comerciales', [ComercialController::class, 'proxy']);
