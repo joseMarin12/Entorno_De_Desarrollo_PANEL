@@ -5,7 +5,6 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
-    // 🚀 RESTAURADO: Registra los archivos de rutas para que Laravel reconozca tus endpoints
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
@@ -14,14 +13,17 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
-        // 1. Exceptuar rutas de la verificación CSRF (Seguridad para peticiones externas)
+        // 🚀 1. AGREGAR ESTA LÍNEA: Activa las cabeceras CORS automáticas de Laravel
+        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
+
+        // 2. Exceptuar la ruta de login de la verificación CSRF
         $middleware->validateCsrfTokens(except: [
             'login',
             'api/login',
-            'api/usuarios' // Añadido por si tu CRUD de usuarios también recibe POST directo
+            'api/usuarios'
         ]);
 
-        // 2. Mantener la configuración de los proxies (Evita el error 405 en Google Cloud Run)
+        // 3. Mantener la configuración de los proxies para Cloud Run
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions) {
