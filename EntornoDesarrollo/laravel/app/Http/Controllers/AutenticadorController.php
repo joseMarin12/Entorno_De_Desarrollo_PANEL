@@ -5,15 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator; // 💡 Importante para evitar redirecciones ocultas
+use Illuminate\Support\Facades\Validator;
 
-public function login(Request $request)
-{
-    // ⚡ PRUEBA DE FUEGO: Pon esto en la mismísima primera línea y despliega
-    die(json_encode(['mensaje' => '¡Hola! El controlador SÍ se está ejecutando.']));
-
-
-class AutenticadorController extends Controller // ⭐ Nombre corregido para coincidir con tus rutas
+class AutenticadorController extends Controller 
 {
     public function login(Request $request)
     {
@@ -41,7 +35,6 @@ class AutenticadorController extends Controller // ⭐ Nombre corregido para coi
             $userData = $response->json();
 
             // 💡 CONTROL DE CAJA NEGRA (n8n): 
-            // n8n muchas veces devuelve las respuestas envueltas dentro de una lista: [ { ... } ]
             // Si detectamos que viene un array indexado, extraemos el primer elemento automáticamente.
             if (isset($userData[0]) && is_array($userData[0])) {
                 $userData = $userData[0];
@@ -55,9 +48,8 @@ class AutenticadorController extends Controller // ⭐ Nombre corregido para coi
                 ], 404);
             }
 
-            // 4. Laravel compara la contraseña plana con el Hash proveniente de Supabase vía n8n
+            // 4. Comparison de contraseña plana con el Hash proveniente de Supabase vía n8n
             if (Hash::check($request->password, $userData['password'])) {
-                
                 return response()->json([
                     'success' => true,
                     'message' => '¡Login exitoso!',
@@ -84,5 +76,4 @@ class AutenticadorController extends Controller // ⭐ Nombre corregido para coi
             ], 500);
         }
     }
-}
 }
