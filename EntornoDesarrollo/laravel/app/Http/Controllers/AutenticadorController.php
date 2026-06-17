@@ -12,35 +12,42 @@ class AutenticadorController extends Controller
 
     public function __construct()
     {
-        // URL del webhook de n8n para login
-        $this->n8nUrl = env('N8N_WEBHOOK_LOGIN_URL', 'http://n8n:5678/webhook/login');
+        // Limpiamos la URL de cualquier espacio accidental al cargarla
+        $this->n8nUrl = trim(env('N8N_WEBHOOK_LOGIN_URL', ''));
     }
 
     public function login(Request $request)
     {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
         try {
-            $request->validate([
-                'email' => 'required|email',
-                'password' => 'required',
-            ]);
-
-            // Log para debugging
-            Log::info('Login attempt', ['email' => $request->email]);
-
+            // Enviamos la petición a n8n
             $response = Http::timeout(30)
+                ->withHeaders(['Accept' => 'application/json'])
                 ->post($this->n8nUrl, [
                     'email' => $request->email,
                     'password' => $request->password,
                 ]);
 
-            return response()->json($response->json(), $response->status());
+            // Obtenemos el cuerpo de la respuesta
+            $responseData = $response->json();
+            $status = $response->status();
+
+            // Log de depuración para ver qué está pasando
+            Log::info('Respuesta de n8n', ['status' => $status, 'data' => $responseData]);
+
+            // Retornamos exactamente lo que n8n nos envía
+            return response()->json($responseData, $status);
             
         } catch (\Exception $e) {
-            Log::error('Login error', ['error' => $e->getMessage()]);
+            Log::error('Error crítico en el login', ['error' => $e->getMessage()]);
             
             return response()->json([
                 'success' => false,
-                'message' => 'Error en el servidor: ' . $e->getMessage()
+                'message' => 'Error de conexión: ' . $e->getMessage()
             ], 500);
         }
     }
