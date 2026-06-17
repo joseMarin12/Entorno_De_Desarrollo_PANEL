@@ -20,21 +20,6 @@ if (isset($_SERVER['HTTP_ORIGIN']) && $_SERVER['HTTP_ORIGIN'] === $allowedOrigin
 // --------------------------------------------------
 
 
-// 🧪 ⚡ PRUEBA DE FUEGO DIAGNÓSTICO (FRENO DE MANO) ⚡ 🧪
-// Si la petición es un POST (como tu login), la matamos AQUÍ MISMO para ver si el servidor responde algo.
-if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'status' => 'interceptado_ok',
-        'mensaje' => '¡Freno de mano activado! El servidor recibe el POST perfectamente en index.php',
-        'origen' => $_SERVER['HTTP_ORIGIN'] ?? 'No detectado',
-        'uri_solicitada' => $_SERVER['REQUEST_URI'] ?? 'No detectada'
-    ]);
-    exit(0);
-}
-// ----------------------------------------------------------------------
-
-
 /**
  * Laravel - A PHP Framework For Web Artisans
  *
