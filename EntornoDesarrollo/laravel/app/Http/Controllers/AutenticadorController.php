@@ -11,68 +11,75 @@ class AutenticadorController extends Controller
 {
     public function login(Request $request)
     {
-        // 1. Validamos manualmente. Si falla, devolvemos JSON directo en lugar de romper la petición
+        // 1. Validar que la petición traiga los datos obligatorios
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required',
+            'email'    => 'required|email',
+            'password' => 'required'
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Los datos enviados no son válidos.',
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => 'Datos de ingreso incompletos o inválidos.',
+                'errors'  => $validator->errors()
+            ], 400);
         }
 
         try {
-            // 2. Enviamos el email a n8n
-            $response = Http::post('https://n8n.srv1128480.hstgr.cloud/webhook/login', [
-                'email' => $request->email
+            // 2. Hacer la petición a tu webhook de n8n
+            // (Asegúrate de reemplazar esta URL con tu enlace real de n8n)
+            $response = Http::post('https://n8n.tu-servidor.com/webhook/login', [
+                'email'    => $request->email,
+                'password' => $request->password
             ]);
 
-            // Convertimos la respuesta de n8n a un array de PHP
-            $userData = $response->json();
-
-            // 💡 CONTROL DE CAJA NEGRA (n8n): 
-            // Si detectamos que viene un array indexado, extraemos el primer elemento automáticamente.
-            if (isset($userData[0]) && is_array($userData[0])) {
-                $userData = $userData[0];
-            }
-
-            // 3. Verificamos si n8n encontró al usuario o si el servicio falló
-            if (empty($userData) || !isset($userData['password'])) {
+            // Si n8n responde con un error HTTP (4xx o 5xx)
+            if ($response->failed()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'El correo electrónico no está registrado.'
+                    'message' => 'El servicio de autenticación externo no respondió correctamente.'
+                ], 502);
+            }
+
+            $data n8n = $response->json();
+
+            // 3. Verificar si n8n encontró al usuario
+            if (empty($data_n8n) || !isset($data_n8n['password'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El correo electrónico no está registrado o no es válido.'
                 ], 404);
             }
 
-            // 4. Comparison de contraseña plana con el Hash proveniente de Supabase vía n8n
-            if (Hash::check($request->password, $userData['password'])) {
+            // 4. Validar la contraseña usando el Hash que nos dio n8n
+            // Nota: PHP password_verify es compatible con hashes $2a$ y $2y$ de forma nativa
+            if (!password_verify($request->password, $data_n8n['password'])) {
                 return response()->json([
-                    'success' => true,
-                    'message' => '¡Login exitoso!',
-                    'redirect' => '/dashboard',
-                    'user' => [
-                        'name' => $userData['name'] ?? '',
-                        'email' => $userData['email'] ?? $request->email
-                    ]
-                ], 200);
+                    'success' => false,
+                    'message' => 'La contraseña ingresada es incorrecta.'
+                ], 401);
             }
 
-            // Si la contraseña no coincide
+            // 5. LOGIN EXITOSO: Devolvemos los datos del usuario al frontend
             return response()->json([
-                'success' => false,
-                'message' => 'La contraseña es incorrecta.'
-            ], 401);
+                'success' => true,
+                'message' => 'Autenticación exitosa.',
+                'user'    => [
+                    'id'      => $data_n8n['id'] ?? null,
+                    'name'    => $data_n8n['name'] ?? '',
+                    'surname' => $data_n8n['surname'] ?? '',
+                    'email'   => $data_n8n['email'] ?? '',
+                    'roleid'  => $data_n8n['roleid'] ?? null
+                ]
+            ], 200);
 
-        } catch (\Exception $e) {
-            // Si el webhook de n8n está apagado o da timeout, capturamos el error aquí
+        } catch (\Throwable $e) {
+            // TRUCO DE ORO: Si algo falla aquí adentro, te lo expondrá directo en el navegador
             return response()->json([
                 'success' => false,
-                'message' => 'Error de conexión con el servicio de autenticación.',
-                'error' => $e->getMessage()
+                'message' => 'Ocurrió un error interno en el controlador de Laravel.',
+                'error_developer' => $e->getMessage(),
+                'line' => $e->getLine()
             ], 500);
         }
     }
