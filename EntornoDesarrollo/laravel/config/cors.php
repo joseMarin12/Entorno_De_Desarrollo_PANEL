@@ -7,7 +7,7 @@ return [
     */
 
     // 1. Asegúrate de incluir '*' o específicamente 'login' si tu ruta no empieza con api/
-    'paths' => ['api/*', 'login', 'sanctum/csrf-cookie'],
+    'paths' => [*],
 
     'allowed_methods' => ['*'],
 
