@@ -1,432 +1,444 @@
 {
-  "name": "Seleccionadores",
-  "nodes": [
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "gestion-seleccionadores",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "id": "c2505574-dfc5-44cd-aec3-08d550011b6b",
-      "name": "Webhook Seleccionadores",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        -512,
-        192
-      ],
-      "webhookId": "a884095a-9de5-4c1b-9869-56be69f43cca"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
+    "name":  "Seleccionadores",
+    "nodes":  [
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "getSeleccionadores",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "57b0dce7-128e-4390-b9c3-94d053326f6e"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "getSeleccionadores"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
+                      "parameters":  {
+                                         "httpMethod":  "POST",
+                                         "path":  "gestion-seleccionadores",
+                                         "responseMode":  "responseNode",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "c2505574-dfc5-44cd-aec3-08d550011b6b",
+                      "name":  "Webhook Seleccionadores",
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2.1,
+                      "position":  [
+                                       -512,
+                                       192
+                                   ],
+                      "webhookId":  "a884095a-9de5-4c1b-9869-56be69f43cca"
+                  },
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "getEmpresas",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "e0776c5a-5f17-469d-a584-ed6c3f164935"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "getEmpresas"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
+                      "parameters":  {
+                                         "rules":  {
+                                                       "values":  [
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "getSeleccionadores",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "57b0dce7-128e-4390-b9c3-94d053326f6e"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "getSeleccionadores"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "getEmpresas",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "e0776c5a-5f17-469d-a584-ed6c3f164935"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "getEmpresas"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "createSeleccionador",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "b87b3a1c-238a-4999-87ef-c091d7e52b44"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "createSeleccionador"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "updateSeleccionador",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "9dbecf0a-f539-498a-ae06-8bf24c00122e"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "updateSeleccionador"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "toggleSeleccionadorStatus",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "8e5f1621-af1b-4c52-b40b-c364f538645d"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "toggleSeleccionadorStatus"
+                                                                      }
+                                                                  ]
+                                                   },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "1b1b9198-1e2b-47b7-8a66-5120bf60c9a4",
+                      "name":  "Switch Actions",
+                      "type":  "n8n-nodes-base.switch",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       -256,
+                                       192
+                                   ]
+                  },
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "createSeleccionador",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "b87b3a1c-238a-4999-87ef-c091d7e52b44"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "createSeleccionador"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
+                      "parameters":  {
+                                         "jsCode":  "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = body.page || 1;\nconst limit = body.limit || 10;\nconst offset = (page - 1) * limit;\nconst conditions = [];\nconst params = [];\n\nif (filters.searchText \u0026\u0026 typeof filters.searchText === \u0027string\u0027 \u0026\u0026 filters.searchText.trim() !== \u0027\u0027) {\n  conditions.push(`(CONCAT(s.nombre, \u0027 \u0027, s.primer_apellido, \u0027 \u0027, COALESCE(s.segundo_apellido,\u0027\u0027)) ILIKE $${params.length + 1} OR s.email ILIKE $${params.length + 1})`);\n  params.push(`%${filters.searchText.trim()}%`);\n}\n\nif (filters.status !== undefined \u0026\u0026 filters.status !== null \u0026\u0026 filters.status !== \u0027\u0027) {\n  const statusStr = String(filters.status).toLowerCase();\n  if (statusStr !== \u0027todos\u0027 \u0026\u0026 statusStr !== \u0027todos los estados\u0027) {\n    conditions.push(`s.activo = $${params.length + 1}`);\n    params.push(statusStr === \u0027activos\u0027 || statusStr === \u0027activo\u0027);\n  }\n}\n\nif (filters.tipo !== undefined \u0026\u0026 filters.tipo !== null \u0026\u0026 filters.tipo !== \u0027\u0027) {\n  const tipoStr = String(filters.tipo).toLowerCase();\n  if (tipoStr !== \u0027todos\u0027 \u0026\u0026 tipoStr !== \u0027todos los tipos\u0027) {\n    conditions.push(`s.tipo = $${params.length + 1}`);\n    params.push(tipoStr);\n  }\n}\n\nlet whereClause = \u0027WHERE 1=1\u0027;\nif (conditions.length \u003e 0) {\n  whereClause += \u0027 AND \u0027 + conditions.join(\u0027 AND \u0027);\n}\n\nconst limitParam = params.length + 1;\nconst offsetParam = params.length + 2;\nparams.push(limit);\nparams.push(offset);\n\nconst query = `WITH global_stats AS (\n  SELECT\n    COUNT(*)::int as total,\n    COUNT(*) FILTER (WHERE activo = true)::int as activos,\n    COUNT(*) FILTER (WHERE activo = false)::int as inactivos,\n    COUNT(*) FILTER (WHERE tipo = \u0027externo\u0027)::int as externos\n  FROM seleccionadores\n),\nfiltered_data AS (\n  SELECT\n    s.*,\n    (CASE WHEN e.id IS NOT NULL THEN json_build_object(\u0027id\u0027, e.id, \u0027nombre\u0027, e.nombre_empresa) ELSE NULL END) as empresa\n  FROM seleccionadores s\n  LEFT JOIN empresa e ON s.id_empresa = e.id\n  ${whereClause}\n  ORDER BY s.created_at DESC\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n),\nfiltered_count AS (\n  SELECT COUNT(*)::int as total_filtered\n  FROM seleccionadores s\n  ${whereClause}\n)\nSELECT\n  fd.*,\n  fc.total_filtered,\n  gs.total as stats_total,\n  gs.activos as stats_activos,\n  gs.inactivos as stats_inactivos,\n  gs.externos as stats_externos\nFROM global_stats gs\nCROSS JOIN filtered_count fc\nLEFT JOIN filtered_data fd ON true`;\n\nreturn [{ json: { query, params } }];\n"
+                                     },
+                      "id":  "eefd9f63-e71c-438c-a3ef-c7e7bbb0a898",
+                      "name":  "JS: Build Get Query",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       32,
+                                       -64
+                                   ]
+                  },
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "updateSeleccionador",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "9dbecf0a-f539-498a-ae06-8bf24c00122e"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "updateSeleccionador"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "{{ $json.query }}",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ $json.params }}"
+                                                     }
+                                     },
+                      "id":  "ba085a8f-46ab-4941-82a6-a24d791d7e32",
+                      "name":  "SQL: Get Seleccionadores",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       288,
+                                       -64
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "toggleSeleccionadorStatus",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "8e5f1621-af1b-4c52-b40b-c364f538645d"
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "SELECT id, nombre_empresa AS nombre FROM empresa ORDER BY nombre_empresa ASC;",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "927e0a40-e3a8-4fe8-a192-b1d5a95ba318",
+                      "name":  "SQL: Get Empresas",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       32,
+                                       144
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "WITH inserted AS (\n  INSERT INTO seleccionadores \n  (nombre, primer_apellido, segundo_apellido, telefono, email, tipo, activo, id_empresa, fecha_ini, salario, fee, created_at, updated_at) \n  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()) \n  RETURNING *\n)\nSELECT i.*, (CASE WHEN e.id IS NOT NULL THEN json_build_object(\u0027id\u0027, e.id, \u0027nombre\u0027, e.nombre_empresa) ELSE NULL END) as empresa \nFROM inserted i LEFT JOIN empresa e ON i.id_empresa = e.id;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ [\n  $json.body.seleccionadorData.nombre || null,\n  $json.body.seleccionadorData.primer_apellido || null,\n  $json.body.seleccionadorData.segundo_apellido || null,\n  $json.body.seleccionadorData.telefono || null,\n  $json.body.seleccionadorData.email || null,\n  ($json.body.seleccionadorData.tipo || \u0027interno\u0027).toLowerCase().trim(),\n  $json.body.seleccionadorData.activo !== undefined ? $json.body.seleccionadorData.activo : true,\n  $json.body.seleccionadorData.id_empresa || null,\n  $json.body.seleccionadorData.fecha_ini || null,\n  $json.body.seleccionadorData.salario || null,\n  $json.body.seleccionadorData.fee || null\n] }}"
+                                                     }
+                                     },
+                      "id":  "c6cc3db2-da97-4744-b665-0225ea19da7d",
+                      "name":  "SQL: Create",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       32,
+                                       336
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "WITH updated AS (\n  UPDATE seleccionadores \n  SET nombre = COALESCE($1, nombre), primer_apellido = COALESCE($2, primer_apellido), segundo_apellido = $3, telefono = $4, email = $5, tipo = COALESCE($6, tipo), activo = COALESCE($7, activo), id_empresa = $8, fecha_ini = $9, salario = $10, fee = $11, updated_at = NOW() \n  WHERE id = $12 \n  RETURNING *\n)\nSELECT u.*, (CASE WHEN e.id IS NOT NULL THEN json_build_object(\u0027id\u0027, e.id, \u0027nombre\u0027, e.nombre_empresa) ELSE NULL END) as empresa \nFROM updated u LEFT JOIN empresa e ON u.id_empresa = e.id;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ [\n  $json.body.seleccionadorData.nombre || null,\n  $json.body.seleccionadorData.primer_apellido || null,\n  $json.body.seleccionadorData.segundo_apellido || null,\n  $json.body.seleccionadorData.telefono || null,\n  $json.body.seleccionadorData.email || null,\n  $json.body.seleccionadorData.tipo ? $json.body.seleccionadorData.tipo.toLowerCase().trim() : null,\n  $json.body.seleccionadorData.activo !== undefined ? $json.body.seleccionadorData.activo : null,\n  $json.body.seleccionadorData.id_empresa || null,\n  $json.body.seleccionadorData.fecha_ini || null,\n  $json.body.seleccionadorData.salario || null,\n  $json.body.seleccionadorData.fee || null,\n  $json.body.seleccionadorId\n] }}"
+                                                     }
+                                     },
+                      "id":  "b3bf72a0-a728-447b-b3bc-0ee4046575c7",
+                      "name":  "SQL: Update",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       32,
+                                       544
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "WITH updated AS (\n  UPDATE seleccionadores SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING *\n)\nSELECT u.*, (CASE WHEN e.id IS NOT NULL THEN json_build_object(\u0027id\u0027, e.id, \u0027nombre\u0027, e.nombre_empresa) ELSE NULL END) as empresa \nFROM updated u LEFT JOIN empresa e ON u.id_empresa = e.id;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ [$json.body.seleccionadorId] }}"
+                                                     }
+                                     },
+                      "id":  "5d3025d0-f59b-4d3b-9bb5-2b06c4ca5d57",
+                      "name":  "SQL: Toggle Status",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       32,
+                                       736
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "json",
+                                         "responseBody":  "={{ { \"success\": true, \"data\": $input.all().map(item =\u003e item.json) } }}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "302bfa55-6806-400e-a102-8b6f1684f272",
+                      "name":  "Respond API",
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1.5,
+                      "position":  [
+                                       640,
+                                       336
+                                   ]
                   }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "toggleSeleccionadorStatus"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "1b1b9198-1e2b-47b7-8a66-5120bf60c9a4",
-      "name": "Switch Actions",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        -256,
-        192
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const body = $input.item.json.body || {};\nconst filters = body.filters || {};\nconst page = body.page || 1;\nconst limit = body.limit || 10;\nconst offset = (page - 1) * limit;\nconst conditions = [];\nconst params = [];\n\nif (filters.searchText && typeof filters.searchText === 'string' && filters.searchText.trim() !== '') {\n  conditions.push(`(CONCAT(s.nombre, ' ', s.primer_apellido, ' ', COALESCE(s.segundo_apellido,'')) ILIKE $${params.length + 1} OR s.email ILIKE $${params.length + 1})`);\n  params.push(`%${filters.searchText.trim()}%`);\n}\n\nif (filters.status !== undefined && filters.status !== null && filters.status !== '') {\n  const statusStr = String(filters.status).toLowerCase();\n  if (statusStr !== 'todos' && statusStr !== 'todos los estados') {\n    conditions.push(`s.activo = $${params.length + 1}`);\n    params.push(statusStr === 'activos' || statusStr === 'activo');\n  }\n}\n\nif (filters.tipo !== undefined && filters.tipo !== null && filters.tipo !== '') {\n  const tipoStr = String(filters.tipo).toLowerCase();\n  if (tipoStr !== 'todos' && tipoStr !== 'todos los tipos') {\n    conditions.push(`s.tipo = $${params.length + 1}`);\n    params.push(tipoStr);\n  }\n}\n\nlet whereClause = 'WHERE 1=1';\nif (conditions.length > 0) {\n  whereClause += ' AND ' + conditions.join(' AND ');\n}\n\nconst limitParam = params.length + 1;\nconst offsetParam = params.length + 2;\nparams.push(limit);\nparams.push(offset);\n\nconst query = `WITH global_stats AS (\n  SELECT\n    COUNT(*)::int as total,\n    COUNT(*) FILTER (WHERE activo = true)::int as activos,\n    COUNT(*) FILTER (WHERE activo = false)::int as inactivos,\n    COUNT(*) FILTER (WHERE tipo = 'externo')::int as externos\n  FROM seleccionadores\n),\nfiltered_data AS (\n  SELECT\n    s.*,\n    (CASE WHEN e.id IS NOT NULL THEN json_build_object('id', e.id, 'nombre', e.nombre_empresa) ELSE NULL END) as empresa\n  FROM seleccionadores s\n  LEFT JOIN empresa e ON s.id_empresa = e.id\n  ${whereClause}\n  ORDER BY s.created_at DESC\n  LIMIT $${limitParam} OFFSET $${offsetParam}\n),\nfiltered_count AS (\n  SELECT COUNT(*)::int as total_filtered\n  FROM seleccionadores s\n  ${whereClause}\n)\nSELECT\n  fd.*,\n  fc.total_filtered,\n  gs.total as stats_total,\n  gs.activos as stats_activos,\n  gs.inactivos as stats_inactivos,\n  gs.externos as stats_externos\nFROM global_stats gs\nCROSS JOIN filtered_count fc\nLEFT JOIN filtered_data fd ON true`;\n\nreturn [{ json: { query, params } }];\n"
-      },
-      "id": "eefd9f63-e71c-438c-a3ef-c7e7bbb0a898",
-      "name": "JS: Build Get Query",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        32,
-        -64
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "{{ $json.query }}",
-        "options": {
-          "queryReplacement": "={{ $json.params }}"
-        }
-      },
-      "id": "ba085a8f-46ab-4941-82a6-a24d791d7e32",
-      "name": "SQL: Get Seleccionadores",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        288,
-        -64
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "KezwkIj6LgJHArvL",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "SELECT id, nombre_empresa AS nombre FROM empresa ORDER BY nombre_empresa ASC;",
-        "options": {}
-      },
-      "id": "927e0a40-e3a8-4fe8-a192-b1d5a95ba318",
-      "name": "SQL: Get Empresas",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        32,
-        144
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "KezwkIj6LgJHArvL",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "WITH inserted AS (\n  INSERT INTO seleccionadores \n  (nombre, primer_apellido, segundo_apellido, telefono, email, tipo, activo, id_empresa, fecha_ini, salario, fee, created_at, updated_at) \n  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()) \n  RETURNING *\n)\nSELECT i.*, (CASE WHEN e.id IS NOT NULL THEN json_build_object('id', e.id, 'nombre', e.nombre_empresa) ELSE NULL END) as empresa \nFROM inserted i LEFT JOIN empresa e ON i.id_empresa = e.id;",
-        "options": {
-          "queryReplacement": "={{ [\n  $json.body.seleccionadorData.nombre || null,\n  $json.body.seleccionadorData.primer_apellido || null,\n  $json.body.seleccionadorData.segundo_apellido || null,\n  $json.body.seleccionadorData.telefono || null,\n  $json.body.seleccionadorData.email || null,\n  ($json.body.seleccionadorData.tipo || 'interno').toLowerCase().trim(),\n  $json.body.seleccionadorData.activo !== undefined ? $json.body.seleccionadorData.activo : true,\n  $json.body.seleccionadorData.id_empresa || null,\n  $json.body.seleccionadorData.fecha_ini || null,\n  $json.body.seleccionadorData.salario || null,\n  $json.body.seleccionadorData.fee || null\n] }}"
-        }
-      },
-      "id": "c6cc3db2-da97-4744-b665-0225ea19da7d",
-      "name": "SQL: Create",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        32,
-        336
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "KezwkIj6LgJHArvL",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "WITH updated AS (\n  UPDATE seleccionadores \n  SET nombre = COALESCE($1, nombre), primer_apellido = COALESCE($2, primer_apellido), segundo_apellido = $3, telefono = $4, email = $5, tipo = COALESCE($6, tipo), activo = COALESCE($7, activo), id_empresa = $8, fecha_ini = $9, salario = $10, fee = $11, updated_at = NOW() \n  WHERE id = $12 \n  RETURNING *\n)\nSELECT u.*, (CASE WHEN e.id IS NOT NULL THEN json_build_object('id', e.id, 'nombre', e.nombre_empresa) ELSE NULL END) as empresa \nFROM updated u LEFT JOIN empresa e ON u.id_empresa = e.id;",
-        "options": {
-          "queryReplacement": "={{ [\n  $json.body.seleccionadorData.nombre || null,\n  $json.body.seleccionadorData.primer_apellido || null,\n  $json.body.seleccionadorData.segundo_apellido || null,\n  $json.body.seleccionadorData.telefono || null,\n  $json.body.seleccionadorData.email || null,\n  $json.body.seleccionadorData.tipo ? $json.body.seleccionadorData.tipo.toLowerCase().trim() : null,\n  $json.body.seleccionadorData.activo !== undefined ? $json.body.seleccionadorData.activo : null,\n  $json.body.seleccionadorData.id_empresa || null,\n  $json.body.seleccionadorData.fecha_ini || null,\n  $json.body.seleccionadorData.salario || null,\n  $json.body.seleccionadorData.fee || null,\n  $json.body.seleccionadorId\n] }}"
-        }
-      },
-      "id": "b3bf72a0-a728-447b-b3bc-0ee4046575c7",
-      "name": "SQL: Update",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        32,
-        544
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "KezwkIj6LgJHArvL",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "WITH updated AS (\n  UPDATE seleccionadores SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING *\n)\nSELECT u.*, (CASE WHEN e.id IS NOT NULL THEN json_build_object('id', e.id, 'nombre', e.nombre_empresa) ELSE NULL END) as empresa \nFROM updated u LEFT JOIN empresa e ON u.id_empresa = e.id;",
-        "options": {
-          "queryReplacement": "={{ [$json.body.seleccionadorId] }}"
-        }
-      },
-      "id": "5d3025d0-f59b-4d3b-9bb5-2b06c4ca5d57",
-      "name": "SQL: Toggle Status",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        32,
-        736
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "KezwkIj6LgJHArvL",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(item => item.json) } }}",
-        "options": {}
-      },
-      "id": "302bfa55-6806-400e-a102-8b6f1684f272",
-      "name": "Respond API",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        640,
-        336
-      ]
-    }
-  ],
-  "pinData": {},
-  "connections": {
-    "Webhook Seleccionadores": {
-      "main": [
-        [
-          {
-            "node": "Switch Actions",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch Actions": {
-      "main": [
-        [
-          {
-            "node": "JS: Build Get Query",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "SQL: Get Empresas",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "SQL: Create",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "SQL: Update",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "SQL: Toggle Status",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "JS: Build Get Query": {
-      "main": [
-        [
-          {
-            "node": "SQL: Get Seleccionadores",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "SQL: Get Seleccionadores": {
-      "main": [
-        [
-          {
-            "node": "Respond API",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "SQL: Get Empresas": {
-      "main": [
-        [
-          {
-            "node": "Respond API",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "SQL: Create": {
-      "main": [
-        [
-          {
-            "node": "Respond API",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "SQL: Update": {
-      "main": [
-        [
-          {
-            "node": "Respond API",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "SQL: Toggle Status": {
-      "main": [
-        [
-          {
-            "node": "Respond API",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "active": false,
-  "settings": {
-    "executionOrder": "v1",
-    "binaryMode": "separate",
-    "availableInMCP": false
-  },
-  "versionId": "d613fbdf-6991-4cc7-91f9-66354638148c",
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
-  },
-  "id": "esxJAKjoNpKImk2P",
-  "tags": []
+              ],
+    "pinData":  {
+
+                },
+    "connections":  {
+                        "Webhook Seleccionadores":  {
+                                                        "main":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "Switch Actions",
+                                                                             "type":  "main",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                                    },
+                        "Switch Actions":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "JS: Build Get Query",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ],
+                                                            [
+                                                                {
+                                                                    "node":  "SQL: Get Empresas",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ],
+                                                            [
+                                                                {
+                                                                    "node":  "SQL: Create",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ],
+                                                            [
+                                                                {
+                                                                    "node":  "SQL: Update",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ],
+                                                            [
+                                                                {
+                                                                    "node":  "SQL: Toggle Status",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           },
+                        "JS: Build Get Query":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "SQL: Get Seleccionadores",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "SQL: Get Seleccionadores":  {
+                                                         "main":  [
+                                                                      [
+                                                                          {
+                                                                              "node":  "Respond API",
+                                                                              "type":  "main",
+                                                                              "index":  0
+                                                                          }
+                                                                      ]
+                                                                  ]
+                                                     },
+                        "SQL: Get Empresas":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "node":  "Respond API",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ]
+                                                           ]
+                                              },
+                        "SQL: Create":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "Respond API",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "SQL: Update":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "Respond API",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "SQL: Toggle Status":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "Respond API",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               }
+                    },
+    "active":  false,
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "binaryMode":  "separate",
+                     "availableInMCP":  false
+                 },
+    "versionId":  "d613fbdf-6991-4cc7-91f9-66354638148c",
+    "meta":  {
+                 "templateCredsSetupCompleted":  true,
+                 "instanceId":  "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
+             },
+    "id":  "esxJAKjoNpKImk2P",
+    "tags":  [
+
+             ]
 }

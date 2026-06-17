@@ -1,750 +1,763 @@
 {
-  "nodes": [
-    {
-      "parameters": {},
-      "id": "85c44c3f-f5a5-4e2a-9baa-1f6f1e88267d",
-      "name": "Execute Workflow Trigger",
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1,
-      "position": [
-        -2592,
-        5008
-      ]
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {},
-                "conditions": [
+    "nodes":  [
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "enviarFirma",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "enviar"
-            },
-            {
-              "conditions": {
-                "options": {},
-                "conditions": [
+                      "parameters":  {
+
+                                     },
+                      "id":  "85c44c3f-f5a5-4e2a-9baa-1f6f1e88267d",
+                      "name":  "Execute Workflow Trigger",
+                      "type":  "n8n-nodes-base.executeWorkflowTrigger",
+                      "typeVersion":  1,
+                      "position":  [
+                                       -2592,
+                                       5008
+                                   ]
+                  },
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "cancelarFirma",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "cancelar"
-            },
-            {
-              "conditions": {
-                "options": {},
-                "conditions": [
+                      "parameters":  {
+                                         "rules":  {
+                                                       "values":  [
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "enviarFirma",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "enviar"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "cancelarFirma",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "cancelar"
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.body.action }}",
+                                                                                                                    "rightValue":  "sincronizarFirma",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         },
+                                                                          "renameOutput":  true,
+                                                                          "outputKey":  "sincronizar"
+                                                                      }
+                                                                  ]
+                                                   },
+                                         "options":  {
+                                                         "fallbackOutput":  "none"
+                                                     }
+                                     },
+                      "id":  "b1d74ecc-91a6-4898-948d-86c07a54d2c9",
+                      "name":  "Switch Sub-Action",
+                      "type":  "n8n-nodes-base.switch",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       -2384,
+                                       5008
+                                   ]
+                  },
                   {
-                    "leftValue": "={{ $json.body.action }}",
-                    "rightValue": "sincronizarFirma",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "-- Lee lo necesario para enviar a firma: el PDF (base64), el nombre del fichero y\n-- los datos del trabajador (firmante principal). El doc_id llega en body.firmaData.doc_id.\nSELECT\n  da.contenido_b64,\n  d.nombre_fichero,\n  t.nombre,\n  t.primer_apellido,\n  COALESCE(t.segundo_apellido, \u0027\u0027) AS segundo_apellido,\n  COALESCE(t.dni_nif_pasaporte, \u0027\u0027) AS dni\nFROM documento d\nJOIN documento_archivo da ON da.id_documento = d.id\nJOIN trabajador t ON t.id = d.id_trabajador\nWHERE d.id = $1;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ [ ($json.body.firmaData||{}).doc_id ] }}"
+                                                     }
+                                     },
+                      "id":  "e88093e2-b7b3-4b3a-a34e-97aed88aa5f2",
+                      "name":  "SQL: Leer datos del envÃƒÂ­o",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       -2144,
+                                       4640
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "// Arma el cuerpo JSON que espera Sinatura para crear el trabajo de firma.\n// Combina los datos del documento/trabajador (SQL anterior) con la config del envÃƒÂ­o (body.firmaData).\nconst row = $json;\nconst fd = $(\u0027Execute Workflow Trigger\u0027).first().json.body.firmaData || {};\nconst doble = fd.modo_firmantes === \u0027doble\u0027;\n\nconst signers = [{\n  email: fd.email_trabajador,\n  name: row.nombre || \u0027Trabajador\u0027,\n  surname: ((row.primer_apellido || \u0027\u0027) + \u0027 \u0027 + (row.segundo_apellido || \u0027\u0027)).trim() || \u0027-\u0027,\n  numberID: row.dni || \u0027\u0027\n}];\nif (doble \u0026\u0026 fd.email_segundo_firmante) {\n  signers.push({ email: fd.email_segundo_firmante, name: \u0027Recursos Humanos\u0027, surname: \u0027Empresa\u0027, numberID: \u0027\u0027 });\n}\n\n// Email del firmante segun el rol del cuadrito (\u0027rrhh\u0027 -\u003e 2.o firmante; resto -\u003e trabajador).\nconst emailDe = (rol) =\u003e (rol === \u0027rrhh\u0027 ? fd.email_segundo_firmante : fd.email_trabajador);\n\n// POSICIONES DE FIRMA.\n// 1) Si el usuario las ubico en el editor visual (fd.posiciones), usamos esas: cada cuadrito\n//    es una entrada de signatureSettings (se permiten varias por firmante). page es 1-indexado;\n//    xo/yo/width/height ya vienen en % (0-90 / 5-100) acotados.\n// 2) Si no vienen, respaldo: una firma por firmante al pie de la ULTIMA pagina.\nlet signatureSettings = [];\nif (Array.isArray(fd.posiciones) \u0026\u0026 fd.posiciones.length) {\n  signatureSettings = fd.posiciones\n    .filter(p =\u003e p \u0026\u0026 (p.rol !== \u0027rrhh\u0027 || (doble \u0026\u0026 fd.email_segundo_firmante)))\n    .map(p =\u003e ({\n      signerEmail: emailDe(p.rol),\n      page: p.page,\n      xo: p.xo,\n      yo: p.yo,\n      width: p.width,\n      height: p.height,\n    }));\n}\nif (!signatureSettings.length) {\n  // Respaldo por coordenadas. Sinatura: page es 1-indexado (1=primera, 0=TODAS).\n  const pdfBin = Buffer.from(row.contenido_b64 || \u0027\u0027, \u0027base64\u0027).toString(\u0027latin1\u0027);\n  const counts = (pdfBin.match(/\\/Count\\s+(\\d+)/g) || []).map(s =\u003e parseInt(s.replace(/\\D/g, \u0027\u0027), 10));\n  const ultimaPagina = counts.length ? Math.max(...counts) : 1;\n  signatureSettings = [\n    { signerEmail: fd.email_trabajador, page: ultimaPagina, xo: 52, yo: 78, width: 20, height: 9 }\n  ];\n  if (doble \u0026\u0026 fd.email_segundo_firmante) {\n    signatureSettings.push({ signerEmail: fd.email_segundo_firmante, page: ultimaPagina, xo: 8, yo: 78, width: 20, height: 9 });\n  }\n}\n\nconst exp = new Date();\nexp.setDate(exp.getDate() + 7); // caduca en 7 dias\n\nconst sinaturaBody = {\n  document: row.contenido_b64,\n  documentName: row.nombre_fichero || \u0027documento.pdf\u0027,\n  description: \u0027Firma de documento de trabajador\u0027,\n  signatureType: \u0027STANDARD\u0027,\n  skipSignerMail: true,\n  signers,\n  signatureSettings,\n  SignatureExpiryDate: exp.toISOString().slice(0, 10)\n};\n\nreturn [{ json: { sinaturaBody } }];"
+                                     },
+                      "id":  "0fd3716e-c1ce-4177-bf09-984bb26578f5",
+                      "name":  "Code: Armar peticiÃƒÂ³n Sinatura",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       -1920,
+                                       4640
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "https://app.sinatura.es/resources/api/signature-job/external/create",
+                                         "authentication":  "genericCredentialType",
+                                         "genericAuthType":  "httpHeaderAuth",
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ JSON.stringify($json.sinaturaBody) }}",
+                                         "options":  {
+                                                         "timeout":  30000
+                                                     }
+                                     },
+                      "id":  "cf661523-6847-48bf-b1de-029d54829fe9",
+                      "name":  "HTTP: Crear firma en Sinatura",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "retryOnFail":  true,
+                      "maxTries":  3,
+                      "waitBetweenTries":  1500,
+                      "position":  [
+                                       -1680,
+                                       4640
+                                   ],
+                      "credentials":  {
+                                          "httpHeaderAuth":  {
+                                                                 "id":  "AKk8G6auOQR3kHAE",
+                                                                 "name":  "Sinatura Api"
+                                                             }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "-- Guarda el resultado del envÃƒÂ­o: pasa a EN_SINATURA y persiste el sinatura_id\n-- (newSignatureJob de la respuesta) para poder consultar/cancelar/descargar despuÃƒÂ©s.\n-- Resetea las marcas del ciclo anterior (firmas previas, completado, motivo) para que\n-- un re-envÃƒÂ­o tras RECHAZADO o CANCELADO arranque visualmente como un primer envÃƒÂ­o.\n-- created_at se conserva: es la auditorÃƒÂ­a original de cuÃƒÂ¡ndo se creÃƒÂ³ la firma.\nUPDATE firma SET\n  estado = \u0027EN_SINATURA\u0027,\n  sinatura_id = $2,\n  requiere_firma_rrhh = $3,\n  email_segundo_firmante = $4,\n  fecha_envio = NOW(),\n  fecha_firma_trabajador = NULL,\n  fecha_firma_rrhh = NULL,\n  fecha_completado = NULL,\n  motivo = NULL,\n  updated_at = NOW()\nWHERE id_documento = $1\nRETURNING id, id_documento, estado, sinatura_id;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ [ $(\u0027Execute Workflow Trigger\u0027).first().json.body.firmaData.doc_id, String($json.newSignatureJob), $(\u0027Execute Workflow Trigger\u0027).first().json.body.firmaData.modo_firmantes === \u0027doble\u0027, ($(\u0027Execute Workflow Trigger\u0027).first().json.body.firmaData.modo_firmantes === \u0027doble\u0027 ? ($(\u0027Execute Workflow Trigger\u0027).first().json.body.firmaData.email_segundo_firmante || null) : null) ] }}"
+                                                     }
+                                     },
+                      "id":  "12d79fd1-12ca-47cb-b5d1-a8ce16fd2a77",
+                      "name":  "SQL: Marcar EN_SINATURA",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       -1440,
+                                       4640
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "// Construye el/los correo(s) HTML de Sg Tech: el sobre (logo, colores, boton, pie) lo define este\n// template; el contenido es el texto editable del modal (mensaje_correo).\n// Con doble firmante emite UN item por persona y el nodo Outlook envia un correo por item:\n//   trabajador -\u003e signatureJobURLs[0]   |   RRHH (2do firmante) -\u003e signatureJobURLs[1]\nconst trg = $(\u0027Execute Workflow Trigger\u0027).first().json.body.firmaData || {};\nconst mensaje = trg.mensaje_correo || \u0027Tienes un documento pendiente de firma.\u0027;\nconst docName = ($(\u0027Code: Armar peticiÃƒÂ³n Sinatura\u0027).first().json.sinaturaBody || {}).documentName || \u0027documento\u0027;\nconst urls = $(\u0027HTTP: Crear firma en Sinatura\u0027).first().json.signatureJobURLs || [];\nconst esc = (s) =\u003e String(s).replace(/\u0026/g, \u0027\u0026amp;\u0027).replace(/\u003c/g, \u0027\u0026lt;\u0027).replace(/\u003e/g, \u0027\u0026gt;\u0027);\nconst cuerpo = esc(mensaje).replace(/\\n/g, \u0027\u003cbr\u003e\u0027);\nconst buildHtml = (url) =\u003e `\u003c!DOCTYPE html\u003e\n\u003chtml lang=\u0027es\u0027\u003e\u003chead\u003e\u003cmeta charset=\u0027UTF-8\u0027\u003e\u003cmeta name=\u0027viewport\u0027 content=\u0027width=device-width, initial-scale=1.0\u0027\u003e\n\u003cstyle\u003e@import url(\u0027https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700\u0026display=swap\u0027);\u003c/style\u003e\u003c/head\u003e\n\u003cbody style=\u0027margin:0;padding:0;background:#f4f5f9;font-family:Poppins,Segoe UI,Arial,sans-serif;\u0027\u003e\n\u003ctable role=\u0027presentation\u0027 width=\u0027100%\u0027 cellpadding=\u00270\u0027 cellspacing=\u00270\u0027 style=\u0027background:#f4f5f9;padding:32px 0;\u0027\u003e\u003ctr\u003e\u003ctd align=\u0027center\u0027\u003e\n\u003ctable role=\u0027presentation\u0027 width=\u0027600\u0027 cellpadding=\u00270\u0027 cellspacing=\u00270\u0027 style=\u0027width:600px;max-width:600px;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(40,40,90,0.10);\u0027\u003e\n\u003ctr\u003e\u003ctd style=\u0027height:6px;background:linear-gradient(90deg,#5a4d9a,#55569e,#476fab,#3198bf,#23b4cd);font-size:0;line-height:0;\u0027\u003e\u0026nbsp;\u003c/td\u003e\u003c/tr\u003e\n\u003ctr\u003e\u003ctd align=\u0027center\u0027 style=\u0027padding:40px 40px 0;\u0027\u003e\u003ch1 style=\u0027margin:0;font-family:Poppins,Segoe UI,Arial,sans-serif;font-size:20px;font-weight:700;color:#5a4d9a;\u0027\u003eSolicitud de firma electrÃƒÂ³nica\u003c/h1\u003e\u003c/td\u003e\u003c/tr\u003e\n\u003ctr\u003e\u003ctd style=\u0027padding:22px 44px 4px;font-family:Poppins,Segoe UI,Arial,sans-serif;font-size:15px;line-height:1.65;color:#3f3f55;\u0027\u003e${cuerpo}\u003c/td\u003e\u003c/tr\u003e\n\u003ctr\u003e\u003ctd align=\u0027center\u0027 style=\u0027padding:24px 40px 8px;\u0027\u003e\u003ctable role=\u0027presentation\u0027 cellpadding=\u00270\u0027 cellspacing=\u00270\u0027\u003e\u003ctr\u003e\u003ctd align=\u0027center\u0027 style=\u0027border-radius:10px;background:#476fab;background:linear-gradient(90deg,#5a4d9a,#476fab,#23b4cd);\u0027\u003e\u003ca href=\u0027${url}\u0027 target=\u0027_blank\u0027 style=\u0027display:inline-block;padding:14px 40px;font-family:Poppins,Segoe UI,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;\u0027\u003eFirmar documento\u003c/a\u003e\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e\u003c/td\u003e\u003c/tr\u003e\n\u003ctr\u003e\u003ctd align=\u0027center\u0027 style=\u0027padding:4px 44px 26px;font-family:Poppins,Segoe UI,Arial,sans-serif;font-size:12px;line-height:1.5;color:#9aa0b4;\u0027\u003eSi el botÃƒÂ³n no funciona, copia y pega este enlace en tu navegador:\u003cbr\u003e\u003ca href=\u0027${url}\u0027 target=\u0027_blank\u0027 style=\u0027color:#3198bf;word-break:break-all;\u0027\u003e${url}\u003c/a\u003e\u003c/td\u003e\u003c/tr\u003e\n\u003ctr\u003e\u003ctd style=\u0027padding:20px 40px;background:#f7f8fc;border-top:1px solid #ecedf4;font-family:Poppins,Segoe UI,Arial,sans-serif;font-size:12px;line-height:1.6;color:#9aa0b4;text-align:center;\u0027\u003e\u003cstrong style=\u0027color:#5a4d9a;\u0027\u003eSg Tech\u003c/strong\u003e Ã‚Â· Departamento de Recursos Humanos\u003c/td\u003e\u003c/tr\u003e\n\u003c/table\u003e\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e\u003c/body\u003e\u003c/html\u003e`;\nconst doble = trg.modo_firmantes === \u0027doble\u0027;\nconst destinatarios = [{ sendTo: trg.email_trabajador, url: urls[0] || \u0027\u0027 }];\nif (doble \u0026\u0026 trg.email_segundo_firmante) {\n  destinatarios.push({ sendTo: trg.email_segundo_firmante, url: urls[1] || \u0027\u0027 });\n}\nreturn destinatarios\n  .filter((d) =\u003e d.sendTo)\n  .map((d) =\u003e ({ json: { html: buildHtml(d.url), asunto: \u0027Solicitud de firma: \u0027 + docName, sendTo: d.sendTo } }));"
+                                     },
+                      "id":  "7d98fbac-804d-4d32-ac67-87a64753104a",
+                      "name":  "Code: Armar correo HTML",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       -1296,
+                                       4480
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "toRecipients":  "={{ $json.sendTo }}",
+                                         "subject":  "={{ $json.asunto }}",
+                                         "bodyContent":  "={{ $json.html }}",
+                                         "additionalFields":  {
+                                                                  "bodyContentType":  "html"
+                                                              }
+                                     },
+                      "id":  "cdc53f75-47c5-4a0f-9aa4-7c000d835f92",
+                      "name":  "Outlook: Enviar correo al firmante",
+                      "type":  "n8n-nodes-base.microsoftOutlook",
+                      "typeVersion":  2,
+                      "position":  [
+                                       -1088,
+                                       4560
+                                   ],
+                      "webhookId":  "5e26ace7-e4d5-45da-b26e-79481648f2fa",
+                      "credentials":  {
+                                          "microsoftOutlookOAuth2Api":  {
+                                                                            "id":  "f9KWfji5UkN6yYLM",
+                                                                            "name":  "Microsoft Outlook account"
+                                                                        }
+                                      },
+                      "onError":  "continueErrorOutput"
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "=https://app.sinatura.es/resources/api/signature-job/external/cancel/{{ $(\u0027HTTP: Crear firma en Sinatura\u0027).first().json.newSignatureJob }}",
+                                         "authentication":  "genericCredentialType",
+                                         "genericAuthType":  "httpHeaderAuth",
+                                         "options":  {
+                                                         "timeout":  30000
+                                                     }
+                                     },
+                      "id":  "8466039e-4cf7-4d61-9ea8-51a798bdaed9",
+                      "name":  "HTTP: Rollback Sinatura (correo fallÃƒÂ³)",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "retryOnFail":  true,
+                      "maxTries":  3,
+                      "waitBetweenTries":  1500,
+                      "position":  [
+                                       -800,
+                                       4624
+                                   ],
+                      "credentials":  {
+                                          "httpHeaderAuth":  {
+                                                                 "id":  "AKk8G6auOQR3kHAE",
+                                                                 "name":  "Sinatura Api"
+                                                             }
+                                      },
+                      "onError":  "continueRegularOutput"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "-- Rollback del envÃƒÂ­o fallido: el correo no llegÃƒÂ³ al firmante, asÃƒÂ­ que volvemos\n-- la firma a PENDIENTE_ENVIO (borrador) para que un nuevo intento de Enviar arranque limpio.\n-- sinatura_id se borra (el job acaba de cancelarse arriba, ya no es referenciable).\n-- fecha_envio se borra (el envÃƒÂ­o real no se completÃƒÂ³). motivo deja constancia para diagnÃƒÂ³stico.\nUPDATE firma SET\n  estado = \u0027PENDIENTE_ENVIO\u0027,\n  sinatura_id = NULL,\n  fecha_envio = NULL,\n  motivo = \u0027Error al enviar el correo de firma\u0027,\n  updated_at = NOW()\nWHERE id_documento = $1\nRETURNING id, id_documento, estado;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ [ $(\u0027Execute Workflow Trigger\u0027).first().json.body.firmaData.doc_id ] }}"
+                                                     }
+                                     },
+                      "id":  "09dfc0e2-eb68-4e76-9ae1-fca2abb380e4",
+                      "name":  "SQL: Rollback a PENDIENTE_ENVIO",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       -576,
+                                       4624
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "errorMessage":  "=No se pudo enviar el correo al firmante. La firma ha vuelto a PENDIENTE_ENVIO para que reintentes. Detalle: {{ ($(\u0027Outlook: Enviar correo al firmante\u0027).first().json.error || {}).message || \u0027sin detalles\u0027 }}"
+                                     },
+                      "id":  "c39b8aba-5071-4e0c-9f02-9b64fc59dc50",
+                      "name":  "Error: Correo no se pudo enviar",
+                      "type":  "n8n-nodes-base.stopAndError",
+                      "typeVersion":  1,
+                      "position":  [
+                                       -320,
+                                       4640
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "-- Lee el sinatura_id para poder cancelar el trabajo en Sinatura.\nSELECT sinatura_id FROM firma WHERE id_documento = $1;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ [ ($json.body.firmaData||{}).doc_id ] }}"
+                                                     }
+                                     },
+                      "id":  "48214a15-4858-4b69-aad7-d82e36522802",
+                      "name":  "SQL: Leer sinatura_id",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       -2144,
+                                       5008
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "=https://app.sinatura.es/resources/api/signature-job/external/cancel/{{ $json.sinatura_id }}",
+                                         "authentication":  "genericCredentialType",
+                                         "genericAuthType":  "httpHeaderAuth",
+                                         "options":  {
+                                                         "timeout":  30000
+                                                     }
+                                     },
+                      "id":  "253b66de-db32-44dd-9568-7534691a94dc",
+                      "name":  "HTTP: Cancelar en Sinatura",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "retryOnFail":  true,
+                      "maxTries":  3,
+                      "waitBetweenTries":  1500,
+                      "position":  [
+                                       -1904,
+                                       5008
+                                   ],
+                      "credentials":  {
+                                          "httpHeaderAuth":  {
+                                                                 "id":  "AKk8G6auOQR3kHAE",
+                                                                 "name":  "Sinatura Api"
+                                                             }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "-- Marca la firma como CANCELADO tras revocarla en Sinatura.\nUPDATE firma SET\n  estado = \u0027CANCELADO\u0027,\n  motivo = COALESCE($2, \u0027Cancelado por RRHH\u0027),\n  updated_at = NOW()\nWHERE id_documento = $1\nRETURNING id, id_documento, estado;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ [ $(\u0027Execute Workflow Trigger\u0027).first().json.body.firmaData.doc_id, ($(\u0027Execute Workflow Trigger\u0027).first().json.body.firmaData.motivo) || null ] }}"
+                                                     }
+                                     },
+                      "id":  "d13cfbe6-013a-4735-ad22-a1e8e56079d8",
+                      "name":  "SQL: Marcar CANCELADO",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       -1664,
+                                       5008
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "-- FASE 3 (sincronizar): lee el sinatura_id para consultar el estado en Sinatura.\nSELECT sinatura_id FROM firma WHERE id_documento = $1;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ [ ($json.body.firmaData||{}).doc_id ] }}"
+                                                     }
+                                     },
+                      "id":  "559b7fe8-3267-4e90-816a-27c01faa1b4b",
+                      "name":  "SQL: Leer firma a sincronizar",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       -2144,
+                                       5360
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "=https://app.sinatura.es/resources/api/signature-job/external/status/{{ $json.sinatura_id }}",
+                                         "authentication":  "genericCredentialType",
+                                         "genericAuthType":  "httpHeaderAuth",
+                                         "options":  {
+                                                         "timeout":  30000
+                                                     }
+                                     },
+                      "id":  "cb462022-9f31-42ce-a487-5518f89ee9b6",
+                      "name":  "HTTP: Consultar estado en Sinatura",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "retryOnFail":  true,
+                      "maxTries":  3,
+                      "waitBetweenTries":  1500,
+                      "position":  [
+                                       -1904,
+                                       5360
+                                   ],
+                      "credentials":  {
+                                          "httpHeaderAuth":  {
+                                                                 "id":  "AKk8G6auOQR3kHAE",
+                                                                 "name":  "Sinatura Api"
+                                                             }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "// Mapea el estado de Sinatura a nuestro estado interno y deduce quÃƒÂ© firmas se hicieron.\n// signaturaStatus principal: Ready | Signing | Completed | Expired | Declined | Error | Deleted | Cancelled\n// signerStatusList: estado por firmante (el [0] es el trabajador, el [1] el 2.Ã‚Âº firmante/RRHH).\nconst r = $json || {};\nconst st = r.signaturaStatus;\nconst signers = r.signerStatusList || [];\nconst trabajadorFirmado = !!(signers[0] \u0026\u0026 signers[0].signaturaStatus === \u0027Completed\u0027);\nconst rrhhFirmado = !!(signers[1] \u0026\u0026 signers[1].signaturaStatus === \u0027Completed\u0027);\n\nlet nuevoEstado = \u0027EN_SINATURA\u0027;\nlet motivo = null;\nlet completado = false;\nswitch (st) {\n  case \u0027Completed\u0027: nuevoEstado = \u0027COMPLETADO\u0027; completado = true; break;\n  case \u0027Signing\u0027:\n  case \u0027Ready\u0027:     nuevoEstado = \u0027EN_SINATURA\u0027; break;\n  case \u0027Declined\u0027:  nuevoEstado = \u0027RECHAZADO\u0027; motivo = \u0027Rechazado por el firmante\u0027; break;\n  case \u0027Expired\u0027:   nuevoEstado = \u0027CANCELADO\u0027; motivo = \u0027El enlace de firma caducÃƒÂ³\u0027; break;\n  case \u0027Cancelled\u0027: nuevoEstado = \u0027CANCELADO\u0027; motivo = \u0027Cancelado en Sinatura\u0027; break;\n  case \u0027Deleted\u0027:   nuevoEstado = \u0027CANCELADO\u0027; motivo = \u0027Eliminado en Sinatura\u0027; break;\n  case \u0027Error\u0027:     nuevoEstado = \u0027CANCELADO\u0027; motivo = \u0027Error en el proceso de firma\u0027; break;\n  default:          nuevoEstado = \u0027EN_SINATURA\u0027;\n}\nreturn [{ json: { nuevoEstado, completado, motivo, trabajadorFirmado, rrhhFirmado } }];"
+                                     },
+                      "id":  "16f0d2a2-2d1f-4713-b260-951d909a89ae",
+                      "name":  "Code: Mapear estado",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       -1664,
+                                       5360
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  2
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "es-completado",
+                                                                                   "leftValue":  "={{ $json.completado }}",
+                                                                                   "rightValue":  true,
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "true",
+                                                                                                    "singleValue":  true
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "cb22417c-0db0-4cba-abd5-b86c4061f487",
+                      "name":  "IF: Ã‚Â¿Completado?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.2,
+                      "position":  [
+                                       -1440,
+                                       5360
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "=https://app.sinatura.es/resources/api/signature-job/download/{{ $(\u0027SQL: Leer firma a sincronizar\u0027).first().json.sinatura_id }}",
+                                         "authentication":  "genericCredentialType",
+                                         "genericAuthType":  "httpHeaderAuth",
+                                         "options":  {
+                                                         "timeout":  30000
+                                                     }
+                                     },
+                      "id":  "7f532b75-687a-4eea-be60-26f45bd88448",
+                      "name":  "HTTP: Descargar firmado",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "retryOnFail":  true,
+                      "maxTries":  3,
+                      "waitBetweenTries":  1500,
+                      "position":  [
+                                       -1200,
+                                       5264
+                                   ],
+                      "credentials":  {
+                                          "httpHeaderAuth":  {
+                                                                 "id":  "AKk8G6auOQR3kHAE",
+                                                                 "name":  "Sinatura Api"
+                                                             }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "-- Documento firmado: reemplaza el contenido por el PDF firmado que devuelve Sinatura\n-- (documentContent, base64) y marca la firma como COMPLETADO con sus fechas.\nWITH arch AS (\n  UPDATE documento_archivo SET contenido_b64 = $2, updated_at = NOW()\n  WHERE id_documento = $1\n  RETURNING id_documento\n)\nUPDATE firma SET\n  estado = \u0027COMPLETADO\u0027,\n  fecha_firma_trabajador = COALESCE(fecha_firma_trabajador, NOW()),\n  fecha_firma_rrhh = CASE WHEN requiere_firma_rrhh THEN COALESCE(fecha_firma_rrhh, NOW()) ELSE fecha_firma_rrhh END,\n  fecha_completado = NOW(),\n  motivo = NULL,\n  updated_at = NOW()\nWHERE id_documento = $1\nRETURNING id, id_documento, estado;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ [ $(\u0027Execute Workflow Trigger\u0027).first().json.body.firmaData.doc_id, $json.documentContent ] }}"
+                                                     }
+                                     },
+                      "id":  "51123db9-5090-414d-a7ac-a308eee9dabd",
+                      "name":  "SQL: Guardar firmado (COMPLETADO)",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       -960,
+                                       5264
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "-- AÃƒÂºn no completado: actualiza el estado (EN_SINATURA / RECHAZADO / CANCELADO) y, si\n-- algÃƒÂºn firmante ya firmÃƒÂ³, registra su fecha (aproximada al momento de la sincronizaciÃƒÂ³n).\nUPDATE firma SET\n  estado = $2,\n  motivo = $3,\n  fecha_firma_trabajador = CASE WHEN $4 THEN COALESCE(fecha_firma_trabajador, NOW()) ELSE fecha_firma_trabajador END,\n  fecha_firma_rrhh = CASE WHEN $5 THEN COALESCE(fecha_firma_rrhh, NOW()) ELSE fecha_firma_rrhh END,\n  updated_at = NOW()\nWHERE id_documento = $1\nRETURNING id, id_documento, estado;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ [ $(\u0027Execute Workflow Trigger\u0027).first().json.body.firmaData.doc_id, $json.nuevoEstado, $json.motivo, $json.trabajadorFirmado, $json.rrhhFirmado ] }}"
+                                                     }
+                                     },
+                      "id":  "0e644999-1d8c-4c10-a5f5-c34aa6de4435",
+                      "name":  "SQL: Actualizar estado firma",
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       -1200,
+                                       5440
+                                   ],
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "7v6Z8GCo9JeoSxsQ",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
                   }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "sincronizar"
-            }
-          ]
-        },
-        "options": {
-          "fallbackOutput": "none"
-        }
-      },
-      "id": "b1d74ecc-91a6-4898-948d-86c07a54d2c9",
-      "name": "Switch Sub-Action",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        -2384,
-        5008
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "-- Lee lo necesario para enviar a firma: el PDF (base64), el nombre del fichero y\n-- los datos del trabajador (firmante principal). El doc_id llega en body.firmaData.doc_id.\nSELECT\n  da.contenido_b64,\n  d.nombre_fichero,\n  t.nombre,\n  t.primer_apellido,\n  COALESCE(t.segundo_apellido, '') AS segundo_apellido,\n  COALESCE(t.dni_nif_pasaporte, '') AS dni\nFROM documento d\nJOIN documento_archivo da ON da.id_documento = d.id\nJOIN trabajador t ON t.id = d.id_trabajador\nWHERE d.id = $1;",
-        "options": {
-          "queryReplacement": "={{ [ ($json.body.firmaData||{}).doc_id ] }}"
-        }
-      },
-      "id": "e88093e2-b7b3-4b3a-a34e-97aed88aa5f2",
-      "name": "SQL: Leer datos del envío",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -2144,
-        4640
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Arma el cuerpo JSON que espera Sinatura para crear el trabajo de firma.\n// Combina los datos del documento/trabajador (SQL anterior) con la config del envío (body.firmaData).\nconst row = $json;\nconst fd = $('Execute Workflow Trigger').first().json.body.firmaData || {};\nconst doble = fd.modo_firmantes === 'doble';\n\nconst signers = [{\n  email: fd.email_trabajador,\n  name: row.nombre || 'Trabajador',\n  surname: ((row.primer_apellido || '') + ' ' + (row.segundo_apellido || '')).trim() || '-',\n  numberID: row.dni || ''\n}];\nif (doble && fd.email_segundo_firmante) {\n  signers.push({ email: fd.email_segundo_firmante, name: 'Recursos Humanos', surname: 'Empresa', numberID: '' });\n}\n\n// Email del firmante segun el rol del cuadrito ('rrhh' -> 2.o firmante; resto -> trabajador).\nconst emailDe = (rol) => (rol === 'rrhh' ? fd.email_segundo_firmante : fd.email_trabajador);\n\n// POSICIONES DE FIRMA.\n// 1) Si el usuario las ubico en el editor visual (fd.posiciones), usamos esas: cada cuadrito\n//    es una entrada de signatureSettings (se permiten varias por firmante). page es 1-indexado;\n//    xo/yo/width/height ya vienen en % (0-90 / 5-100) acotados.\n// 2) Si no vienen, respaldo: una firma por firmante al pie de la ULTIMA pagina.\nlet signatureSettings = [];\nif (Array.isArray(fd.posiciones) && fd.posiciones.length) {\n  signatureSettings = fd.posiciones\n    .filter(p => p && (p.rol !== 'rrhh' || (doble && fd.email_segundo_firmante)))\n    .map(p => ({\n      signerEmail: emailDe(p.rol),\n      page: p.page,\n      xo: p.xo,\n      yo: p.yo,\n      width: p.width,\n      height: p.height,\n    }));\n}\nif (!signatureSettings.length) {\n  // Respaldo por coordenadas. Sinatura: page es 1-indexado (1=primera, 0=TODAS).\n  const pdfBin = Buffer.from(row.contenido_b64 || '', 'base64').toString('latin1');\n  const counts = (pdfBin.match(/\\/Count\\s+(\\d+)/g) || []).map(s => parseInt(s.replace(/\\D/g, ''), 10));\n  const ultimaPagina = counts.length ? Math.max(...counts) : 1;\n  signatureSettings = [\n    { signerEmail: fd.email_trabajador, page: ultimaPagina, xo: 52, yo: 78, width: 20, height: 9 }\n  ];\n  if (doble && fd.email_segundo_firmante) {\n    signatureSettings.push({ signerEmail: fd.email_segundo_firmante, page: ultimaPagina, xo: 8, yo: 78, width: 20, height: 9 });\n  }\n}\n\nconst exp = new Date();\nexp.setDate(exp.getDate() + 7); // caduca en 7 dias\n\nconst sinaturaBody = {\n  document: row.contenido_b64,\n  documentName: row.nombre_fichero || 'documento.pdf',\n  description: 'Firma de documento de trabajador',\n  signatureType: 'STANDARD',\n  skipSignerMail: true,\n  signers,\n  signatureSettings,\n  SignatureExpiryDate: exp.toISOString().slice(0, 10)\n};\n\nreturn [{ json: { sinaturaBody } }];"
-      },
-      "id": "0fd3716e-c1ce-4177-bf09-984bb26578f5",
-      "name": "Code: Armar petición Sinatura",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1920,
-        4640
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://app.sinatura.es/resources/api/signature-job/external/create",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json.sinaturaBody) }}",
-        "options": {
-          "timeout": 30000
-        }
-      },
-      "id": "cf661523-6847-48bf-b1de-029d54829fe9",
-      "name": "HTTP: Crear firma en Sinatura",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 1500,
-      "position": [
-        -1680,
-        4640
-      ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "AKk8G6auOQR3kHAE",
-          "name": "Sinatura Api"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "-- Guarda el resultado del envío: pasa a EN_SINATURA y persiste el sinatura_id\n-- (newSignatureJob de la respuesta) para poder consultar/cancelar/descargar después.\n-- Resetea las marcas del ciclo anterior (firmas previas, completado, motivo) para que\n-- un re-envío tras RECHAZADO o CANCELADO arranque visualmente como un primer envío.\n-- created_at se conserva: es la auditoría original de cuándo se creó la firma.\nUPDATE firma SET\n  estado = 'EN_SINATURA',\n  sinatura_id = $2,\n  requiere_firma_rrhh = $3,\n  email_segundo_firmante = $4,\n  fecha_envio = NOW(),\n  fecha_firma_trabajador = NULL,\n  fecha_firma_rrhh = NULL,\n  fecha_completado = NULL,\n  motivo = NULL,\n  updated_at = NOW()\nWHERE id_documento = $1\nRETURNING id, id_documento, estado, sinatura_id;",
-        "options": {
-          "queryReplacement": "={{ [ $('Execute Workflow Trigger').first().json.body.firmaData.doc_id, String($json.newSignatureJob), $('Execute Workflow Trigger').first().json.body.firmaData.modo_firmantes === 'doble', ($('Execute Workflow Trigger').first().json.body.firmaData.modo_firmantes === 'doble' ? ($('Execute Workflow Trigger').first().json.body.firmaData.email_segundo_firmante || null) : null) ] }}"
-        }
-      },
-      "id": "12d79fd1-12ca-47cb-b5d1-a8ce16fd2a77",
-      "name": "SQL: Marcar EN_SINATURA",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -1440,
-        4640
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Construye el/los correo(s) HTML de Sg Tech: el sobre (logo, colores, boton, pie) lo define este\n// template; el contenido es el texto editable del modal (mensaje_correo).\n// Con doble firmante emite UN item por persona y el nodo Outlook envia un correo por item:\n//   trabajador -> signatureJobURLs[0]   |   RRHH (2do firmante) -> signatureJobURLs[1]\nconst trg = $('Execute Workflow Trigger').first().json.body.firmaData || {};\nconst mensaje = trg.mensaje_correo || 'Tienes un documento pendiente de firma.';\nconst docName = ($('Code: Armar petición Sinatura').first().json.sinaturaBody || {}).documentName || 'documento';\nconst urls = $('HTTP: Crear firma en Sinatura').first().json.signatureJobURLs || [];\nconst esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst cuerpo = esc(mensaje).replace(/\\n/g, '<br>');\nconst buildHtml = (url) => `<!DOCTYPE html>\n<html lang='es'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'>\n<style>@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');</style></head>\n<body style='margin:0;padding:0;background:#f4f5f9;font-family:Poppins,Segoe UI,Arial,sans-serif;'>\n<table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background:#f4f5f9;padding:32px 0;'><tr><td align='center'>\n<table role='presentation' width='600' cellpadding='0' cellspacing='0' style='width:600px;max-width:600px;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(40,40,90,0.10);'>\n<tr><td style='height:6px;background:linear-gradient(90deg,#5a4d9a,#55569e,#476fab,#3198bf,#23b4cd);font-size:0;line-height:0;'>&nbsp;</td></tr>\n<tr><td align='center' style='padding:40px 40px 0;'><h1 style='margin:0;font-family:Poppins,Segoe UI,Arial,sans-serif;font-size:20px;font-weight:700;color:#5a4d9a;'>Solicitud de firma electrónica</h1></td></tr>\n<tr><td style='padding:22px 44px 4px;font-family:Poppins,Segoe UI,Arial,sans-serif;font-size:15px;line-height:1.65;color:#3f3f55;'>${cuerpo}</td></tr>\n<tr><td align='center' style='padding:24px 40px 8px;'><table role='presentation' cellpadding='0' cellspacing='0'><tr><td align='center' style='border-radius:10px;background:#476fab;background:linear-gradient(90deg,#5a4d9a,#476fab,#23b4cd);'><a href='${url}' target='_blank' style='display:inline-block;padding:14px 40px;font-family:Poppins,Segoe UI,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;'>Firmar documento</a></td></tr></table></td></tr>\n<tr><td align='center' style='padding:4px 44px 26px;font-family:Poppins,Segoe UI,Arial,sans-serif;font-size:12px;line-height:1.5;color:#9aa0b4;'>Si el botón no funciona, copia y pega este enlace en tu navegador:<br><a href='${url}' target='_blank' style='color:#3198bf;word-break:break-all;'>${url}</a></td></tr>\n<tr><td style='padding:20px 40px;background:#f7f8fc;border-top:1px solid #ecedf4;font-family:Poppins,Segoe UI,Arial,sans-serif;font-size:12px;line-height:1.6;color:#9aa0b4;text-align:center;'><strong style='color:#5a4d9a;'>Sg Tech</strong> · Departamento de Recursos Humanos</td></tr>\n</table></td></tr></table></body></html>`;\nconst doble = trg.modo_firmantes === 'doble';\nconst destinatarios = [{ sendTo: trg.email_trabajador, url: urls[0] || '' }];\nif (doble && trg.email_segundo_firmante) {\n  destinatarios.push({ sendTo: trg.email_segundo_firmante, url: urls[1] || '' });\n}\nreturn destinatarios\n  .filter((d) => d.sendTo)\n  .map((d) => ({ json: { html: buildHtml(d.url), asunto: 'Solicitud de firma: ' + docName, sendTo: d.sendTo } }));"
-      },
-      "id": "7d98fbac-804d-4d32-ac67-87a64753104a",
-      "name": "Code: Armar correo HTML",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1296,
-        4480
-      ]
-    },
-    {
-      "parameters": {
-        "toRecipients": "={{ $json.sendTo }}",
-        "subject": "={{ $json.asunto }}",
-        "bodyContent": "={{ $json.html }}",
-        "additionalFields": {
-          "bodyContentType": "html"
-        }
-      },
-      "id": "cdc53f75-47c5-4a0f-9aa4-7c000d835f92",
-      "name": "Outlook: Enviar correo al firmante",
-      "type": "n8n-nodes-base.microsoftOutlook",
-      "typeVersion": 2,
-      "position": [
-        -1088,
-        4560
-      ],
-      "webhookId": "5e26ace7-e4d5-45da-b26e-79481648f2fa",
-      "credentials": {
-        "microsoftOutlookOAuth2Api": {
-          "id": "f9KWfji5UkN6yYLM",
-          "name": "Microsoft Outlook account"
-        }
-      },
-      "onError": "continueErrorOutput"
-    },
-    {
-      "parameters": {
-        "url": "=https://app.sinatura.es/resources/api/signature-job/external/cancel/{{ $('HTTP: Crear firma en Sinatura').first().json.newSignatureJob }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {
-          "timeout": 30000
-        }
-      },
-      "id": "8466039e-4cf7-4d61-9ea8-51a798bdaed9",
-      "name": "HTTP: Rollback Sinatura (correo falló)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 1500,
-      "position": [
-        -800,
-        4624
-      ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "AKk8G6auOQR3kHAE",
-          "name": "Sinatura Api"
-        }
-      },
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "-- Rollback del envío fallido: el correo no llegó al firmante, así que volvemos\n-- la firma a PENDIENTE_ENVIO (borrador) para que un nuevo intento de Enviar arranque limpio.\n-- sinatura_id se borra (el job acaba de cancelarse arriba, ya no es referenciable).\n-- fecha_envio se borra (el envío real no se completó). motivo deja constancia para diagnóstico.\nUPDATE firma SET\n  estado = 'PENDIENTE_ENVIO',\n  sinatura_id = NULL,\n  fecha_envio = NULL,\n  motivo = 'Error al enviar el correo de firma',\n  updated_at = NOW()\nWHERE id_documento = $1\nRETURNING id, id_documento, estado;",
-        "options": {
-          "queryReplacement": "={{ [ $('Execute Workflow Trigger').first().json.body.firmaData.doc_id ] }}"
-        }
-      },
-      "id": "09dfc0e2-eb68-4e76-9ae1-fca2abb380e4",
-      "name": "SQL: Rollback a PENDIENTE_ENVIO",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -576,
-        4624
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "errorMessage": "=No se pudo enviar el correo al firmante. La firma ha vuelto a PENDIENTE_ENVIO para que reintentes. Detalle: {{ ($('Outlook: Enviar correo al firmante').first().json.error || {}).message || 'sin detalles' }}"
-      },
-      "id": "c39b8aba-5071-4e0c-9f02-9b64fc59dc50",
-      "name": "Error: Correo no se pudo enviar",
-      "type": "n8n-nodes-base.stopAndError",
-      "typeVersion": 1,
-      "position": [
-        -320,
-        4640
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "-- Lee el sinatura_id para poder cancelar el trabajo en Sinatura.\nSELECT sinatura_id FROM firma WHERE id_documento = $1;",
-        "options": {
-          "queryReplacement": "={{ [ ($json.body.firmaData||{}).doc_id ] }}"
-        }
-      },
-      "id": "48214a15-4858-4b69-aad7-d82e36522802",
-      "name": "SQL: Leer sinatura_id",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -2144,
-        5008
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "=https://app.sinatura.es/resources/api/signature-job/external/cancel/{{ $json.sinatura_id }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {
-          "timeout": 30000
-        }
-      },
-      "id": "253b66de-db32-44dd-9568-7534691a94dc",
-      "name": "HTTP: Cancelar en Sinatura",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 1500,
-      "position": [
-        -1904,
-        5008
-      ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "AKk8G6auOQR3kHAE",
-          "name": "Sinatura Api"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "-- Marca la firma como CANCELADO tras revocarla en Sinatura.\nUPDATE firma SET\n  estado = 'CANCELADO',\n  motivo = COALESCE($2, 'Cancelado por RRHH'),\n  updated_at = NOW()\nWHERE id_documento = $1\nRETURNING id, id_documento, estado;",
-        "options": {
-          "queryReplacement": "={{ [ $('Execute Workflow Trigger').first().json.body.firmaData.doc_id, ($('Execute Workflow Trigger').first().json.body.firmaData.motivo) || null ] }}"
-        }
-      },
-      "id": "d13cfbe6-013a-4735-ad22-a1e8e56079d8",
-      "name": "SQL: Marcar CANCELADO",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -1664,
-        5008
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "-- FASE 3 (sincronizar): lee el sinatura_id para consultar el estado en Sinatura.\nSELECT sinatura_id FROM firma WHERE id_documento = $1;",
-        "options": {
-          "queryReplacement": "={{ [ ($json.body.firmaData||{}).doc_id ] }}"
-        }
-      },
-      "id": "559b7fe8-3267-4e90-816a-27c01faa1b4b",
-      "name": "SQL: Leer firma a sincronizar",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -2144,
-        5360
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "=https://app.sinatura.es/resources/api/signature-job/external/status/{{ $json.sinatura_id }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {
-          "timeout": 30000
-        }
-      },
-      "id": "cb462022-9f31-42ce-a487-5518f89ee9b6",
-      "name": "HTTP: Consultar estado en Sinatura",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 1500,
-      "position": [
-        -1904,
-        5360
-      ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "AKk8G6auOQR3kHAE",
-          "name": "Sinatura Api"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Mapea el estado de Sinatura a nuestro estado interno y deduce qué firmas se hicieron.\n// signaturaStatus principal: Ready | Signing | Completed | Expired | Declined | Error | Deleted | Cancelled\n// signerStatusList: estado por firmante (el [0] es el trabajador, el [1] el 2.º firmante/RRHH).\nconst r = $json || {};\nconst st = r.signaturaStatus;\nconst signers = r.signerStatusList || [];\nconst trabajadorFirmado = !!(signers[0] && signers[0].signaturaStatus === 'Completed');\nconst rrhhFirmado = !!(signers[1] && signers[1].signaturaStatus === 'Completed');\n\nlet nuevoEstado = 'EN_SINATURA';\nlet motivo = null;\nlet completado = false;\nswitch (st) {\n  case 'Completed': nuevoEstado = 'COMPLETADO'; completado = true; break;\n  case 'Signing':\n  case 'Ready':     nuevoEstado = 'EN_SINATURA'; break;\n  case 'Declined':  nuevoEstado = 'RECHAZADO'; motivo = 'Rechazado por el firmante'; break;\n  case 'Expired':   nuevoEstado = 'CANCELADO'; motivo = 'El enlace de firma caducó'; break;\n  case 'Cancelled': nuevoEstado = 'CANCELADO'; motivo = 'Cancelado en Sinatura'; break;\n  case 'Deleted':   nuevoEstado = 'CANCELADO'; motivo = 'Eliminado en Sinatura'; break;\n  case 'Error':     nuevoEstado = 'CANCELADO'; motivo = 'Error en el proceso de firma'; break;\n  default:          nuevoEstado = 'EN_SINATURA';\n}\nreturn [{ json: { nuevoEstado, completado, motivo, trabajadorFirmado, rrhhFirmado } }];"
-      },
-      "id": "16f0d2a2-2d1f-4713-b260-951d909a89ae",
-      "name": "Code: Mapear estado",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1664,
-        5360
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "es-completado",
-              "leftValue": "={{ $json.completado }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "cb22417c-0db0-4cba-abd5-b86c4061f487",
-      "name": "IF: ¿Completado?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -1440,
-        5360
-      ]
-    },
-    {
-      "parameters": {
-        "url": "=https://app.sinatura.es/resources/api/signature-job/download/{{ $('SQL: Leer firma a sincronizar').first().json.sinatura_id }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {
-          "timeout": 30000
-        }
-      },
-      "id": "7f532b75-687a-4eea-be60-26f45bd88448",
-      "name": "HTTP: Descargar firmado",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 1500,
-      "position": [
-        -1200,
-        5264
-      ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "AKk8G6auOQR3kHAE",
-          "name": "Sinatura Api"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "-- Documento firmado: reemplaza el contenido por el PDF firmado que devuelve Sinatura\n-- (documentContent, base64) y marca la firma como COMPLETADO con sus fechas.\nWITH arch AS (\n  UPDATE documento_archivo SET contenido_b64 = $2, updated_at = NOW()\n  WHERE id_documento = $1\n  RETURNING id_documento\n)\nUPDATE firma SET\n  estado = 'COMPLETADO',\n  fecha_firma_trabajador = COALESCE(fecha_firma_trabajador, NOW()),\n  fecha_firma_rrhh = CASE WHEN requiere_firma_rrhh THEN COALESCE(fecha_firma_rrhh, NOW()) ELSE fecha_firma_rrhh END,\n  fecha_completado = NOW(),\n  motivo = NULL,\n  updated_at = NOW()\nWHERE id_documento = $1\nRETURNING id, id_documento, estado;",
-        "options": {
-          "queryReplacement": "={{ [ $('Execute Workflow Trigger').first().json.body.firmaData.doc_id, $json.documentContent ] }}"
-        }
-      },
-      "id": "51123db9-5090-414d-a7ac-a308eee9dabd",
-      "name": "SQL: Guardar firmado (COMPLETADO)",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -960,
-        5264
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "-- Aún no completado: actualiza el estado (EN_SINATURA / RECHAZADO / CANCELADO) y, si\n-- algún firmante ya firmó, registra su fecha (aproximada al momento de la sincronización).\nUPDATE firma SET\n  estado = $2,\n  motivo = $3,\n  fecha_firma_trabajador = CASE WHEN $4 THEN COALESCE(fecha_firma_trabajador, NOW()) ELSE fecha_firma_trabajador END,\n  fecha_firma_rrhh = CASE WHEN $5 THEN COALESCE(fecha_firma_rrhh, NOW()) ELSE fecha_firma_rrhh END,\n  updated_at = NOW()\nWHERE id_documento = $1\nRETURNING id, id_documento, estado;",
-        "options": {
-          "queryReplacement": "={{ [ $('Execute Workflow Trigger').first().json.body.firmaData.doc_id, $json.nuevoEstado, $json.motivo, $json.trabajadorFirmado, $json.rrhhFirmado ] }}"
-        }
-      },
-      "id": "0e644999-1d8c-4c10-a5f5-c34aa6de4435",
-      "name": "SQL: Actualizar estado firma",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -1200,
-        5440
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "AUTOPOSTGRESCRED01",
-          "name": "Postgres account"
-        }
-      }
-    }
-  ],
-  "connections": {
-    "Execute Workflow Trigger": {
-      "main": [
-        [
-          {
-            "node": "Switch Sub-Action",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch Sub-Action": {
-      "main": [
-        [
-          {
-            "node": "SQL: Leer datos del envío",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "SQL: Leer sinatura_id",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "SQL: Leer firma a sincronizar",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "SQL: Leer datos del envío": {
-      "main": [
-        [
-          {
-            "node": "Code: Armar petición Sinatura",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code: Armar petición Sinatura": {
-      "main": [
-        [
-          {
-            "node": "HTTP: Crear firma en Sinatura",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP: Crear firma en Sinatura": {
-      "main": [
-        [
-          {
-            "node": "SQL: Marcar EN_SINATURA",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "SQL: Marcar EN_SINATURA": {
-      "main": [
-        [
-          {
-            "node": "Code: Armar correo HTML",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code: Armar correo HTML": {
-      "main": [
-        [
-          {
-            "node": "Outlook: Enviar correo al firmante",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Outlook: Enviar correo al firmante": {
-      "main": [
-        [],
-        [
-          {
-            "node": "HTTP: Rollback Sinatura (correo falló)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP: Rollback Sinatura (correo falló)": {
-      "main": [
-        [
-          {
-            "node": "SQL: Rollback a PENDIENTE_ENVIO",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "SQL: Rollback a PENDIENTE_ENVIO": {
-      "main": [
-        [
-          {
-            "node": "Error: Correo no se pudo enviar",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "SQL: Leer sinatura_id": {
-      "main": [
-        [
-          {
-            "node": "HTTP: Cancelar en Sinatura",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP: Cancelar en Sinatura": {
-      "main": [
-        [
-          {
-            "node": "SQL: Marcar CANCELADO",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "SQL: Leer firma a sincronizar": {
-      "main": [
-        [
-          {
-            "node": "HTTP: Consultar estado en Sinatura",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP: Consultar estado en Sinatura": {
-      "main": [
-        [
-          {
-            "node": "Code: Mapear estado",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code: Mapear estado": {
-      "main": [
-        [
-          {
-            "node": "IF: ¿Completado?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF: ¿Completado?": {
-      "main": [
-        [
-          {
-            "node": "HTTP: Descargar firmado",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "SQL: Actualizar estado firma",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP: Descargar firmado": {
-      "main": [
-        [
-          {
-            "node": "SQL: Guardar firmado (COMPLETADO)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "pinData": {
-    "Execute Workflow Trigger": [
-      {
-        "body": {
-          "action": "sincronizarFirma",
-          "firmaData": {
-            "doc_id": 43
-          }
-        }
-      }
-    ]
-  },
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "04ef1316631ad25151bd9872e1ab2ae90a1247075d8a98db4baa86e84aca6b57"
-  }
+              ],
+    "connections":  {
+                        "Execute Workflow Trigger":  {
+                                                         "main":  [
+                                                                      [
+                                                                          {
+                                                                              "node":  "Switch Sub-Action",
+                                                                              "type":  "main",
+                                                                              "index":  0
+                                                                          }
+                                                                      ]
+                                                                  ]
+                                                     },
+                        "Switch Sub-Action":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "node":  "SQL: Leer datos del envÃƒÂ­o",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ],
+                                                               [
+                                                                   {
+                                                                       "node":  "SQL: Leer sinatura_id",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ],
+                                                               [
+                                                                   {
+                                                                       "node":  "SQL: Leer firma a sincronizar",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ]
+                                                           ]
+                                              },
+                        "SQL: Leer datos del envÃƒÂ­o":  {
+                                                             "main":  [
+                                                                          [
+                                                                              {
+                                                                                  "node":  "Code: Armar peticiÃƒÂ³n Sinatura",
+                                                                                  "type":  "main",
+                                                                                  "index":  0
+                                                                              }
+                                                                          ]
+                                                                      ]
+                                                         },
+                        "Code: Armar peticiÃƒÂ³n Sinatura":  {
+                                                                 "main":  [
+                                                                              [
+                                                                                  {
+                                                                                      "node":  "HTTP: Crear firma en Sinatura",
+                                                                                      "type":  "main",
+                                                                                      "index":  0
+                                                                                  }
+                                                                              ]
+                                                                          ]
+                                                             },
+                        "HTTP: Crear firma en Sinatura":  {
+                                                              "main":  [
+                                                                           [
+                                                                               {
+                                                                                   "node":  "SQL: Marcar EN_SINATURA",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               }
+                                                                           ]
+                                                                       ]
+                                                          },
+                        "SQL: Marcar EN_SINATURA":  {
+                                                        "main":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "Code: Armar correo HTML",
+                                                                             "type":  "main",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                                    },
+                        "Code: Armar correo HTML":  {
+                                                        "main":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "Outlook: Enviar correo al firmante",
+                                                                             "type":  "main",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                                    },
+                        "Outlook: Enviar correo al firmante":  {
+                                                                   "main":  [
+                                                                                [
+
+                                                                                ],
+                                                                                [
+                                                                                    {
+                                                                                        "node":  "HTTP: Rollback Sinatura (correo fallÃƒÂ³)",
+                                                                                        "type":  "main",
+                                                                                        "index":  0
+                                                                                    }
+                                                                                ]
+                                                                            ]
+                                                               },
+                        "HTTP: Rollback Sinatura (correo fallÃƒÂ³)":  {
+                                                                          "main":  [
+                                                                                       [
+                                                                                           {
+                                                                                               "node":  "SQL: Rollback a PENDIENTE_ENVIO",
+                                                                                               "type":  "main",
+                                                                                               "index":  0
+                                                                                           }
+                                                                                       ]
+                                                                                   ]
+                                                                      },
+                        "SQL: Rollback a PENDIENTE_ENVIO":  {
+                                                                "main":  [
+                                                                             [
+                                                                                 {
+                                                                                     "node":  "Error: Correo no se pudo enviar",
+                                                                                     "type":  "main",
+                                                                                     "index":  0
+                                                                                 }
+                                                                             ]
+                                                                         ]
+                                                            },
+                        "SQL: Leer sinatura_id":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "HTTP: Cancelar en Sinatura",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "HTTP: Cancelar en Sinatura":  {
+                                                           "main":  [
+                                                                        [
+                                                                            {
+                                                                                "node":  "SQL: Marcar CANCELADO",
+                                                                                "type":  "main",
+                                                                                "index":  0
+                                                                            }
+                                                                        ]
+                                                                    ]
+                                                       },
+                        "SQL: Leer firma a sincronizar":  {
+                                                              "main":  [
+                                                                           [
+                                                                               {
+                                                                                   "node":  "HTTP: Consultar estado en Sinatura",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               }
+                                                                           ]
+                                                                       ]
+                                                          },
+                        "HTTP: Consultar estado en Sinatura":  {
+                                                                   "main":  [
+                                                                                [
+                                                                                    {
+                                                                                        "node":  "Code: Mapear estado",
+                                                                                        "type":  "main",
+                                                                                        "index":  0
+                                                                                    }
+                                                                                ]
+                                                                            ]
+                                                               },
+                        "Code: Mapear estado":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "IF: Ã‚Â¿Completado?",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "IF: Ã‚Â¿Completado?":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "HTTP: Descargar firmado",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ],
+                                                                 [
+                                                                     {
+                                                                         "node":  "SQL: Actualizar estado firma",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "HTTP: Descargar firmado":  {
+                                                        "main":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "SQL: Guardar firmado (COMPLETADO)",
+                                                                             "type":  "main",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                                    }
+                    },
+    "pinData":  {
+                    "Execute Workflow Trigger":  [
+                                                     {
+                                                         "body":  {
+                                                                      "action":  "sincronizarFirma",
+                                                                      "firmaData":  {
+                                                                                        "doc_id":  43
+                                                                                    }
+                                                                  }
+                                                     }
+                                                 ]
+                },
+    "meta":  {
+                 "templateCredsSetupCompleted":  true,
+                 "instanceId":  "04ef1316631ad25151bd9872e1ab2ae90a1247075d8a98db4baa86e84aca6b57"
+             },
+    "name":  "Firmas_Trabajador"
 }
