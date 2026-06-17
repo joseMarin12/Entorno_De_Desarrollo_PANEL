@@ -28,7 +28,7 @@ class AutenticadorController extends Controller
         try {
             // 2. Hacer la petición a tu webhook de n8n
             // (Asegúrate de reemplazar esta URL con tu enlace real de n8n)
-            $response = Http::post('https://n8n.tu-servidor.com/webhook/login', [
+            $response = Http::post('https://n8n.srv1128480.hstgr.cloud/webhook/login', [
                 'email'    => $request->email,
                 'password' => $request->password
             ]);
