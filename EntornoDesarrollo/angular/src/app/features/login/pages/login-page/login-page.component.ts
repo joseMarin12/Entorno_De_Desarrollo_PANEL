@@ -38,10 +38,11 @@ export class LoginPageComponent {
       next: (response) => {
         console.log('Respuesta del servidor:', response);
         
-        // Verificamos si la respuesta indica éxito
         if (response && response.success) {
+
+          sessionStorage.setItem('token', 'usuario_autenticado'); 
+          
           this.toastService.show('success', '¡Bienvenido!');
-          // Redirección exitosa
           this.router.navigate(['/usuarios']);
         } else {
           this.toastService.show('error', response.message || 'Credenciales incorrectas');
