@@ -7,11 +7,20 @@ export const autenticadorGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   const hasToken = !!sessionStorage.getItem('token');
+  const isAuthenticated = authService.isAuthenticated();
 
-  if (authService.isAuthenticated() && hasToken) {
+  // 🚀 LOGS DE DEPURACIÓN (Mira tu consola F12 al intentar entrar)
+  console.log('🔍 Guard Check:', { 
+    isAuthenticated, 
+    hasToken,
+    currentUser: authService.currentUser() // Para ver si realmente hay usuario cargado
+  });
+
+  if (isAuthenticated && hasToken) {
     return true;
   }
 
-  // Si no está autenticado, redirigir al login
+  // Si falla, el log nos dirá por qué
+  console.warn('🚫 Guard bloqueó el acceso. Redirigiendo a login.');
   return router.createUrlTree(['/login']);
 };
