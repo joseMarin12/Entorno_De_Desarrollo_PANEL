@@ -19,11 +19,11 @@ export const routes: Routes = [
   {
     path: 'change-password',
     component: ChangePasswordComponent,
-    canActivate: [autenticadorGuard, firstLoginGuard]
+    canActivate: [autenticadorGuard] // Solo necesita estar logueado
   },
   {
     path: '',
-    canActivate: [autenticadorGuard, firstLoginGuard],
+    canActivate: [autenticadorGuard], // ✅ Eliminado firstLoginGuard de aquí
     children: [
       { path: 'asignaciones', component: AsignacionesPageComponent },
       { path: 'comerciales', component: ComercialesPageComponent },
