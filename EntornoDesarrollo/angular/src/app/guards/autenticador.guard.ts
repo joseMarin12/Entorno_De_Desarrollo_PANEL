@@ -2,25 +2,17 @@ import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AutenticadorService } from '../services/autenticador.service';
 
-export const autenticadorGuard: CanActivateFn = (route, state) => {
+export const autenticadorGuard: CanActivateFn = () => {
   const authService = inject(AutenticadorService);
   const router = inject(Router);
 
+  // Verificamos si existe el token
   const hasToken = !!sessionStorage.getItem('token');
-  const isAuthenticated = authService.isAuthenticated();
 
-  // 🚀 LOGS DE DEPURACIÓN (Mira tu consola F12 al intentar entrar)
-  console.log('🔍 Guard Check:', { 
-    isAuthenticated, 
-    hasToken,
-    currentUser: authService.currentUser() // Para ver si realmente hay usuario cargado
-  });
-
-  if (isAuthenticated && hasToken) {
+  if (authService.isAuthenticated() && hasToken) {
     return true;
   }
 
-  // Si falla, el log nos dirá por qué
-  console.warn('🚫 Guard bloqueó el acceso. Redirigiendo a login.');
+  // Si falla, redirigimos al login sin logs de consola
   return router.createUrlTree(['/login']);
 };
