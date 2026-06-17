@@ -26,10 +26,19 @@ export class LoginPageComponent {
   loading = false;
 
   onSubmit(): void {
-    if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched();
-      return;
-    }
+    // ... (código existente)
+    this.authService.login({ email: email!, password: password! }).subscribe({
+      next: (response) => {
+        console.log('Respuesta del servidor:', response); // 👈 ¡AGREGA ESTO!
+        
+        if (response && response.success === true) { // 👈 Aseguramos que sea estrictamente true
+          this.toastService.show('success', '¡Bienvenido!');
+          this.router.navigate(['/usuarios']); 
+        } else {
+          this.toastService.show('error', response.message || 'Error desconocido');
+        }
+        this.loading = false;
+      },
 
     this.loading = true;
     const { email, password } = this.loginForm.getRawValue();
