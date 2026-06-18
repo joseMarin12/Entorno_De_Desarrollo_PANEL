@@ -7,7 +7,8 @@ import { TipoEmpresa } from '../models/tipo-empresa.model';
 
 @Injectable({ providedIn: 'root' })
 export class EmpresasApiService extends BaseCrud<Empresa> {
-  protected readonly API_URL = `${environment.apiUrl}/empresas`;
+  // CORRECCIÓN: Apuntamos directamente a la ruta que n8n generó en tu webhook de Cloud Run
+  protected readonly API_URL = `${environment.apiUrl}/webhook/gestion-seleccionadores`;
 
   findAll(searchText = '', status = '', tipo = '', page = 1, limit = 10): Observable<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }> {
     return this.http.post<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }>(this.API_URL, {
