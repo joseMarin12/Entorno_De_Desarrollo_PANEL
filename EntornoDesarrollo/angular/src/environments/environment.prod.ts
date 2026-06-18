@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://n8n.srv1128480.hstgr.cloud', // Tu n8n es tu única "API URL"
+  apiUrl: 'https://n8n.srv1128480.hstgr.cloud' // <-- Asegúrate de que tenga la comilla de cierre y la coma
 };
