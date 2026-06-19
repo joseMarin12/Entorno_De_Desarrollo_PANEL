@@ -11,28 +11,45 @@ use App\Http\Controllers\AsignacionController;
 use App\Http\Controllers\TrabajadorController;
 use App\Http\Controllers\AutenticadorController;
 
-// Manejo Global de CORS Options
+// 1. RESPUESTA GLOBAL A PETICIONES PREFLIGHT (OPTIONS) CON CABECERAS CORS
 Route::options('{any}', function () {
-    return response()->json([], 200);
+    return response()->json([], 200)
+        ->header('Access-Control-Allow-Origin', 'https://panel-frontend-1079064952465.us-central1.run.app')
+        ->header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, PUT, DELETE')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, Authorization, Accept, Origin');
 })->where('any', '.*');
 
 Route::post('/login', [AutenticadorController::class, 'login']);
 
 // =========================================================================
-// RUTAS LIBRES (Delegamos la validación del token al nodo IF de n8n)
+// RUTAS LIBRES CON CORS INYECTADO (Módulos conectados a n8n)
 // =========================================================================
 
-// SELECCIONADORES (Soporta /seleccionadores, /gestion-seleccionadores con o sin slash final)
-Route::post('/seleccionadores{slash?}', [SeleccionadorController::class, 'proxy'])->where('slash', '/?');
-Route::post('/gestion-seleccionadores{slash?}', [SeleccionadorController::class, 'proxy'])->where('slash', '/?');
+// Agrupamos en un sub-bloque que le pega las cabeceras CORS a cada respuesta exitosa
+Route::middleware(function ($request, $next) {
+    $response = $next($request);
+    
+    // Si la respuesta es un objeto de respuesta válido, le inyectamos el CORS
+    if (method_exists($response, 'header')) {
+        $response->header('Access-Control-Allow-Origin', 'https://panel-frontend-1079064952465.us-central1.run.app')
+                 ->header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+                 ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+    }
+    return $response;
+})->group(function () {
 
-// USUARIOS (Soporta /usuarios, /gestion-usuarios con o sin slash final)
-Route::post('/usuarios{slash?}', [UsuariosController::class, 'proxy'])->where('slash', '/?');
-Route::post('/gestion-usuarios{slash?}', [UsuariosController::class, 'proxy'])->where('slash', '/?');
+    // SELECCIONADORES
+    Route::post('/seleccionadores{slash?}', [SeleccionadorController::class, 'proxy'])->where('slash', '/?');
+    Route::post('/gestion-seleccionadores{slash?}', [SeleccionadorController::class, 'proxy'])->where('slash', '/?');
 
+    // USUARIOS
+    Route::post('/usuarios{slash?}', [UsuariosController::class, 'proxy'])->where('slash', '/?');
+    Route::post('/gestion-usuarios{slash?}', [UsuariosController::class, 'proxy'])->where('slash', '/?');
+
+});
 
 // =========================================================================
-// RUTAS PROTEGIDAS (Para el resto de módulos que sigan usando el JWT viejo)
+// RUTAS PROTEGIDAS (Para el resto de módulos con JWT viejo)
 // =========================================================================
 Route::middleware('verify.token')->group(function () {
     
