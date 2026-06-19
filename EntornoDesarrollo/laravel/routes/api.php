@@ -22,13 +22,13 @@ Route::post('/login', [AutenticadorController::class, 'login']);
 // RUTAS LIBRES (Delegamos la validación del token al nodo IF de n8n)
 // =========================================================================
 
-// SELECCIONADORES (Soporta la URL con y sin "gestion-")
-Route::post('/seleccionadores', [SeleccionadorController::class, 'proxy']);
-Route::post('/gestion-seleccionadores', [SeleccionadorController::class, 'proxy']);
+// SELECCIONADORES (Soporta /seleccionadores, /gestion-seleccionadores con o sin slash final)
+Route::post('/seleccionadores{slash?}', [SeleccionadorController::class, 'proxy'])->where('slash', '/?');
+Route::post('/gestion-seleccionadores{slash?}', [SeleccionadorController::class, 'proxy'])->where('slash', '/?');
 
-// USUARIOS (Soporta la URL con y sin "gestion-")
-Route::post('/usuarios', [UsuariosController::class, 'proxy']);
-Route::post('/gestion-usuarios', [UsuariosController::class, 'proxy']);
+// USUARIOS (Soporta /usuarios, /gestion-usuarios con o sin slash final)
+Route::post('/usuarios{slash?}', [UsuariosController::class, 'proxy'])->where('slash', '/?');
+Route::post('/gestion-usuarios{slash?}', [UsuariosController::class, 'proxy'])->where('slash', '/?');
 
 
 // =========================================================================
