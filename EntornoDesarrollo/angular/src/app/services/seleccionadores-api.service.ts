@@ -20,8 +20,8 @@ export interface SeleccionadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
-  // CORRECCIÓN: Volvemos a apuntar al endpoint local del API de Laravel (Proxy)
-  protected readonly API_URL = '/api/gestion-seleccionadores';
+  // CORRECCIÓN: Se añade el slash '/' al final para evitar que Nginx haga un redirect 301 (POST -> GET)
+  protected readonly API_URL = '/api/gestion-seleccionadores/';
 
   // Función interna para obtener y limpiar el JWT del localStorage
   private getOptionsWithAuth() {
