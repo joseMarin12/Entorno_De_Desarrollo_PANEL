@@ -3,7 +3,6 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Seleccionador } from '../models/seleccionador.model';
 import { BaseCrud } from './base.service';
-import { environment } from '../../environments/environment';
 
 export interface SeleccionadorStats {
   total: number;
@@ -20,7 +19,8 @@ export interface SeleccionadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
-  protected readonly API_URL = `${environment.apiUrl}/seleccionadores`;
+  // SOLUCIÓN: Forzamos la URL directa de n8n para que no interfiera con el login global
+  protected readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-seleccionadores';
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<SeleccionadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
@@ -28,7 +28,6 @@ export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
     }).pipe(map(res => {
       const raw = res.data ?? [];
 
-      
       if (raw.length === 0) {
         return { 
           data: [], 
@@ -37,7 +36,6 @@ export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
         };
       }
 
-    
       const first = raw[0];
       const stats: SeleccionadorStats = {
         total: first.stats_total ?? 0,
@@ -46,12 +44,10 @@ export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
         externos: first.stats_externos ?? 0
       };
 
-      
       if (raw.length === 1 && first.id == null) {
         return { data: [], totalFiltered: 0, stats };
       }
 
-     
       const data: Seleccionador[] = raw.map(item => {
         const { total_filtered, stats_total, stats_activos, stats_inactivos, stats_externos, ...cleanItem } = item;
         return cleanItem as Seleccionador;
@@ -66,7 +62,6 @@ export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
   }
 
   create(data: Omit<Seleccionador, 'id'>): Observable<Seleccionador> {
- 
     const seleccionadorData = Object.fromEntries(
       Object.entries(data).map(([key, val]) => [key, val === undefined ? null : val])
     );
