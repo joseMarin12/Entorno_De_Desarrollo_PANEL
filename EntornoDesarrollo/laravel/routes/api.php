@@ -23,16 +23,16 @@ Route::options('{any}', function () {
 Route::post('/login', [AutenticadorController::class, 'login']);
 
 // =========================================================================
-// RUTAS LIBRES (Módulos conectados a n8n)
+// RUTAS LIBRES SOPORTANDO POST Y OPTIONS PARA CORS (Módulos de n8n)
 // =========================================================================
 
-// SELECCIONADORES
-Route::post('/seleccionadores', [SeleccionadorController::class, 'proxy']);
-Route::post('/gestion-seleccionadores', [SeleccionadorController::class, 'proxy']);
+// SELECCIONADORES (Acepta POST y OPTIONS de manera explícita)
+Route::match(['post', 'options'], '/seleccionadores', [SeleccionadorController::class, 'proxy']);
+Route::match(['post', 'options'], '/gestion-seleccionadores', [SeleccionadorController::class, 'proxy']);
 
-// USUARIOS
-Route::post('/usuarios', [UsuariosController::class, 'proxy']);
-Route::post('/gestion-usuarios', [UsuariosController::class, 'proxy']);
+// USUARIOS (Acepta POST y OPTIONS de manera explícita)
+Route::match(['post', 'options'], '/usuarios', [UsuariosController::class, 'proxy']);
+Route::match(['post', 'options'], '/gestion-usuarios', [UsuariosController::class, 'proxy']);
 
 
 // =========================================================================
