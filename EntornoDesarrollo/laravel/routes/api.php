@@ -11,12 +11,13 @@ use App\Http\Controllers\AsignacionController;
 use App\Http\Controllers\TrabajadorController;
 use App\Http\Controllers\AutenticadorController;
 
-// 1. MANEJO GLOBAL DE CORS PARA PETICIONES OPTIONS (PREFLIGHT)
+// 1. CAPTURA DE PREFLIGHT (OPTIONS) REFORZADA PARA GOOGLE CLOUD RUN
+// Responde 200 directo a cualquier OPTIONS que entre al API con las cabeceras requeridas
 Route::options('{any}', function () {
     return response()->json([], 200)
         ->header('Access-Control-Allow-Origin', 'https://panel-frontend-1079064952465.us-central1.run.app')
         ->header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, PUT, DELETE')
-        ->header('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, Authorization, Accept, Origin');
+        ->header('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, Authorization, Accept, Origin, X-Token-Auth');
 })->where('any', '.*');
 
 Route::post('/login', [AutenticadorController::class, 'login']);
@@ -26,12 +27,12 @@ Route::post('/login', [AutenticadorController::class, 'login']);
 // =========================================================================
 
 // SELECCIONADORES
-Route::post('/seleccionadores{slash?}', [SeleccionadorController::class, 'proxy'])->where('slash', '/?');
-Route::post('/gestion-seleccionadores{slash?}', [SeleccionadorController::class, 'proxy'])->where('slash', '/?');
+Route::post('/seleccionadores', [SeleccionadorController::class, 'proxy']);
+Route::post('/gestion-seleccionadores', [SeleccionadorController::class, 'proxy']);
 
 // USUARIOS
-Route::post('/usuarios{slash?}', [UsuariosController::class, 'proxy'])->where('slash', '/?');
-Route::post('/gestion-usuarios{slash?}', [UsuariosController::class, 'proxy'])->where('slash', '/?');
+Route::post('/usuarios', [UsuariosController::class, 'proxy']);
+Route::post('/gestion-usuarios', [UsuariosController::class, 'proxy']);
 
 
 // =========================================================================
