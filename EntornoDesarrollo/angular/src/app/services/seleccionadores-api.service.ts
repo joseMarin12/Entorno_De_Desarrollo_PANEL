@@ -19,9 +19,9 @@ export interface SeleccionadorPage {
 }
 
 @Injectable({ providedIn: 'root' })
-export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
-  // CORRECCIÓN: Se añade el slash '/' al final para evitar que Nginx haga un redirect 301 (POST -> GET)
-protected readonly API_URL = 'https://panel-api-1079064952465.us-central1.run.app/api/seleccionadores';
+  export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
+    // CORRECCIÓN: Se añade el slash '/' al final para evitar que Nginx haga un redirect 301 (POST -> GET)
+  protected readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-seleccionadores';
 
   // Función interna para obtener y limpiar el JWT del localStorage
   private getOptionsWithAuth() {
