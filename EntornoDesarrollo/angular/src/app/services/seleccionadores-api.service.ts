@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { HttpHeaders } from '@angular/common/http'; // Asegura esta importación
 import { Seleccionador } from '../models/seleccionador.model';
 import { BaseCrud } from './base.service';
 
@@ -19,13 +20,35 @@ export interface SeleccionadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
-  // SOLUCIÓN: Forzamos la URL directa de n8n para que no interfiera con el login global
+  // URL directa al webhook de n8n
   protected readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-seleccionadores';
+
+  // Función interna para obtener y limpiar el JWT del localStorage
+  private getOptionsWithAuth() {
+    let token = localStorage.getItem('token'); 
+
+    // Si viene guardado como un string JSON plano (ej: '[{"token":"..."}]' o '{"token":"..."}')
+    if (token && (token.startsWith('{') || token.startsWith('['))) {
+      try {
+        const parsed = JSON.parse(token);
+        token = Array.isArray(parsed) ? parsed[0].token : parsed.token;
+      } catch (e) {
+        console.error('Error al procesar el JSON del token:', e);
+      }
+    }
+
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      })
+    };
+  }
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<SeleccionadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
       action: 'getSeleccionadores', page, limit, filters: { searchText, status, tipo }
-    }).pipe(map(res => {
+    }, this.getOptionsWithAuth()).pipe(map(res => {
       const raw = res.data ?? [];
 
       if (raw.length === 0) {
@@ -69,22 +92,38 @@ export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
     if (seleccionadorData['tipo']) {
       seleccionadorData['tipo'] = String(seleccionadorData['tipo']).toLowerCase().trim();
     }
-    return this._create({ action: 'createSeleccionador', seleccionadorData });
+
+    // Enviamos directo por HTTP POST incluyendo la cabecera de autenticación limpia
+    return this.http.post<Seleccionador>(this.API_URL, { 
+      action: 'createSeleccionador', 
+      seleccionadorData 
+    }, this.getOptionsWithAuth());
   }
 
   update(id: number, data: Partial<Seleccionador>): Observable<Seleccionador> {
     const seleccionadorData = Object.fromEntries(
       Object.entries(data).map(([key, val]) => [key, val === undefined ? null : val])
     );
-    return this._update({ action: 'updateSeleccionador', seleccionadorId: id, seleccionadorData });
+
+    // Enviamos directo por HTTP POST incluyendo la cabecera de autenticación limpia
+    return this.http.post<Seleccionador>(this.API_URL, { 
+      action: 'updateSeleccionador', 
+      seleccionadorId: id, 
+      seleccionadorData 
+    }, this.getOptionsWithAuth());
   }
 
   toggleStatus(id: number): Observable<Seleccionador> {
-    return this._toggleStatus({ action: 'toggleSeleccionadorStatus', seleccionadorId: id });
+    // Enviamos directo por HTTP POST incluyendo la cabecera de autenticación limpia
+    return this.http.post<Seleccionador>(this.API_URL, { 
+      action: 'toggleSeleccionadorStatus', 
+      seleccionadorId: id 
+    }, this.getOptionsWithAuth());
   }
 
   getEmpresas(): Observable<{id: number, nombre: string}[]> {
-    return this.http.post<{data: {id: number, nombre: string}[]}>(this.API_URL, { action: 'getEmpresas' })
-      .pipe(map(res => res.data ?? []));
+    return this.http.post<{data: {id: number, nombre: string}[]}>(this.API_URL, { 
+      action: 'getEmpresas' 
+    }, this.getOptionsWithAuth()).pipe(map(res => res.data ?? []));
   }
 }
