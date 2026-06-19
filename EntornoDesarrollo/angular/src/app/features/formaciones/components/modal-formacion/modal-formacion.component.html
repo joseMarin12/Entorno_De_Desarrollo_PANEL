@@ -67,4 +67,98 @@
           <label class="form-label">Estado</label>
           <div class="toggle-wrap" (click)="form.id_estado = (form.id_estado === 1 ? 2 : 1)">
             <div class="toggle" [class.on]="form.id_estado === 1"></div>
-            <div class="toggle-
+            <div class="toggle-label">
+              {{ form.id_estado === 1 ? 'Activo' : 'Inactivo' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Motivo</label>
+          <textarea class="form-input" placeholder="Motivo de la formación" [(ngModel)]="form.motivo"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Recursos</label>
+          <input class="form-input" type="text" placeholder="Ej: Licencias, Equipos" [(ngModel)]="form.recursos">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Duración (horas)</label>
+          <input class="form-input" type="number" [(ngModel)]="form.duracion">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Jornada</label>
+          <select class="form-input" [(ngModel)]="form.dentro_fuera_jornada">
+            <option value="">Seleccionar...</option>
+            <option value="dentro">Dentro de jornada</option>
+            <option value="fuera">Fuera de jornada</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha Prevista <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['fecha_prevista']" type="date" [(ngModel)]="form.fecha_prevista">
+          @if (errors['fecha_prevista']) { <span class="form-hint error-msg">{{ errors['fecha_prevista'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de Inicio <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['fecha_inicio']" type="date" [(ngModel)]="form.fecha_inicio">
+          @if (errors['fecha_inicio']) { <span class="form-hint error-msg">{{ errors['fecha_inicio'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de Fin <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['fecha_fin']" type="date" [(ngModel)]="form.fecha_fin">
+          @if (errors['fecha_fin']) { <span class="form-hint error-msg">{{ errors['fecha_fin'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Horario</label>
+          <input class="form-input" type="text" placeholder="Ej: 09:00 - 14:00" [(ngModel)]="form.horario">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Eficacia</label>
+          <input class="form-input" type="text" placeholder="Observaciones de eficacia" [(ngModel)]="form.eficacia">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Año</label>
+          <input class="form-input" type="number" [(ngModel)]="form.anio">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Coste (€)</label>
+          <input class="form-input" type="number" step="0.01" [(ngModel)]="form.coste" (change)="calculateTotal()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Bonificación (€)</label>
+          <input class="form-input" type="number" step="0.01" [(ngModel)]="form.bonificacion"
+            (change)="calculateTotal()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Total (€)</label>
+          <input class="form-input" type="number" step="0.01" [value]="form.total" disabled>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-input" placeholder="Otras observaciones" [(ngModel)]="form.observaciones"></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="close.emit()">Cancelar</button>
+      <button class="btn btn-primary" (click)="submit()">
+        {{ isEdit ? 'Guardar Cambios' : 'Crear Formación' }}
+      </button>
+    </div>
+  </div>
+</div>
