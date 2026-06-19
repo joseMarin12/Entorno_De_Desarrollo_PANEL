@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { HttpHeaders } from '@angular/common/http'; // Asegura esta importación
+import { HttpHeaders } from '@angular/common/http'; 
 import { Seleccionador } from '../models/seleccionador.model';
 import { BaseCrud } from './base.service';
 
@@ -20,8 +20,8 @@ export interface SeleccionadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
-  // URL directa al webhook de n8n
-  protected readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-seleccionadores';
+  // CORRECCIÓN: Volvemos a apuntar al endpoint local del API de Laravel (Proxy)
+  protected readonly API_URL = '/api/gestion-seleccionadores';
 
   // Función interna para obtener y limpiar el JWT del localStorage
   private getOptionsWithAuth() {
@@ -93,7 +93,6 @@ export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
       seleccionadorData['tipo'] = String(seleccionadorData['tipo']).toLowerCase().trim();
     }
 
-    // Enviamos directo por HTTP POST incluyendo la cabecera de autenticación limpia
     return this.http.post<Seleccionador>(this.API_URL, { 
       action: 'createSeleccionador', 
       seleccionadorData 
@@ -105,7 +104,6 @@ export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
       Object.entries(data).map(([key, val]) => [key, val === undefined ? null : val])
     );
 
-    // Enviamos directo por HTTP POST incluyendo la cabecera de autenticación limpia
     return this.http.post<Seleccionador>(this.API_URL, { 
       action: 'updateSeleccionador', 
       seleccionadorId: id, 
@@ -114,7 +112,6 @@ export class SeleccionadoresApiService extends BaseCrud<Seleccionador> {
   }
 
   toggleStatus(id: number): Observable<Seleccionador> {
-    // Enviamos directo por HTTP POST incluyendo la cabecera de autenticación limpia
     return this.http.post<Seleccionador>(this.API_URL, { 
       action: 'toggleSeleccionadorStatus', 
       seleccionadorId: id 
