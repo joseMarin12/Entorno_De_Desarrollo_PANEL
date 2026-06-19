@@ -1,23 +1,26 @@
 <?php
 
-// --- FILTRO CORS RESTRINGIDO EN INFRAESTRUCTURA ---
+// --- FILTRO CORS REFORZADO EN INFRAESTRUCTURA PARA GOOGLE CLOUD RUN ---
 $allowedOrigin = 'https://panel-frontend-1079064952465.us-central1.run.app';
 
-if (isset($_SERVER['HTTP_ORIGIN']) && $_SERVER['HTTP_ORIGIN'] === $allowedOrigin) {
+// Capturamos el origen real que envía el navegador
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+
+// Si es el origen de nuestro frontend, o es una petición de control (Preflight)
+if ($origin === $allowedOrigin || (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS')) {
     
-    // Si coincide el origen del frontend, inyectamos los encabezados seguros
     header("Access-Control-Allow-Origin: $allowedOrigin");
     header("Access-Control-Allow-Credentials: true");
-    header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept");
+    header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin, X-Token-Auth");
 
-    // Si es un Preflight (OPTIONS), respondemos de inmediato y matamos el proceso
-    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-        header("HTTP/1.1 204 No Content");
+    // Si es un Preflight (OPTIONS), respondemos 200 OK de inmediato y matamos el proceso
+    if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        header("HTTP/1.1 200 OK");
         exit(0);
     }
 }
-// --------------------------------------------------
+// ----------------------------------------------------------------------
 
 
 /**
