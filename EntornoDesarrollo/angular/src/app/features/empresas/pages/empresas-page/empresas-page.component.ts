@@ -30,11 +30,16 @@ export class EmpresasPageComponent implements OnInit {
   ConfirmMode = ConfirmMode;
 
   private readonly _empresas = signal<Empresa[]>([]);
-  readonly empresas = this._empresas.asReadonly();
+  private readonly _empresasFiltradas = signal<Empresa[]>([]);
+
+  empresas = this._empresasFiltradas.asReadonly();
 
   private readonly _total = signal(0);
   private readonly _totalActivos = signal(0);
   private readonly _totalInactivos = signal(0);
+
+  private statsLoaded = false;
+
   readonly total = this._total.asReadonly();
   readonly totalActivos = this._totalActivos.asReadonly();
   readonly totalInactivos = this._totalInactivos.asReadonly();
@@ -67,10 +72,15 @@ export class EmpresasPageComponent implements OnInit {
   private loadAll(searchText = '', status = '', tipo = ''): void {
     this.api.findAll(searchText, status, tipo, this.currentPage(), this.PAGE_SIZE).subscribe({
       next: (res) => { 
-        this._empresas.set(res.data ?? []);
-        this._total.set(res.total ?? 0);
-        this._totalActivos.set(res.totalActivos ?? 0);
-        this._totalInactivos.set(res.totalInactivos ?? 0);
+        this._empresasFiltradas.set(res.data ?? []);
+        if(!this.statsLoaded && searchText === '' && status === '' && tipo === ''){
+            this._total.set(res.total ?? 0);
+            this._totalActivos.set(res.totalActivos ?? 0);
+            this._totalInactivos.set(res.totalInactivos ?? 0);
+
+            this.statsLoaded = true;
+          }
+
       },
       error: () => this.toast.show('error', '✗ No se pudo cargar las empresas. Inténtalo de nuevo.'),
     });
