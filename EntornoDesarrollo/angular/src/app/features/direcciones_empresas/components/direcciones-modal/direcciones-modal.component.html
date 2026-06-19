@@ -27,37 +27,55 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">País <span class="req">*</span></label>
-          <select class="form-input" [class.error]="errors['id_pais']" [(ngModel)]="selectedPaisId" (ngModelChange)="onPaisChange($event)">
-            <option [ngValue]="null" disabled>Selecciona un país</option>
-            @for (p of paises(); track p.id) {
-              <option [ngValue]="p.id">{{ p.pais }}</option>
-            }
-          </select>
+          <app-lookup-select
+            apiUrl="http://localhost:5678/webhook"
+            action="getPaisesLookup"
+            label="País"
+            labelField="pais"
+            placeholder="Selecciona un país..."
+            [searchable]="true"
+            [required]="true"
+            [hasError]="!!errors['id_pais']"
+            [(ngModel)]="selectedPaisId"
+            (ngModelChange)="onPaisChange($event)"
+          />
           @if (errors['id_pais']) { 
             <span class="form-hint error-msg">{{ errors['id_pais'] }}</span>
           }
         </div>
 
         <div class="form-group">
-          <label class="form-label">Provincia <span class="req">*</span></label>
-          <select class="form-input" [class.error]="errors['id_provincia']" [(ngModel)]="selectedProvinciaId" (ngModelChange)="onProvinciaChange($event)" [disabled]="!selectedPaisId">
-            <option [ngValue]="null" disabled>Selecciona una provincia</option>
-            @for (prov of provincias(); track prov.id) {
-              <option [ngValue]="prov.id">{{ prov.provincia }}</option>
-            }
-          </select>
+          <app-lookup-select
+            apiUrl="http://localhost:5678/webhook"
+            action="getProvinciasLookup"
+            label="Provincia"
+            labelField="provincia"
+            filterField="id_pais"
+            [filterValue]="selectedPaisId"
+            placeholder="Selecciona una provincia..."
+            [searchable]="true"
+            [required]="true"
+            [hasError]="!!errors['id_provincia']"
+            [(ngModel)]="selectedProvinciaId"
+            (ngModelChange)="onProvinciaChange($event)"
+          />
           @if (errors['id_provincia']) { <span class="form-hint error-msg">{{ errors['id_provincia'] }}</span> }
         </div>
 
         <div class="form-group">
-          <label class="form-label">Localidad <span class="req">*</span></label>
-          <select class="form-input" [class.error]="errors['id_localidad']" [(ngModel)]="form.id_localidad" [disabled]="!selectedProvinciaId">
-            <option [ngValue]="null" disabled>Selecciona una localidad</option>
-            @for (loc of localidades(); track loc.id) {
-              <option [ngValue]="loc.id">{{ loc.localidad }}</option>
-            }
-          </select>
+          <app-lookup-select
+            apiUrl="http://localhost:5678/webhook"
+            action="getLocalidadesLookup"
+            label="Localidad"
+            labelField="localidad"
+            filterField="id_provincia"
+            [filterValue]="selectedProvinciaId"
+            placeholder="Selecciona una localidad..."
+            [searchable]="true"
+            [required]="true"
+            [hasError]="!!errors['id_localidad']"
+            [(ngModel)]="form.id_localidad"
+          />
           @if (errors['id_localidad']) { <span class="form-hint error-msg">{{ errors['id_localidad'] }}</span> }
         </div>    
 

@@ -7,11 +7,13 @@ import { Pais } from "../../../../models/pais.model";
 import { Provincia } from "../../../../models/provincia.model";
 import { Localidad } from "../../../../models/localidad.model";
 import { forkJoin } from "rxjs";
+// 1. Importamos el selector inteligente reutilizable
+import { LookupSelectComponent } from "../../../../shared/lookup-select/lookup-select.component";
 
 @Component({
     selector: "app-modal-direcciones",
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, LookupSelectComponent], // 2. Lo declaramos aquí
     templateUrl: "./direcciones-modal.component.html"
 })
 export class DireccionesModalComponent implements OnInit, OnChanges {
@@ -65,12 +67,12 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
     ngOnInit(): void {
         this.form.id_empresa = this.idEmpresa;
         this.direccionesApi.findPaises().subscribe({
-        next: (paises) => {
-            this._paises.set(paises);
-            if (!this.formInitialized) this.fillForm();
-        },
-        error: (err) => console.error('Error al cargar países:', err),
-    });
+            next: (paises) => {
+                this._paises.set(paises);
+                if (!this.formInitialized) this.fillForm();
+            },
+            error: (err) => console.error('Error al cargar países:', err),
+        });
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -86,6 +88,8 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
         this._localidades.set([]);
         this.form.id_localidad = null;
 
+        if (!idPais) return;
+
         this.direccionesApi.findProvincias(idPais).subscribe({
             next: (provincias) => this._provincias.set(provincias),
             error: (err) => console.error('Error al cargar provincias:', err)
@@ -95,6 +99,8 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
     onProvinciaChange(idProvincia: number): void {
         this._localidades.set([]);
         this.form.id_localidad = null;
+
+        if (!idProvincia) return;
 
         this.direccionesApi.findLocalidades(idProvincia).subscribe({
             next: (localidades) => this._localidades.set(localidades),
@@ -144,8 +150,8 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
         if (!this.form.direccion) this.errors['direccion'] = 'Campo obligatorio';
         if (!this.form.codigoPostal) this.errors['codigoPostal'] = 'Campo obligatorio';
         if (!this.form.id_localidad) this.errors['id_localidad'] = 'Campo obligatorio';
-        if (!this.selectedProvinciaId) this.errors['provincia'] = 'Campo obligatorio';
-        if (!this.selectedPaisId) this.errors['pais'] = 'Campo obligatorio';
+        if (!this.selectedProvinciaId) this.errors['id_provincia'] = 'Campo obligatorio';
+        if (!this.selectedPaisId) this.errors['id_pais'] = 'Campo obligatorio';
         if (Object.keys(this.errors).length > 0) return;
 
         if (this.isEditMode) {

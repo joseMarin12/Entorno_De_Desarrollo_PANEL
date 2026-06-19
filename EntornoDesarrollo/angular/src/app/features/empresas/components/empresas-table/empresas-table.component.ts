@@ -3,6 +3,10 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Empresa } from '../../../../models/empresa.model';
 
+import { Router } from '@angular/router';
+import { TableComponent } from '../../../../shared/table/table.component';
+import { EMPRESAS_COLUMNS } from './empresas-table.config';
+
 
 @Component({
   selector: 'app-empresas-table',
