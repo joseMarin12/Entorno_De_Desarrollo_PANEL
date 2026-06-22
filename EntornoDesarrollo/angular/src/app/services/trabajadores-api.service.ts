@@ -3,7 +3,6 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Trabajador } from '../models/trabajador.model';
 import { BaseCrud } from './base.service';
-import { environment } from '../../environments/environment';
 
 export interface TrabajadorStats {
   total: number;
@@ -20,9 +19,9 @@ export interface TrabajadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
-  protected readonly API_URL = `${environment.apiUrl}/trabajadores`;
+  // MODIFICACIÓN CRÍTICA: Forzamos la URL directa al proxy con '-api' para evitar el Error 405 y asegurar las cabeceras HTTP
+  protected override readonly API_URL = 'https://panel-api-1079064952465.us-central1.run.app/api/trabajadores';
 
-  
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
       action: 'getTrabajadores', page, limit, filters: { searchText, status, tipo }
@@ -41,12 +40,10 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
         freelances: first.stats_freelances ?? 0
       };
 
-    
       if (raw.length === 1 && first.id == null) {
         return { data: [], totalFiltered: 0, stats };
       }
 
-     
       const data: Trabajador[] = raw.map(item => {
         const { total_filtered, stats_total, stats_activos, stats_inactivos, stats_freelances, ...cleanItem } = item;
         return cleanItem as Trabajador;
@@ -56,7 +53,6 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     }));
   }
 
- 
   create(data: any): Observable<Trabajador> {
     const { documentos, ...rest } = data;
     const trabajadorData = Object.fromEntries(
@@ -65,7 +61,6 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     return this._create({ action: 'createTrabajador', trabajadorData, documentos });
   }
 
-
   update(id: number, data: any): Observable<Trabajador> {
     const trabajadorData = Object.fromEntries(
       Object.entries(data).map(([key, val]) => [key, val === undefined ? null : val])
@@ -73,12 +68,10 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     return this._update({ action: 'updateTrabajador', trabajadorId: id, trabajadorData });
   }
 
-  
   toggleStatus(id: number): Observable<Trabajador> {
     return this._toggleStatus({ action: 'toggleTrabajadorStatus', trabajadorId: id });
   }
 
-  
   getProvincias(): Observable<{id: number, nombre: string}[]> {
     return this.http.post<{data: {id: number, nombre: string}[]}>(this.API_URL, { action: 'getProvincias' })
       .pipe(map(res => res.data ?? []));
@@ -95,11 +88,10 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   }
 
   getTiposDoc(): Observable<{id: number, tipo: string}[]> {
-    return this.http.post<{data: {id: number, tipo: string}[]}>(this.API_URL, { action: 'getTiposDoc' })
+    return this.http.post<{data: {id: number, tipo: string}[]>}(this.API_URL, { action: 'getTiposDoc' })
       .pipe(map(res => res.data ?? []));
   }
 
-  
   getAsignacionesByTrabajador(trabajadorId: number): Observable<any[]> {
     return this.http.post<{data: any[]}>(this.API_URL, { action: 'getAsignacionesByTrabajador', trabajadorId })
       .pipe(map(res => res.data ?? []));
