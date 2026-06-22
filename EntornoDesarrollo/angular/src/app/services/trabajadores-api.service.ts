@@ -20,7 +20,7 @@ export interface TrabajadorPage {
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   // MODIFICACIÓN: Apuntamos al proxy de Laravel que se encargará de hablar con tu n8n de forma segura
-  protected override readonly API_URL = 'https://panel-1079064952465.us-central1.run.app/apitrabajadores';
+  protected override readonly API_URL = 'https://panel-1079064952465.us-central1.run.app/api/trabajadores';
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
