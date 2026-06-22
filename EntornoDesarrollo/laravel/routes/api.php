@@ -14,20 +14,19 @@ use App\Http\Controllers\AutenticadorController;
 // =========================================================================
 // RUTA DE AUTENTICACIÓN (LOGIN)
 // =========================================================================
-
-Route::match(['post', 'options'], '/login', [AutenticadorController::class, 'login']);
+Route::post('/login', [AutenticadorController::class, 'login']);
 
 // =========================================================================
 // RUTAS LIBRES (Módulos de n8n)
 // =========================================================================
 
 // SELECCIONADORES
-Route::match(['post', 'options'], '/seleccionadores', [SeleccionadorController::class, 'proxy']);
-Route::match(['post', 'options'], '/gestion-seleccionadores', [SeleccionadorController::class, 'proxy']);
+Route::post('/seleccionadores', [SeleccionadorController::class, 'proxy']);
+Route::post('/gestion-seleccionadores', [SeleccionadorController::class, 'proxy']);
 
 // USUARIOS
-Route::match(['post', 'options'], '/usuarios', [UsuariosController::class, 'proxy']);
-Route::match(['post', 'options'], '/gestion-usuarios', [UsuariosController::class, 'proxy']);
+Route::post('/usuarios', [UsuariosController::class, 'proxy']);
+Route::post('/gestion-usuarios', [UsuariosController::class, 'proxy']);
 
 // =========================================================================
 // RUTAS PROTEGIDAS (Verificación por Token Middleware)
