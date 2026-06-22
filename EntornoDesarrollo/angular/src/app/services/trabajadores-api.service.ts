@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Trabajador, TrabajadorFormData } from '../models/trabajador.model';
+import { Trabajador } from '../models/trabajador.model';
 import { BaseCrud } from './base.service';
-import { environment } from '../../environments/environment';
 
 export interface TrabajadorStats {
   total: number;
@@ -20,8 +19,8 @@ export interface TrabajadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
-  // MODIFICACIÓN EXPLICITA: Reemplazamos la variable de entorno por tu URL directa solicitada
-  public readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-trabajadores';
+  // MODIFICACIÓN: Apuntamos al proxy de Laravel que se encargará de hablar con tu n8n de forma segura
+  protected override readonly API_URL = 'https://panel-api-1079064952465.us-central1.run.app/api/trabajadores';
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
@@ -54,7 +53,7 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     }));
   }
 
-  create(data: TrabajadorFormData): Observable<Trabajador> {
+  create(data: any): Observable<Trabajador> {
     const { documentos, ...rest } = data;
     const trabajadorData = Object.fromEntries(
       Object.entries(rest).map(([key, val]) => [key, val === undefined ? null : val])
@@ -62,7 +61,7 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     return this._create({ action: 'createTrabajador', trabajadorData, documentos });
   }
 
-  update(id: number, data: TrabajadorFormData): Observable<Trabajador> {
+  update(id: number, data: any): Observable<Trabajador> {
     const trabajadorData = Object.fromEntries(
       Object.entries(data).map(([key, val]) => [key, val === undefined ? null : val])
     );
@@ -73,6 +72,26 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     return this._toggleStatus({ action: 'toggleTrabajadorStatus', trabajadorId: id });
   }
 
+  getProvincias(): Observable<{id: number, nombre: string}[]> {
+    return this.http.post<{data: {id: number, nombre: string}[]}>(this.API_URL, { action: 'getProvincias' })
+      .pipe(map(res => res.data ?? []));
+  }
+
+  getLocalidades(): Observable<{id: number, id_provincia: number, nombre: string}[]> {
+    return this.http.post<{data: {id: number, id_provincia: number, nombre: string}[]}>(this.API_URL, { action: 'getLocalidades' })
+      .pipe(map(res => res.data ?? []));
+  }
+
+  getSeleccionadoresLookup(): Observable<{id: number, nombre: string, tipo: string}[]> {
+    return this.http.post<{data: {id: number, nombre: string, tipo: string}[]}>(this.API_URL, { action: 'getSeleccionadoresLookup' })
+      .pipe(map(res => res.data ?? []));
+  }
+
+  getTiposDoc(): Observable<{id: number, tipo: string}[]> {
+    return this.http.post<{data: {id: number, tipo: string}[]}>(this.API_URL, { action: 'getTiposDoc' })
+      .pipe(map(res => res.data ?? []));
+  }
+
   getAsignacionesByTrabajador(trabajadorId: number): Observable<any[]> {
     return this.http.post<{data: any[]}>(this.API_URL, { action: 'getAsignacionesByTrabajador', trabajadorId })
       .pipe(map(res => res.data ?? []));
@@ -81,5 +100,25 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   getFormacionesByTrabajador(trabajadorId: number): Observable<any[]> {
     return this.http.post<{data: any[]}>(this.API_URL, { action: 'getFormacionesByTrabajador', trabajadorId })
       .pipe(map(res => res.data ?? []));
+  }
+
+  getDocumentosByTrabajador(trabajadorId: number): Observable<any[]> {
+    return this.http.post<{data: any[]}>(this.API_URL, { action: 'getDocumentosByTrabajador', trabajadorId })
+      .pipe(map(res => res.data ?? []));
+  }
+
+  uploadDocumento(data: any): Observable<any> {
+    return this.http.post<{data: any}>(this.API_URL, { action: 'uploadDocumento', data })
+      .pipe(map(res => res.data));
+  }
+
+  updateDocumento(data: any): Observable<any> {
+    return this.http.post<{data: any}>(this.API_URL, { action: 'updateDocumento', data })
+      .pipe(map(res => res.data));
+  }
+
+  deleteDocumento(documentoId: number): Observable<any> {
+    return this.http.post<{data: any}>(this.API_URL, { action: 'deleteDocumento', documentoId })
+      .pipe(map(res => res.data));
   }
 }
