@@ -38,7 +38,7 @@ class SeleccionadorController extends Controller
                     'details' => $response->json() ?? $response->body()
                 ], $response->status());
             }
-           return response()->json($response->json(), $response->status());
+          return response()->json($response->json(), $response->status());
                 ->header('Access-Control-Allow-Origin', 'https://panel-frontend-1079064952465.us-central1.run.app')
                 ->header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
                 ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
