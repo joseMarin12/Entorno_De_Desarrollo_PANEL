@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request; // <-- No olvides importar esto
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,17 +13,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-      
+        
+        // Evita que la API intente redireccionar a una vista web cuando falta el token
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('api/*')) {
+                return null; // Al retornar null, Laravel responderá con un JSON 401 limpio
+            }
+            return '/login'; // Comportamiento normal para la web tradicional
+        });
 
-        // 2. Exceptuar la ruta de login de la verificación CSRF
-        $middleware->validateCsrfTokens(except: [
-            'login',
-            'api/login',
-            'api/usuarios'
-        ]);
-
-        // 3. Mantener la configuración de los proxies para Cloud Run
-        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
