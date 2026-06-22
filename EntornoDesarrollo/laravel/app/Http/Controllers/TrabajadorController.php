@@ -7,34 +7,37 @@ use Illuminate\Support\Facades\Http;
 
 class TrabajadorController extends Controller
 {
-    private string $n8nUrl;
+    private string $n8nTrabajadoresUrl;
 
     public function __construct()
     {
-        $this->n8nUrl = env('N8N_WEBHOOK_TRABAJADORES', 'http://n8n:5678/webhook/gestion-trabajadores');
+        // Apuntamos al webhook específico de Hostinger para gestión de trabajadores
+        $this->n8nTrabajadoresUrl = env('N8N_WEBHOOK_TRABAJADORES_URL', 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-trabajadores');
     }
 
-    
+    /**
+     * Proxy para Gestión de Trabajadores
+     */
     public function proxy(Request $request)
     {
-        try {
-            $response = Http::post($this->n8nUrl, $request->all());
+        // 1. Capturamos el token de autenticación que envía Angular
+        $token = $request->header('Authorization');
 
-            if ($response->failed()) {
-                return response()->json([
-                    'error'   => 'n8n_response_error',
-                    'status'  => $response->status(),
-                    'details' => $response->json() ?? $response->body()
-                ], $response->status());
-            }
+        // 2. Inicializamos el cliente HTTP con las cabeceras base requeridas
+        $client = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Accept'       => 'application/json',
+        ]);
 
-            return response()->json($response->json(), $response->status());
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'error'   => 'proxy_connection_exception',
-                'message' => $e->getMessage()
-            ], 500);
+        // 3. Reenviamos el token a n8n para que el nodo JWT Verify lo valide correctamente
+        if ($token) {
+            $client->withHeaders(['Authorization' => $token]);
         }
+
+        // 4. Hacemos el puente (POST) hacia n8n enviando todo el payload del formulario
+        $response = $client->post($this->n8nTrabajadoresUrl, $request->all());
+
+        // 5. Devolvemos la respuesta exacta de n8n con su código de estado HTTP correspondiente
+        return response()->json($response->json(), $response->status());
     }
 }
