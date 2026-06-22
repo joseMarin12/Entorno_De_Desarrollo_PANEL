@@ -19,7 +19,7 @@ export interface TrabajadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
-  // MODIFICACIÓN CRÍTICA: Forzamos la URL directa al proxy con '-api' para evitar el Error 405 y asegurar las cabeceras HTTP
+  // MODIFICACIÓN CRÍTICA: URL directa al proxy con '-api' para evitar el Error 405
   protected override readonly API_URL = 'https://panel-api-1079064952465.us-central1.run.app/api/trabajadores';
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
@@ -118,7 +118,4 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   }
 
   deleteDocumento(documentoId: number): Observable<any> {
-    return this.http.post<{data: any}>(this.API_URL, { action: 'deleteDocumento', documentoId })
-      .pipe(map(res => res.data));
-  }
-}
+    return this.http.post<{data: any}>(this.API_URL, { action: 'deleteDocumento', documentoId
