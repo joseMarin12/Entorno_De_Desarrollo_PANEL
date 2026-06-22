@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Trabajador, TrabajadorFormData } from '../models/trabajador.model';
 import { BaseCrud } from './base.service';
+import { environment } from '../../environments/environment';
 
 export interface TrabajadorStats {
   total: number;
@@ -19,8 +20,8 @@ export interface TrabajadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
-  // MODIFICACIÓN NECESARIA: Forzamos la URL directa al proxy con '-api' para evitar el Error 405
-  public override readonly API_URL = 'https://panel-api-1079064952465.us-central1.run.app/api/trabajadores';
+  // MODIFICACIÓN EXPLICITA: Reemplazamos la variable de entorno por tu URL directa solicitada
+  public readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-trabajadores';
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
