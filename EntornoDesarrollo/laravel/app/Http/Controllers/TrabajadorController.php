@@ -4,19 +4,20 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Hash; // <-- 1. Importamos la clase Hash de Laravel
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log; // 🌟 Importamos la clase Log para registrar fallos en Google Cloud
 
 class TrabajadorController extends Controller
 {
-    private string $n8nTrabajadoresUrl;
+    private string $n8nTrabajadoresUrl;
 
-    public function __construct()
-    {
-        // Vinculamos directamente tu webhook de n8n Hostinger
-        $this->n8nTrabajadoresUrl = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-trabajadores';
-    }
+    public function __construct()
+    {
+        // Vinculamos directamente tu webhook de n8n Hostinger
+        $this->n8nTrabajadoresUrl = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-trabajadores';
+    }
 
-   public function proxy(Request $request)
+    public function proxy(Request $request)
     {
         try {
             $token = $request->header('Authorization');
@@ -40,27 +41,34 @@ class TrabajadorController extends Controller
                 $data['password'] = Hash::make($data['password']);
             }
 
-            // 🌟 LE AGREGAMOS UN TIMEOUT (Si Hostinger no responde en 15 segundos, cancela en vez de colgarse)
+            // Enviamos la petición a n8n con un tiempo de espera de 15 segundos
             $response = $client->timeout(15)->post($this->n8nTrabajadoresUrl, $data);
 
-            // 🌟 VALIDACIÓN DE RESPUESTA: n8n suele responder texto plano si el flujo está vacío
+            // Validamos si n8n respondió un JSON válido o texto plano
             $responseData = $response->json();
             if (is_null($responseData)) {
-                // Si n8n devolvió texto plano, lo envolvemos en un formato JSON amigable para Angular
+                // Si es texto plano (ej: "Workflow started"), lo envolvemos en un JSON para Angular
                 $responseData = ['message' => $response->body() ?: 'Petición procesada por n8n'];
             }
 
             return response()->json($responseData, $response->status());
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            // Captura si Hostinger está caído, el webhook está desactivado o bloquea a Cloud Run
+            // Queda registrado en el historial de logs de Cloud Run
+            Log::warning('Fallo de conexión hacia n8n Hostinger: ' . $e->getMessage());
+
             return response()->json([
                 'error' => 'No se pudo conectar con el servidor de n8n en Hostinger',
                 'details' => $e->getMessage()
-            ], 502); // 502 Bad Gateway es el error correcto aquí
+            ], 502);
 
         } catch (\Throwable $e) {
-            // Captura cualquier otro error interno de PHP/Laravel y te lo muestra en Angular
+            // Registramos el error fatal con el archivo y línea exacta en la consola de Google Cloud
+            Log::error('Error crítico en TrabajadorController: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
             return response()->json([
                 'error' => 'Error interno en el TrabajadorController de Laravel',
                 'message' => $e->getMessage(),
@@ -69,3 +77,4 @@ class TrabajadorController extends Controller
             ], 500);
         }
     }
+}
