@@ -14,7 +14,8 @@ use App\Http\Controllers\AutenticadorController;
 // =========================================================================
 // RUTA DE AUTENTICACIÓN (LOGIN)
 // =========================================================================
-Route::post('/login', [AutenticadorController::class, 'login']);
+
+Route::match(['post', 'options'], '/login', [AutenticadorController::class, 'login']);
 
 // =========================================================================
 // RUTAS LIBRES (Módulos de n8n)
