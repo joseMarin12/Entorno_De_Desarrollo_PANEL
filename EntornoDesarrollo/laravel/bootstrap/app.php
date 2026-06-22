@@ -3,7 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request; // <-- No olvides importar esto
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,12 +14,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
-        // Evita que la API intente redireccionar a una vista web cuando falta el token
+        // 1. Forzamos a Laravel a procesar el Middleware nativo de CORS al inicio de todo
+        $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
+
+        // 2. Control de redirección para invitados (Evita el error 405 en la API)
         $middleware->redirectGuestsTo(function (Request $request) {
             if ($request->is('api/*')) {
-                return null; // Al retornar null, Laravel responderá con un JSON 401 limpio
+                return null; 
             }
-            return '/login'; // Comportamiento normal para la web tradicional
+            return '/login';
         });
 
     })
