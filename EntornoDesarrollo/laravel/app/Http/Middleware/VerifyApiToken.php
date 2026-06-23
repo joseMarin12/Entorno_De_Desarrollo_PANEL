@@ -8,7 +8,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class VerifyApiToken
 {
-    // 🔒 Asegúrate de que el sistema que emite el token use exactamente este mismo secreto
     private const JWT_SECRET = 'passEncriptada';
 
     public function handle(Request $request, Closure $next): Response
@@ -45,13 +44,13 @@ class VerifyApiToken
                 return response()->json([
                     'success' => false,
                     'message' => 'Token inválido o expirado',
-                    'error_reason' => $validation['reason'] // 🌟 Revela la causa exacta en la consola de red
+                    'error_reason' => $validation['reason'] 
                 ], 401);
             }
 
             $payload = $validation['payload'];
 
-            // Inyectar los datos decodificados en la petición para n8n o controladores internos
+            // Inyectar los datos decodificados en la petición
             $request->merge([
                 'authenticated_user_id' => $payload['id'] ?? null,
                 'authenticated_user_email' => $payload['email'] ?? null,
@@ -70,7 +69,11 @@ class VerifyApiToken
     {
         $parts = explode('.', $token);
         if (count($parts) !== 3) {
-            return ['valid' => false, 'reason' => 'El token no tiene la estructura JWT de 3 partes.'];
+            // 🌟 MODIFICACIÓN AQUÍ: Revela exactamente qué string está llegando desde el frontend
+            return [
+                'valid' => false, 
+                'reason' => 'El token no tiene la estructura JWT de 3 partes. Texto recibido en el backend: "' . $token . '"'
+            ];
         }
 
         [$headerB64, $payloadB64, $signatureB64] = $parts;
@@ -94,9 +97,9 @@ class VerifyApiToken
             return ['valid' => false, 'reason' => 'El payload del token no es un JSON válido o está corrupto.'];
         }
 
-        // 3. Validar Expiración con margen de tiempo (Leeway) para prevenir desincronizaciones
+        // 3. Validar Expiración con margen de tiempo (Leeway)
         if (isset($payload['exp'])) {
-            $leeway = 60; // 60 segundos de tolerancia
+            $leeway = 60; 
             if (($payload['exp'] + $leeway) < time()) {
                 return [
                     'valid' => false, 
@@ -118,7 +121,6 @@ class VerifyApiToken
 
     private function base64UrlDecode(string $data): string
     {
-        // Añadir de nuevo el padding de caracteres "=" si la longitud no es múltiplo de 4
         $remainder = strlen($data) % 4;
         if ($remainder) {
             $data .= str_repeat('=', 4 - $remainder);
