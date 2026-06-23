@@ -36,16 +36,29 @@ export class AutenticadorService {
       tap(response => {
         if (response.success && response.user) {
           // 1. Normalización de rol
-          const rawUser = response.user as any;
-          response.user.roleid = Number(rawUser.roleid || rawUser.role_id || rawUser.id_rol || rawUser.ID_ROL || 2);
+          const rawResponse = response as any;
+          response.user.roleid = Number(rawResponse.user.roleid || rawResponse.user.role_id || rawResponse.user.id_rol || rawResponse.user.ID_ROL || 2);
           
-          // 2. Guardar persistencia (Centralizado aquí)
+          // 2. Guardar persistencia del usuario
           this.saveUser(response.user);
           
-          // Guardamos token (Si el backend devuelve uno, lo usamos; si no, ponemos un valor por defecto para el Guard)
-          sessionStorage.setItem('token', response.token || 'usuario_autenticado');
+          // 🌟 3. NORMALIZACIÓN ROBUSTA DEL TOKEN
+          // Busca el token bajo diferentes nombres comunes que tu API o n8n puedan estar usando
+          const extractedToken = response.token || 
+                                 rawResponse.accessToken || 
+                                 rawResponse.jwt || 
+                                 rawResponse.data?.token;
+
+          if (extractedToken) {
+            sessionStorage.setItem('token', extractedToken);
+          } else {
+            // Si llega aquí, el login fue exitoso pero el backend NO envió un JWT.
+            console.error('⚠️ ALERTA BI: El login fue exitoso pero no se encontró un Token JWT en la respuesta.', response);
+            // Ya no guardamos el string fijo 'usuario_autenticado' para no romper el middleware de Laravel
+            sessionStorage.removeItem('token'); 
+          }
           
-          // 3. Actualizar signal
+          // 4. Actualizar signal
           this.currentUser.set(response.user);
         }
       })
@@ -73,7 +86,6 @@ export class AutenticadorService {
     
     try {
       const user = JSON.parse(userJson);
-      // Aseguramos que el rol exista al recuperar
       if (user && !user.roleid) {
         user.roleid = 2; // Default
       }
@@ -84,7 +96,7 @@ export class AutenticadorService {
   }
 
   isAuthenticated(): boolean {
-    return this.currentUser() !== null || !!sessionStorage.getItem('token');
+    return this.currentUser() !== null && !!sessionStorage.getItem('token');
   }
 
   getToken(): string | null {
@@ -95,7 +107,7 @@ export class AutenticadorService {
 
   getDecodedToken(): any {
     const token = this.getToken();
-    if (!token || token === 'usuario_autenticado') return null; // No se puede decodificar un string plano
+    if (!token || token === 'usuario_autenticado') return null; 
     try {
       const payload = token.split('.')[1];
       const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
