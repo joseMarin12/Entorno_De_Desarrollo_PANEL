@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class FormacionTrabajadorService extends BaseCrud<Trabajador> {
 
-  protected readonly API_URL = `${environment.apiUrl}/formaciones`;
+protected readonly API_URL = `${environment.apiUrl}/formacion`;
 
   // ── Estado reactivo ──────────────────────────────────────────────────────
   private _trabajadores = signal<Trabajador[]>([]);
