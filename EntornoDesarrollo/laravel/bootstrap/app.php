@@ -4,7 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use App\Http\Middleware\VerifyToken; // 🌟 Importamos tu middleware personalizado
+use App\Http\Middleware\VerifyApiToken; // 🌟 Importamos la clase con su nombre real
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,9 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
-        // 🌟 REGISTRO DE ALIAS: Aquí enlazamos el nombre 'verify.token' con su clase real
+        // 🌟 Apuntamos el alias 'verify.token' a la clase VerifyApiToken
         $middleware->alias([
-            'verify.token' => VerifyToken::class,
+            'verify.token' => VerifyApiToken::class,
         ]);
 
         // Control de redirección estándar para invitados en la API
