@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class VerifyApiToken
 {
+    // 🔒 Asegúrate de que el sistema que emite el token use exactamente este mismo secreto
     private const JWT_SECRET = 'passEncriptada';
 
     public function handle(Request $request, Closure $next): Response
@@ -17,7 +18,7 @@ class VerifyApiToken
             return $next($request);
         }
 
-        // 🔓 REGLA DE EXCEPCIÓN: Si la ruta es /login o api/login, saltarse la validación del token
+        // 🔓 REGLA DE EXCEPCIÓN: Si la ruta es /login o api/login, saltarse la validación
         if ($request->is('login') || $request->is('api/login')) {
             return $next($request);
         }
@@ -37,14 +38,18 @@ class VerifyApiToken
                 ], 401);
             }
 
-            $payload = $this->verifyJwt($token);
+            // Validar token de forma detallada
+            $validation = $this->verifyJwtDetailed($token);
 
-            if ($payload === null) {
+            if (!$validation['valid']) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Token inválido o expirado',
+                    'error_reason' => $validation['reason'] // 🌟 Revela la causa exacta en la consola de red
                 ], 401);
             }
+
+            $payload = $validation['payload'];
 
             // Inyectar los datos decodificados en la petición para n8n o controladores internos
             $request->merge([
@@ -59,39 +64,52 @@ class VerifyApiToken
     }
 
     /**
-     * Verifica la firma y expiración del token JWT manual.
+     * Verifica la firma y expiración del token JWT manual con rastreo de errores.
      */
-    private function verifyJwt(string $token): ?array
+    private function verifyJwtDetailed(string $token): array
     {
         $parts = explode('.', $token);
         if (count($parts) !== 3) {
-            return null;
+            return ['valid' => false, 'reason' => 'El token no tiene la estructura JWT de 3 partes.'];
         }
 
         [$headerB64, $payloadB64, $signatureB64] = $parts;
 
+        // 1. Validar Firma Mecánica
         $expectedSignature = $this->base64UrlEncode(
             hash_hmac('sha256', "$headerB64.$payloadB64", self::JWT_SECRET, true)
         );
 
         if (!hash_equals($expectedSignature, $signatureB64)) {
-            return null;
+            return [
+                'valid' => false, 
+                'reason' => 'La firma no coincide. El JWT_SECRET del backend difiere del emisor del token.'
+            ];
         }
 
-        $payload = json_decode($this->base64UrlDecode($payloadB64), true);
+        // 2. Decodificar el Payload JSON
+        $payloadJson = $this->base64UrlDecode($payloadB64);
+        $payload = json_decode($payloadJson, true);
         if (!$payload || !is_array($payload)) {
-            return null;
+            return ['valid' => false, 'reason' => 'El payload del token no es un JSON válido o está corrupto.'];
         }
 
-        if (isset($payload['exp']) && $payload['exp'] < time()) {
-            return null;
+        // 3. Validar Expiración con margen de tiempo (Leeway) para prevenir desincronizaciones
+        if (isset($payload['exp'])) {
+            $leeway = 60; // 60 segundos de tolerancia
+            if (($payload['exp'] + $leeway) < time()) {
+                return [
+                    'valid' => false, 
+                    'reason' => 'Token expirado. Exp: ' . $payload['exp'] . ' | Hora Servidor: ' . time()
+                ];
+            }
         }
 
-        return $payload;
+        return ['valid' => true, 'payload' => $payload];
     }
 
     /**
-     * Helpers de codificación Base64 URL Safe
+     * Helpers de codificación Base64 URL Safe robustos
      */
     private function base64UrlEncode(string $data): string
     {
@@ -100,6 +118,11 @@ class VerifyApiToken
 
     private function base64UrlDecode(string $data): string
     {
+        // Añadir de nuevo el padding de caracteres "=" si la longitud no es múltiplo de 4
+        $remainder = strlen($data) % 4;
+        if ($remainder) {
+            $data .= str_repeat('=', 4 - $remainder);
+        }
         return base64_decode(strtr($data, '-_', '+/'));
     }
 }
