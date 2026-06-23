@@ -5,7 +5,7 @@ export const EMPRESAS_COLUMNS: ColumnDef[] = [
     header: 'Empresa',
     type: 'avatar-name',
     nameFields: ['nombre', 'razonSocial'],
-    activeField: 'activo', // Hemos quitado subField y subPrefix para ocultar el ID técnico
+    activeField: 'activo', // ID fulminado definitivamente
     colorFn: (id: number) => {
       const COLORS = [
         'linear-gradient(135deg,#5a4d9a,#476fab)',

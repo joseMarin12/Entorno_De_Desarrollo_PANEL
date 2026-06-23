@@ -1,74 +1,181 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, inject, OnInit, signal, NO_ERRORS_SCHEMA } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router } from '@angular/router'; 
+import { ToastService } from '../../../../services/toast.service';
+import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
+import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
+import { EmpToolbarComponent, EmpFilterType, EmpFilterTipoType } from '../../components/toolbar/emp-toolbar.component';
+import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
+import { EmpresasApiService } from '../../../../services/empresas-api.service';
+import { EmpresasModalComponent } from "../../components/empresas-modal/empresas-modal.component";
+import { EmpresasTableComponent } from '../../components/empresas-table/empresas-table.component';
 import { Empresa } from '../../../../models/empresa.model';
 
-import { Router } from '@angular/router';
-import { TableComponent } from '../../../../shared/table/table.component';
-import { EMPRESAS_COLUMNS } from './empresas-table.config';
-
-
 @Component({
-  selector: 'app-empresas-table',
+  selector: 'app-empresas-page',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './empresas-table.component.html',
+  imports: [
+    CommonModule,
+    TopbarComponent,
+    StatsRowComponent,
+    EmpToolbarComponent,
+    EmpresasTableComponent,
+    EmpresasModalComponent,
+    ConfirmationModalComponent
+  ],
+  schemas: [NO_ERRORS_SCHEMA],
+  templateUrl: './empresas-page.component.html',
 })
-export class EmpresasTableComponent {
-  private readonly router = inject(Router);
-  @Input() empresas: Empresa[] = [];
-  @Input() currentPage = 1;
-  @Input() pageSize = 10;
-  @Input() totalFiltered = 0;
+export class EmpresasPageComponent implements OnInit {
+  api = inject(EmpresasApiService);
+  toast = inject(ToastService);
+  private readonly router = inject(Router); 
 
-  @Output() editClick  = new EventEmitter<number>();
-  @Output() bajaClick  = new EventEmitter<number>();
-  @Output() pageChange = new EventEmitter<number>();
+  ConfirmMode = ConfirmMode;
 
-  readonly empresa = (id: number) => this.empresas.find(e => e.id === id);
+  private readonly _empresas = signal<Empresa[]>([]);
+  readonly empresas = this._empresas.asReadonly();
 
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.totalFiltered / this.pageSize));
+  private readonly _total = signal(0);
+  readonly total = this._total.asReadonly();
+
+  private readonly _statsTotal = signal(0);
+  private readonly _statsActivos = signal(0);
+  private readonly _statsInactivos = signal(0);
+  readonly statsTotal = this._statsTotal.asReadonly();
+  readonly statsActivos = this._statsActivos.asReadonly();
+  readonly statsInactivos = this._statsInactivos.asReadonly();
+
+  searchQuery  = '';
+  activeFilter: EmpFilterType = '';
+  typeFilter: EmpFilterTipoType = '';
+  currentPage  = signal(1);
+  readonly PAGE_SIZE = 10;
+
+  showAdd  = false;
+  showEdit = false;
+  showBaja = false;
+  selectedId: number | null = null;
+
+  ngOnInit(): void {
+    this.loadAll();
   }
 
-  get paginationInfo(): string {
-    if (this.totalFiltered === 0) return 'Sin resultados';
-    const start = (this.currentPage - 1) * this.pageSize + 1;
-    const end   = Math.min(this.currentPage * this.pageSize, this.totalFiltered);
-    return `Mostrando ${start}–${end} de ${this.totalFiltered} empresas`;
+  get selectedEmpresa(): Empresa | null {
+    if (this.selectedId === null) return null;
+    return this.getById(this.selectedId) ?? null;
   }
 
-  get pages(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  private loadAll(searchText = '', status = '', tipo = ''): void {
+    this.api.findAll(searchText, status, tipo, this.currentPage(), this.PAGE_SIZE).subscribe({
+      next: (res: any) => { 
+        this._empresas.set(res.data ?? []);
+        this._total.set(res.totalFiltered ?? res.total ?? 0);
+        this._statsTotal.set(res.stats_total ?? res.total ?? 0);
+        this._statsActivos.set(res.stats_activos ?? res.totalActivos ?? 0);
+        this._statsInactivos.set(res.stats_inactivos ?? res.totalInactivos ?? 0);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo cargar las empresas. Inténtalo de nuevo.'),
+    });
+  }
+
+  get getExistingCIFs(): string[] {
+    return this.empresas().map(e => e.cif.trim().toUpperCase());
+  }
+  
+  get existingCIFsForEdit(): string[] {
+    if (!this.selectedId) return [];
+    return this.empresas()
+      .filter(e => e.id !== this.selectedId)
+      .map(e => e.cif.trim().toUpperCase());
+  }
+
+  onSearchChange(q: string): void {
+    this.searchQuery = q;
+    this.currentPage.set(1);
+    this.loadAll(q, this.activeFilter, this.typeFilter);
+  }
+  
+  onFilterChange(f: EmpFilterType): void {
+    this.activeFilter = f;
+    this.currentPage.set(1);
+    this.loadAll(this.searchQuery, f, this.typeFilter);
+  }
+
+  onTypeFilterChange(t: EmpFilterTipoType): void {
+    this.typeFilter = t;
+    this.currentPage.set(1);
+    this.loadAll(this.searchQuery, this.activeFilter, t);
+  }
+  
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+    this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
+  }
+
+  openAdd(): void {
+    this.showAdd = true;
+  }
+
+  onSaveAdd(data: Omit<Empresa, 'id'>): void {
+    this.api.create({ ...data, id: null }).subscribe({
+      next: (created) => {
+        this._empresas.update(list => [created, ...list]);
+        this.showAdd = false;
+        this.toast.show('success', `✓ Empresa <strong>${data.nombre}</strong> añadida correctamente`);
+        this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo añadir la empresa. Inténtalo de nuevo.'),
+    });
+  }
+
+  onEditClick(id: number): void {
+    this.selectedId = id;
+    this.showEdit = true;
+  }
+
+  onSaveEdit(data: Empresa): void {
+    this.api.update(data.id!, data).subscribe({
+      next: (updated) => {
+        this._empresas.update(list => list.map(e => e.id === data.id ? updated : e));
+        this.showEdit = false;
+        this.selectedId = null;
+        this.toast.show('info', `✎ Empresa <strong>${data.nombre} ${data.razonSocial}</strong> actualizada correctamente`);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo actualizar la empresa. Inténtalo de nuevo.'),
+    });
+  }
+
+  onBajaClick(id: number): void {
+    this.selectedId = id;
+    this.showBaja = true;
+  }
+
+  onConfirmBaja(): void {
+    if (this.selectedId == null) return;
+    const e = this.getById(this.selectedId)!;
+    const wasActive = e.activo;
+    this.api.toggleStatus(this.selectedId).subscribe({
+      next: (updated) => {
+        this._empresas.update(list => list.map(item => item.id === this.selectedId ? updated : item));
+        this.showBaja = false;
+        this.selectedId = null;
+        if (wasActive) {
+          this.toast.show('warning', `⊘ Empresa <strong>${this.fullName(e)}</strong> dada de baja`);
+        } else {
+          this.toast.show('success', `↺ Empresa <strong>${this.fullName(e)}</strong> reactivada`);
+        }
+        this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo cambiar el estado de la empresa. Inténtalo de nuevo.'),
+    });
+  }
+
+  getById(id: number): Empresa | undefined {
+    return this._empresas().find(e => e.id === id);
   }
 
   fullName(e: Empresa): string {
     return [e.nombre, e.razonSocial].filter(Boolean).join(' ');
-  }
-
-  initials(e: Empresa): string {
-    return (e.nombre[0] + e.nombre[1]).toUpperCase();
-  }  
-
-  goToDirecciones(id: number): void {
-    const empresa = this.empresa(id);
-    this.router.navigate(['/empresas', id, 'direcciones'], {
-      state: { nombreEmpresa: this.fullName(empresa!) }
-    });
-  }
-
-  goToContactos(id: number): void {
-    this.router.navigate(['/empresas', id, 'contactos']);
-  } 
-
-  colorFor(id: number): string {
-    const COLORS = [
-      'linear-gradient(135deg,#5a4d9a,#476fab)',
-      'linear-gradient(135deg,#476fab,#23b4cd)',
-      'linear-gradient(135deg,#3198bf,#23b4cd)',
-      'linear-gradient(135deg,#55569e,#3198bf)',
-      'linear-gradient(135deg,#5a4d9a,#23b4cd)',
-    ];
-    return COLORS[(id - 1) % COLORS.length];
   }
 }

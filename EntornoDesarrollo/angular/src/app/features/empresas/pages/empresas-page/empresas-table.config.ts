@@ -5,8 +5,6 @@ export const EMPRESAS_COLUMNS: ColumnDef[] = [
     header: 'Empresa',
     type: 'avatar-name',
     nameFields: ['nombre', 'razonSocial'],
-    subField: 'id',
-    subPrefix: 'ID: ',
     activeField: 'activo',
     colorFn: (id: number) => {
       const COLORS = [
