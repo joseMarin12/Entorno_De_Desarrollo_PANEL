@@ -10,7 +10,7 @@ import { environment } from '../../environments/environment';
 export class FormacionesService extends BaseCrud<Formacion> {
 
     // Apunta al Proxy de Laravel. Asegúrate de que coincida con tus rutas de Laravel
-    public readonly API_URL = `${environment.apiUrl}/api/formaciones`;
+     public readonly API_URL = `${environment.apiUrl}/formaciones`;
 
     // ── Estado reactivo ──────────────────────────────────────────────────────
     private _formaciones = signal<Formacion[]>([]);
