@@ -47,6 +47,7 @@ WORKDIR /var/www/html
 
 # Copia archivos
 COPY . .
+RUN rm -rf dist .angular && npx ng build --configuration=production
 
 # Crea .env
 RUN cp .env.example .env || true
