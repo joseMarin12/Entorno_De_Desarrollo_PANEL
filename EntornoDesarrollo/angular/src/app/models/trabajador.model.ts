@@ -13,7 +13,7 @@ export interface Trabajador {
   nacionalidad?: string;
   fecha_nacimiento?: string;
   id_seleccionadores?: number;
-  activo: boolean; 
+  activo: boolean;
   fecha_ini?: string;
   fecha_fin?: string;
   codigo_postal?: string;
@@ -28,8 +28,17 @@ export interface Trabajador {
   updated_at?: string;
 }
 
-export function getFullName(t: Trabajador): string {
-  return [t.nombre, t.primer_apellido, t.segundo_apellido].filter(Boolean).join(' ');
+export interface DocumentoParaCrear {
+  origen: 'subir';
+  tipoId?: string;
+  descripcion: string;
+  base64: string | null;
+  nombre: string;
+  requiere_firma: boolean;
+}
+
+export interface TrabajadorFormData extends Omit<Trabajador, 'id'> {
+  documentos: DocumentoParaCrear[];
 }
 
 export function getInitials(t: Trabajador): string {

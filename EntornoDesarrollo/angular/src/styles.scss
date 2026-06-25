@@ -40,6 +40,9 @@ html,
 body {
   width: 100%;
   height: 100%;
+  /* Reserva el hueco de la barra de scroll para que la página no "salte"
+     al bloquear el scroll de fondo cuando se abre un modal. */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -451,6 +454,11 @@ router-outlet+* {
   color: var(--blue-lighter);
 }
 
+.stat-icon.red {
+  background: var(--badge-inactive-bg);
+  color: var(--badge-inactive-text);
+}
+
 .stat-num {
   font-size: 24px;
   font-weight: 700;
@@ -745,7 +753,11 @@ tbody tr:hover td {
   margin-top: 4px;
 }
 
-/* ══ MODAL OVERLAY ══ */
+html:has(.modal-overlay.open),
+body:has(.modal-overlay.open) {
+  overflow: hidden;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;

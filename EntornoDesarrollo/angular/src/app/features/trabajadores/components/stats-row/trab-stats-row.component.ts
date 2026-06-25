@@ -36,7 +36,7 @@ import { CommonModule } from '@angular/common';
 
       <!-- De baja -->
       <div class="stat-card">
-        <div class="stat-icon" style="background:#fdecea; color:#b71c1c;">
+        <div class="stat-icon red">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
@@ -49,7 +49,7 @@ import { CommonModule } from '@angular/common';
 
       <!-- Freelance -->
       <div class="stat-card">
-        <div class="stat-icon" style="background:#e3f2fd; color:#1565c0;">
+        <div class="stat-icon blue">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
           </svg>

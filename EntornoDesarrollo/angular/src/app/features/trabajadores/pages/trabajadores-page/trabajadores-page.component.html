@@ -53,9 +53,6 @@
     [trabajador]="selectedTrabajador"
     [existingEmails]="existingEmails()"
     [existingDnis]="existingDnis()"
-    [seleccionadores]="seleccionadores()"
-    [provincias]="provincias()"
-    [localidadesTodas]="localidades()"
     [tiposDoc]="tiposDoc()"
     (save)="onSaveForm($event)"
     (close)="closeModals()"
@@ -68,15 +65,32 @@
     [trabajador]="selectedTrabajador"
     [asignaciones]="detailAsignaciones()"
     [formaciones]="detailFormaciones()"
-    [documentos]="detailDocumentos()"
     [tiposDoc]="tiposDoc()"
-    (viewDoc)="onViewDoc($event)"
+    [docs]="detailDocs()"
+    [previewBase64]="previewBase64()"
     (downloadDoc)="onDownloadDoc($event)"
     (deleteDoc)="onDeleteDoc($event)"
     (uploadNewDoc)="onUploadNewDoc($event)"
     (updateDoc)="onUpdateDoc($event)"
+    (requestPreviewArchivo)="onPreviewArchivo($event)"
+    (openFirma)="onOpenFirma($event)"
     (edit)="onEditClick($event); showDetail = false"
     (close)="closeModals()"
+  />
+}
+
+<!-- Modal de flujo de firma (maqueta visual) -->
+@if (showFirma && selectedTrabajador) {
+  <app-trab-modal-firma
+    [trabajador]="selectedTrabajador"
+    [firma]="selectedFirma()"
+    [previewBase64]="firmaPreviewBase64()"
+    [enviando]="firmaEnviando()"
+    (requestPreviewArchivo)="onPreviewArchivoFirma($event)"
+    (save)="onSaveFirma($event)"
+    (cancelar)="onCancelarFirma($event)"
+    (eliminarDoc)="onEliminarDocDesdeFirma($event)"
+    (close)="onCloseFirma()"
   />
 }
 
@@ -88,6 +102,5 @@
     [title]="confirmCustomTitle() || '¿Seguro que quiere realizar esta acción?'"
     [description]="confirmCustomDesc()"
     (confirm)="onConfirmToggle()"
-    (closed)="showConfirm = false; confirmCustomTitle.set(undefined); confirmCustomDesc.set(null)"
-  />
+    (closed)="showConfirm = false" />
 }

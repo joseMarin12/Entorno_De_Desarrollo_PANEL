@@ -26,8 +26,8 @@ export class SeleccionadoresPageComponent implements OnInit {
   toast = inject(ToastService);
 
   private readonly _seleccionadores = signal<Seleccionador[]>([]);
+  // Empresas para resolver el nombre en la tabla/detalle (el formulario usa su propio lookup-select).
   private readonly _empresas = signal<{id: number, nombre: string}[]>([]);
-  readonly empresasDisponibles = this._empresas.asReadonly();
 
   readonly seleccionadores = computed(() => {
     const empresas = this._empresas();
@@ -69,6 +69,7 @@ export class SeleccionadoresPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPage();
+    this.loadEmpresas();
   }
 
   private loadEmpresas(): void {
@@ -118,7 +119,6 @@ export class SeleccionadoresPageComponent implements OnInit {
   openAdd(): void {
     this.selectedId.set(null);
     this.selectedSeleccionador = null;
-    this.loadEmpresas();
     this.showForm = true;
   }
 
@@ -129,7 +129,6 @@ export class SeleccionadoresPageComponent implements OnInit {
   onEditClick(id: number): void {
     this.selectedId.set(id);
     this.selectedSeleccionador = this.getById(id) ?? null;
-    this.loadEmpresas();
     this.showForm = true;
   }
 

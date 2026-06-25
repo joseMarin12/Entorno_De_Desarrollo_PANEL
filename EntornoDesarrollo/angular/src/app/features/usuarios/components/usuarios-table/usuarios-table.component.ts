@@ -54,7 +54,7 @@ export class UsuariosTableComponent {
       actions: [
         { type: 'detail', title: 'Ver detalle', icon: 'eye', variant: 'view' },
         { type: 'edit', title: 'Editar', icon: 'edit', variant: 'edit' },
-        { type: 'baja', title: 'Dar de Baja', icon: 'ban', variant: 'danger', showWhen: 'active', activeField: 'enabled' },
+        { type: 'baja', title: 'Dar de Baja', icon: 'alert-circle', variant: 'danger', showWhen: 'active', activeField: 'enabled' },
         { type: 'baja', title: 'Activar', icon: 'check-circle', variant: 'success', showWhen: 'inactive', activeField: 'enabled' }
       ]
     }

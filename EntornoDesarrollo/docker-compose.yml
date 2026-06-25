@@ -50,7 +50,12 @@ services:
       - app_network
     ports:
       - "5678:5678"
+    # ENETUNREACH al conectar con login.microsoftonline.com (OAuth).
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.default.disable_ipv6=1
     environment:
+      NODE_OPTIONS: --dns-result-order=ipv4first
       DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: postgres
       DB_POSTGRESDB_PORT: 5432
@@ -64,6 +69,8 @@ services:
       N8N_HOST: 0.0.0.0
       N8N_PORT: 5678
       N8N_PROTOCOL: http
+      # (callbacks OAuth y URLs de webhooks). En local: localhost. En producción: cambiar al dominio real.
+      WEBHOOK_URL: http://localhost:5678/
       NODE_FUNCTION_ALLOW_EXTERNAL: "bcryptjs,jsonwebtoken"
     volumes:
       - n8n_data:/home/node/.n8n
@@ -81,6 +88,7 @@ services:
       - app_network
     ports:
       - "8000:8000"
+    command: php artisan serve --host=0.0.0.0 --port=8000
     volumes:
       - ./laravel:/var/www/html
       - laravel_vendor:/var/www/html/vendor

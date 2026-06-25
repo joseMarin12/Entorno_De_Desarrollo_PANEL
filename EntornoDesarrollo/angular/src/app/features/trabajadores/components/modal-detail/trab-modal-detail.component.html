@@ -1,8 +1,8 @@
 <div class="modal-overlay open">
-  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 680px;">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 680px; max-height: 95vh; display: flex; flex-direction: column;">
 
     <!-- ═══ HEADER UNIFICADO PREMIUM ═══ -->
-    <div class="modal-header" style="padding: 32px 36px 24px; border-bottom: none; align-items: flex-start;">
+    <div class="modal-header" style="padding: 32px 36px 24px; border-bottom: none; align-items: flex-start; flex-shrink: 0;">
       <div style="display: flex; align-items: center; gap: 20px;">
         <div class="avatar-large" [style.background]="colorFor(trabajador.id)" style="width: 64px; height: 64px; font-size: 22px; border-radius: 18px; box-shadow: 0 8px 16px rgba(0,0,0,0.08);">
           {{ initials(trabajador) }}
@@ -33,25 +33,40 @@
     </div>
 
     <!-- ═══ PESTAÑAS (Fijas arriba) ═══ -->
-    <div style="padding: 0 36px;">
+    <div style="padding: 0 36px; flex-shrink: 0;">
       <div class="tabs-nav" style="margin-bottom: 0;">
         <div class="tab-item" [class.active]="activeTab() === 'datos'" (click)="setTab('datos')">
-          Datos
+          <span class="tab-label">Datos</span>
         </div>
         <div class="tab-item" [class.active]="activeTab() === 'asignaciones'" (click)="setTab('asignaciones')">
-          Asignaciones <span class="tab-count">{{ totalAsignaciones }}</span>
+          <span class="tab-label">Asignaciones</span>
+          @if (totalAsignaciones > 0) {
+            <span class="tab-count">{{ totalAsignaciones }}</span>
+          }
         </div>
         <div class="tab-item" [class.active]="activeTab() === 'formaciones'" (click)="setTab('formaciones')">
-          Formaciones <span class="tab-count">{{ totalFormaciones }}</span>
+          <span class="tab-label">Formaciones</span>
+          @if (totalFormaciones > 0) {
+            <span class="tab-count">{{ totalFormaciones }}</span>
+          }
         </div>
         <div class="tab-item" [class.active]="activeTab() === 'documentos'" (click)="setTab('documentos')">
-          Documentos <span class="tab-count">{{ totalDocumentos }}</span>
+          <span class="tab-label">Documentos</span>
+          @if (totalDocumentos > 0) {
+            <span class="tab-count">{{ totalDocumentos }}</span>
+          }
+        </div>
+        <div class="tab-item" [class.active]="activeTab() === 'firmas'" (click)="setTab('firmas')">
+          <span class="tab-label">Firmas</span>
+          @if (totalFirmas > 0) {
+            <span class="tab-count">{{ totalFirmas }}</span>
+          }
         </div>
       </div>
     </div>
 
     <!-- ═══ BODY (Scrollable) ═══ -->
-    <div class="modal-body" style="max-height: 65vh; overflow-y: auto; padding: 24px 36px 32px;">
+    <div class="modal-body" style="flex: 1; min-height: 0; overflow-y: auto; padding: 24px 36px 32px;">
 
       <!-- ═══ TAB: DATOS ═══ -->
       @if (activeTab() === 'datos') {
@@ -82,7 +97,7 @@
             <div class="detail-item">
               <div class="detail-label">Fecha de nacimiento</div>
               <div class="detail-value">
-                @if (trabajador.fecha_nacimiento) { {{ trabajador.fecha_nacimiento | date:'dd/MM/yyyy' || trabajador.fecha_nacimiento }} }
+                @if (trabajador.fecha_nacimiento) { {{ trabajador.fecha_nacimiento | date:'dd/MM/yyyy' }} }
                 @else { <span class="empty-dash">—</span> }
               </div>
             </div>
@@ -161,14 +176,14 @@
             <div class="detail-item">
               <div class="detail-label">Fecha inicio</div>
               <div class="detail-value">
-                @if (trabajador.fecha_ini) { {{ trabajador.fecha_ini | date:'dd/MM/yyyy' || trabajador.fecha_ini }} }
+                @if (trabajador.fecha_ini) { {{ trabajador.fecha_ini | date:'dd/MM/yyyy' }} }
                 @else { <span class="empty-dash">—</span> }
               </div>
             </div>
             <div class="detail-item">
               <div class="detail-label">Fecha fin</div>
               <div class="detail-value">
-                @if (trabajador.fecha_fin) { {{ trabajador.fecha_fin | date:'dd/MM/yyyy' || trabajador.fecha_fin }} }
+                @if (trabajador.fecha_fin) { {{ trabajador.fecha_fin | date:'dd/MM/yyyy' }} }
                 @else { <span class="empty-dash">—</span> }
               </div>
             </div>
@@ -316,90 +331,142 @@
         }
       }
 
-      <!-- TAB: DOCUMENTOS -->
+      <!-- ═══ TAB: DOCUMENTOS ═══ -->
       @if (activeTab() === 'documentos') {
-        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); margin-bottom: 24px;">
-          <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
-            <div class="form-group" style="margin: 0; position: relative; flex: 1; min-width: 220px;">
-              <label class="form-label" style="font-size: 13px; font-weight: 600;">
-                ¿Qué documento añadirás? <em style="color:var(--danger)">*</em>
-              </label>
-              <div 
-                (click)="isDocDropdownOpen = !isDocDropdownOpen"
-                class="form-input"
-                [style.borderColor]="isDocDropdownOpen ? 'var(--blue-mid)' : ''"
-                style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; padding: 12px 14px; height: auto; font-size: 14px; overflow: hidden;">
-                <span 
-                  [style.color]="newDocSelection ? 'var(--text)' : 'var(--text-muted)'"
-                  style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 12px; flex-grow: 1;">
-                  {{ selectedDocName }}
-                </span>
-                <svg style="flex-shrink: 0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [style.transform]="isDocDropdownOpen ? 'rotate(180deg)' : 'none'" style="transition: transform 0.2s; color: var(--text-muted);"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </div>
-              @if (isDocDropdownOpen) {
-                <div style="position: fixed; inset: 0; z-index: 99;" (click)="isDocDropdownOpen = false"></div>
-                <div style="position: absolute; top: calc(100% + 4px); left: 0; width: 100%; max-height: 250px; overflow-y: auto; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; padding: 8px 0;">
-                  <div style="padding: 6px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); background: #f8f9fd;">⚡ Plantillas</div>
-                  @for (p of plantillas; track p.id) { <div (click)="newDocSelection = 'plantilla:' + p.id; isDocDropdownOpen = false;" style="padding: 10px 16px; font-size: 13px; cursor: pointer; color: var(--text);" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'">{{ p.nombre }}</div> }
-                  <div style="padding: 6px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); background: #f8f9fd; margin-top: 8px;">📄 Manuales</div>
-                  @for (t of tiposDoc; track t.id) { <div (click)="newDocSelection = 'manual:' + t.id; isDocDropdownOpen = false;" style="padding: 10px 16px; font-size: 13px; cursor: pointer; color: var(--text);" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'">{{ t.tipo }}</div> }
-                </div>
-              }
-            </div>
-            <div class="form-group" style="margin: 0; flex: 1.5; min-width: 220px;">
-              <label class="form-label" style="font-size: 13px; font-weight: 600;">Descripción (Opcional)</label>
-              <input class="form-input" type="text" placeholder="Añade una nota..." [(ngModel)]="newDocDesc" style="padding: 12px 14px; height: auto; font-size: 14px;" />
-            </div>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 16px;">
-            <div (click)="isSelectedManual ? detailFileRef.click() : null" [style.opacity]="isSelectedPlantilla ? '0.4' : '1'" [style.cursor]="isSelectedManual ? 'pointer' : 'default'" [style.pointer-events]="isSelectedPlantilla ? 'none' : 'auto'" style="display: flex; flex-direction: column; align-items: center; padding: 24px; border: 2px dashed #e2e8f0; border-radius: 10px; background: #f8fafc; transition: all 0.3s;" onmouseover="if(this.style.opacity!=='0.4'){this.style.borderColor='#cbd5e1';this.style.background='#f1f5f9';}" onmouseout="this.style.borderColor='#e2e8f0';this.style.background='#f8fafc';">
-              <div style="width: 48px; height: 48px; background: white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              </div>
-              @if (newDocFile) {
-                <span style="font-size: 14px; font-weight: 600; color: var(--text);">{{ newDocFile.name }}</span>
-                <span style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Click para cambiar</span>
-              } @else {
-                <span style="font-size: 14px; font-weight: 600; color: var(--text);">Haz clic para seleccionar el archivo</span>
-                <span style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">PDF, PNG o JPG (Máx. 5MB)</span>
-              }
-              <input #detailFileRef id="detailFileInput" type="file" style="display: none" (change)="onNewFileSelected($event)" accept="image/jpeg,image/png,application/pdf" />
-            </div>
-            <div style="display: flex; justify-content: flex-end;">
-              <button type="button" class="btn btn-primary" (click)="addDoc()" [disabled]="!newDocSelection || (isSelectedManual && !newDocFile)" style="padding: 10px 24px; font-weight: 600; border-radius: 8px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Agregar
-              </button>
-            </div>
-          </div>
-        </div>
+        <app-doc-upload-form
+          [tiposDoc]="tiposDoc"
+          (add)="onDocAdded($event)" />
 
-        @if (documentos.length === 0) {
+        @if (archivados().length === 0) {
           <div class="empty-tab">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
             <h4>Sin documentos</h4>
             <p>Este trabajador aún no tiene documentos.</p>
           </div>
         } @else {
-          <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px;">Documentos del trabajador ({{ totalDocumentos }})</div>
+          <div class="docs-list-header">
+            <div class="docs-list-title">
+              Documentos del trabajador
+              @if (tieneFiltrosActivos) {
+                ({{ archivadosFiltrados().length }} de {{ totalDocumentos }})
+              } @else {
+                ({{ totalDocumentos }})
+              }
+            </div>
+            <div class="docs-toolbar">
+              <div class="doc-search-wrap">
+                <svg class="doc-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="7"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input class="doc-search-input" type="text" placeholder="Buscar documento..."
+                       [ngModel]="docSearchQuery()" (ngModelChange)="docSearchQuery.set($event)" />
+                @if (docSearchQuery()) {
+                  <button class="doc-search-clear" type="button" (click)="docSearchQuery.set('')" title="Limpiar búsqueda">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                }
+              </div>
+              <div class="doc-status-wrap">
+                <select class="doc-status-filter"
+                        [ngModel]="docStatusFilter()" (ngModelChange)="docStatusFilter.set($event)"
+                        title="Filtrar por estado">
+                  <option value="todos">Todos</option>
+                  <option value="sin_firma">Sin firma</option>
+                  <option value="pendiente">Pendiente de firma</option>
+                  <option value="en_firma">Firmando</option>
+                  <option value="firmado">Firmados</option>
+                  <option value="rechazado">Rechazados</option>
+                  <option value="cancelado">Cancelados</option>
+                </select>
+                <svg class="doc-status-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          @if (archivadosFiltrados().length === 0) {
+            <div class="empty-tab" style="padding: 28px 20px;">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <h4>Sin resultados</h4>
+              <p>Ningún documento coincide con los filtros actuales.</p>
+              <button type="button" class="btn btn-outline" (click)="limpiarFiltrosDocs()" style="margin-top: 12px; padding: 6px 14px; font-size: 12px;">
+                Limpiar filtros
+              </button>
+            </div>
+          } @else {
           <div style="display: flex; flex-direction: column; gap: 10px;">
-            @for (doc of documentos; track doc.id) {
-              <div style="background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px;">
-                  <div style="display: flex; align-items: center; gap: 14px; overflow: hidden;">
-                    <div style="width: 40px; height: 40px; background: #fee2e2; color: #ef4444; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            @for (doc of archivadosFiltrados(); track doc.id) {
+              <div [class.doc-card-blocked]="isDocBloqueado(doc)" style="background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                <div style="display: flex; align-items: stretch; justify-content: space-between; padding: 14px 20px; gap: 16px;">
+
+                  <!-- Lado izquierdo: identificación del archivo -->
+                  <div style="display: flex; align-items: flex-start; gap: 14px; overflow: hidden; flex: 1;">
+                    <div class="doc-icon-wrap" style="width: 40px; height: 40px; background: #fee2e2; color: #ef4444; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      @if (isDocBloqueado(doc)) {
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      } @else {
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                      }
                     </div>
-                    <div style="overflow: hidden;">
-                      <div style="font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ doc.nombre_fichero }}</div>
-                      <div style="font-size: 12px; color: var(--text-muted);">{{ doc.tipo_nombre }} · {{ doc.fecha_creacion | date:'dd MMM yyyy' }}</div>
-                      @if (doc.descripcion) { <div style="font-size: 12px; color: #6366f1; font-style: italic; margin-top: 2px;">"{{ doc.descripcion }}"</div> }
+                    <div style="overflow: hidden; flex: 1;">
+                      <div class="doc-title" style="font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ doc.nombre_fichero }}</div>
+                      <div style="font-size: 12px; color: var(--text-muted);">
+                        {{ doc.tipo_nombre }} · {{ doc.fecha_creacion | date:'dd MMM yyyy' }}
+                      </div>
+                      @if (doc.descripcion) { <div style="font-size: 12px; color: #6366f1; font-style: italic; margin-top: 4px;">"{{ doc.descripcion }}"</div> }
                     </div>
                   </div>
-                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                    <button (click)="viewDoc.emit(doc)" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: #f3f4f6; color: #4b5563; border: none; border-radius: 8px; cursor: pointer;" title="Ver"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
-                    <button (click)="startEdit(doc)" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: #fef3c7; color: #d97706; border: none; border-radius: 8px; cursor: pointer;" title="Editar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                    <button (click)="downloadDoc.emit(doc)" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: #e0e7ff; color: #4338ca; border: none; border-radius: 8px; cursor: pointer;" title="Descargar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
-                    <button (click)="deleteDoc.emit(doc)" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: #fee2e2; color: #ef4444; border: none; border-radius: 8px; cursor: pointer;" title="Eliminar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+
+                  <!-- Lado derecho: estado (arriba) + acciones (abajo) -->
+                  <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; flex-shrink: 0; gap: 10px;">
+                    @if (doc.firma) {
+                      @if (doc.firma.estado !== 'PENDIENTE_ENVIO') {
+                        <span class="estado-badge clickable" [ngClass]="estadoCssClass(doc.firma.estado)"
+                              title="Ver en pestaña Firmas" (click)="goToFirma(doc.id)">
+                          <span class="dot"></span>
+                          {{ estadoLabel(doc.firma.estado) }}
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; opacity: 0.7;">
+                            <polyline points="9 18 15 12 9 6"/>
+                          </svg>
+                        </span>
+                      } @else {
+                        <span class="estado-badge" [ngClass]="estadoCssClass(doc.firma.estado)">
+                          <span class="dot"></span>
+                          {{ estadoLabel(doc.firma.estado) }}
+                        </span>
+                      }
+                    } @else {
+                      <span style="height: 1px;"></span>
+                    }
+
+                    @if (!isDocBloqueado(doc)) {
+                      <!-- Doc sin firma o ya COMPLETADO: acciones normales de gestión documental. -->
+                      <div style="display: flex; align-items: center; gap: 6px;">
+                        <button (click)="abrirPreviewDoc(doc)" title="Ver" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: #f3f4f6; color: #4b5563; border: none; border-radius: 8px; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                        <button (click)="startEdit(doc)" title="Editar" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: #fef3c7; color: #d97706; border: none; border-radius: 8px; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                        <button (click)="downloadDoc.emit(doc)" title="Descargar" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: #e0e7ff; color: #4338ca; border: none; border-radius: 8px; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
+                        <button (click)="deleteDoc.emit(doc)" title="Eliminar" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: #fee2e2; color: #ef4444; border: none; border-radius: 8px; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                      </div>
+                    } @else if (puedeEliminarOEnviar(doc)) {
+                      <!-- Solo PENDIENTE_ENVIO muestra acciones inline (Eliminar / Enviar).
+                           EN_SINATURA, RECHAZADO y CANCELADO se gestionan desde la pestaña
+                           Firmas vía el badge clickable que ya navega a esa pestaña. -->
+                      <div class="doc-pendiente-actions">
+                        <button class="btn-doc-eliminar" (click)="deleteDoc.emit(doc)">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          Eliminar
+                        </button>
+                        <button class="btn-doc-enviar" (click)="onEnviarFirmaDesdeDoc(doc)">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                          Enviar
+                        </button>
+                      </div>
+                    }
                   </div>
                 </div>
                 @if (editingDocId === doc.id) {
@@ -409,11 +476,38 @@
                       <input class="form-input" type="text" [(ngModel)]="editDocDesc" placeholder="Actualiza la descripción..." style="font-size: 13px; padding: 10px 12px;" />
                     </div>
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-                      <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
-                        <button type="button" class="btn btn-outline" (click)="editFileRef.click()" style="padding: 6px 12px; font-size: 12px;">Reemplazar archivo</button>
-                        <span style="font-size: 12px; color: var(--text-muted);">{{ editDocFile ? editDocFile.name : 'Archivo actual se mantiene' }}</span>
-                        <input #editFileRef type="file" style="display: none" (change)="onEditFileSelected($event)" accept="image/jpeg,image/png,application/pdf" />
-                      </div>
+                      @if (!doc.firma) {
+                        <div style="display: flex; align-items: center; gap: 10px; overflow: hidden; flex-wrap: wrap;">
+                          <button type="button" class="btn-replace-file" (click)="editFileRef.click()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                              <polyline points="23 4 23 10 17 10"/>
+                              <polyline points="1 20 1 14 7 14"/>
+                              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                            </svg>
+                            Reemplazar archivo
+                          </button>
+                          @if (editDocFile) {
+                            <span class="replace-file-name" [title]="editDocFile.name">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                              </svg>
+                              {{ editDocFile.name }}
+                            </span>
+                          } @else {
+                            <span class="replace-file-empty">El archivo actual se mantendrá</span>
+                          }
+                          <input #editFileRef type="file" style="display: none" (change)="onEditFileSelected($event)" accept="image/jpeg,image/png,application/pdf" />
+                        </div>
+                      } @else {
+                        <span class="replace-file-locked" title="Este documento tiene firma asociada y su archivo no se puede reemplazar">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                          </svg>
+                          Archivo protegido — tiene firma asociada
+                        </span>
+                      }
                       <div style="display: flex; gap: 8px; flex-shrink: 0;">
                         <button class="btn btn-outline" (click)="cancelEdit()" style="padding: 6px 14px; font-size: 12px;">Cancelar</button>
                         <button class="btn btn-primary" (click)="saveEdit(doc)" style="padding: 6px 14px; font-size: 12px;">Guardar</button>
@@ -424,14 +518,124 @@
               </div>
             }
           </div>
+          }
         }
       }
+      <!-- /TAB DOCUMENTOS -->
+
+      <!-- ═══ TAB: FIRMAS ═══ -->
+      @if (activeTab() === 'firmas') {
+
+          <!-- Métricas por estado (solo se muestran si hay firmas) -->
+          @if (firmas().length > 0) {
+            <div class="firma-metrics">
+              <div class="firma-metric">
+                <span class="firma-metric-dot proceso"></span>
+                <div>
+                  <div class="firma-metric-value">{{ firmasEnProceso }}</div>
+                  <div class="firma-metric-label">Firmando</div>
+                </div>
+              </div>
+              <div class="firma-metric">
+                <span class="firma-metric-dot completado"></span>
+                <div>
+                  <div class="firma-metric-value">{{ firmasCompletadas }}</div>
+                  <div class="firma-metric-label">Completadas</div>
+                </div>
+              </div>
+              @if (firmasRechazadas > 0) {
+                <div class="firma-metric">
+                  <span class="firma-metric-dot rechazado"></span>
+                  <div>
+                    <div class="firma-metric-value">{{ firmasRechazadas }}</div>
+                    <div class="firma-metric-label">Rechazadas</div>
+                  </div>
+                </div>
+              }
+              @if (firmasCanceladas > 0) {
+                <div class="firma-metric">
+                  <span class="firma-metric-dot cancelado"></span>
+                  <div>
+                    <div class="firma-metric-value">{{ firmasCanceladas }}</div>
+                    <div class="firma-metric-label">Canceladas</div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Lista de firmas -->
+          @if (firmas().length === 0) {
+            <div class="empty-tab">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/>
+                <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+              </svg>
+              <h4>Sin documentos de firma</h4>
+              <p>Este trabajador no tiene documentos pendientes de firma todavía.</p>
+            </div>
+          } @else {
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              @for (f of firmas(); track f.id) {
+                <div class="firma-card"
+                     [class.highlighted]="highlightedDocId() === f.doc_id"
+                     [attr.data-firma-doc-id]="f.doc_id">
+                  <div style="display: flex; align-items: center; gap: 14px; overflow: hidden; flex: 1;">
+                    <div class="firma-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/>
+                        <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                      </svg>
+                    </div>
+                    <div style="overflow: hidden; flex: 1;">
+                      <div class="firma-title">{{ f.nombre_fichero || f.tipo_nombre }}</div>
+                      <div class="firma-sub">
+                        <span>{{ f.tipo_nombre }}</span>
+                        <span>·</span>
+                        <span>{{ formatDate(f.fecha_asignacion) }}</span>
+                        @if (f.requiere_firma_rrhh) {
+                          <span class="rrhh-pill">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                              <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            RRHH
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                    <span class="estado-badge" [ngClass]="estadoCssClass(f.estado)">
+                      <span class="dot"></span>
+                      {{ estadoLabel(f.estado) }}
+                    </span>
+                    <!-- Botón primario unificado:
+                         · PENDIENTE_ENVIO → acción directa "Enviar"
+                         · Resto de estados post-envío → "Ver progreso" (las acciones secundarias
+                           viven dentro del modal-firma) -->
+                    <button class="firma-action-btn primary" (click)="onAbrirFirma(f)">
+                      @if (f.estado === 'PENDIENTE_ENVIO') {
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        Enviar
+                      } @else {
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Ver progreso
+                      }
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+      }
+      <!-- /TAB FIRMAS -->
 
     </div>
 
-    <div class="modal-footer" style="background: #fafbff; border-top: 1px solid var(--border);">
+    <div class="modal-footer" style="background: #fafbff; border-top: 1px solid var(--border); flex-shrink: 0;">
       <button class="btn btn-outline" (click)="close.emit()">Cerrar</button>
-      <button class="btn btn-primary" (click)="edit.emit(trabajador.id); close.emit()">
+      <button class="btn btn-primary" (click)="edit.emit(trabajador.id)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -442,3 +646,10 @@
 
   </div>
 </div>
+
+<app-doc-preview-modal
+  [open]="!!previewDoc()"
+  [nombre]="previewDoc()?.nombre_fichero || 'Documento'"
+  [meta]="previewMeta"
+  [base64]="previewBase64"
+  (closed)="cerrarPreviewDoc()" />

@@ -71,5 +71,6 @@ RUN chmod -R 755 /var/www/html || true
 EXPOSE 8080
 ENV PORT=8080
 
+<<<<<<< HEAD
 # Inicia Apache
 CMD ["apache2-foreground"]

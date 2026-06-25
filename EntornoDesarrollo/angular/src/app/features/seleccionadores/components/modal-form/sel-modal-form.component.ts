@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Seleccionador, TipoSeleccionador } from '../../../../models/seleccionador.model';
 import { ToastService } from '../../../../services/toast.service';
+import { SeleccionadoresApiService } from '../../../../services/seleccionadores-api.service';
+import { LookupSelectComponent } from '../../../../shared/lookup-select/lookup-select.component';
 
 @Component({
   selector: 'app-sel-modal-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LookupSelectComponent],
   templateUrl: './sel-modal-form.component.html',
   styles: [`
     .type-selector {
@@ -78,12 +80,12 @@ import { ToastService } from '../../../../services/toast.service';
 })
 export class SelModalFormComponent implements OnChanges {
   @Input() seleccionador: Seleccionador | null = null;
-  @Input() empresasDisponibles: {id: number, nombre: string}[] = [];
   @Input() existingEmails: string[] = [];
   @Output() save  = new EventEmitter<Omit<Seleccionador, 'id'>>();
   @Output() close = new EventEmitter<void>();
 
   private toast = inject(ToastService);
+  protected api = inject(SeleccionadoresApiService);
 
   form: Omit<Seleccionador, 'id'> = this.getDefaultForm();
   errors: Record<string, string> = {};
@@ -95,9 +97,8 @@ export class SelModalFormComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Solo reiniciar el form cuando cambia el seleccionador (crear vs. editar)
-    // Ignorar cambios de 'empresasDisponibles' y 'existingEmails' para no
-    // interrumpir la interacción del usuario con el formulario
+    // Solo reiniciar el form cuando cambia el seleccionador (crear vs. editar);
+    // ignoramos cambios de 'existingEmails' para no interrumpir la edición del usuario.
     if ('seleccionador' in changes) {
       if (this.seleccionador) {
         this.form = { ...this.seleccionador };
@@ -118,7 +119,6 @@ export class SelModalFormComponent implements OnChanges {
       tipo: 'interno',
       activo: true,
       id_empresa: undefined,
-      empresa: undefined,
       fecha_ini: '',
       salario: undefined,
       fee: undefined
@@ -204,10 +204,4 @@ export class SelModalFormComponent implements OnChanges {
     this.save.emit(payload);
   }
 
-  // Método para asignar el ID de empresa para el backend
-  onEmpresaChange(id: string): void {
-    const empresaId = parseInt(id);
-    this.form.id_empresa = empresaId;
-    this.form.empresa = this.empresasDisponibles.find(e => e.id === empresaId);
-  }
 }

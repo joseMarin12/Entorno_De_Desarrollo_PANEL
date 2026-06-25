@@ -33,13 +33,6 @@ export const TRABAJADORES_COLUMNS: ColumnDef[] = [
     field: 'email'
   },
   {
-    header: 'Salario',
-    type: 'number',
-    field: 'salario',
-    locale: 'es-ES',
-    numberOptions: { style: 'currency', currency: 'EUR' }
-  },
-  {
     header: 'Tipo',
     type: 'enum-badge',
     field: 'freelance',
