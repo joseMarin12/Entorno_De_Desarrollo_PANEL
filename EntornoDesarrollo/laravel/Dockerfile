@@ -30,7 +30,7 @@ RUN for file in /etc/apache2/sites-available/*.conf; do \
     done
 
 # Configura document root
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
@@ -45,31 +45,31 @@ RUN echo '\n<Directory /var/www/html/public/>\n\
 # Directorio de trabajo
 WORKDIR /var/www/html
 
-# Copia archivos
+# Copia archivos del proyecto
 COPY . .
-RUN rm -rf dist .angular && npx ng build --configuration=production
 
-# Crea .env
+# Crea .env inicial si no existe
 RUN cp .env.example .env || true
 
 # Instala dependencias de Composer
 RUN composer install --no-interaction --optimize-autoloader --no-dev || true
 
-# Genera llave
+# Genera la llave de la aplicación
 RUN php artisan key:generate --force || true
 
-# ⭐ CACHEA CONFIGURACIÓN Y RUTAS ANTES DE INICIAR
+# ⭐ OPTIMIZACIÓN PARA CLOUD RUN
+# No usamos config:cache para permitir que Cloud Run inyecte variables de entorno en vivo
 RUN php artisan config:clear || true
-RUN php artisan config:cache || true
-RUN php artisan route:clear || true
 RUN php artisan route:cache || true
+RUN php artisan view:cache || true
 
-# Permisos
+# Configuración correcta de permisos para Apache
 RUN chown -R www-data:www-data /var/www/html || true
 RUN chmod -R 755 /var/www/html || true
 
-# Puertos y variables
+# Puertos y variables de entorno exigidas por GCP
 EXPOSE 8080
 ENV PORT=8080
-# Inicia Apache
+
+# Inicia Apache en primer plano
 CMD ["apache2-foreground"]
