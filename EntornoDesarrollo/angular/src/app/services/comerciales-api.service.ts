@@ -19,7 +19,7 @@ export interface ComercialPage {
 
 @Injectable({ providedIn: 'root' })
 export class ComercialesApiService extends BaseCrud<Comercial> {
-  protected readonly API_URL = `${environment.apiUrl}/comerciales`;
+  public override readonly API_URL = `${environment.apiUrl}/comerciales`;
 
   findAll(page = 1, limit = 10, searchText = '', status = ''): Observable<ComercialPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
