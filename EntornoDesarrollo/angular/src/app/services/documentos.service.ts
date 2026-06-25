@@ -6,10 +6,9 @@ import { BaseCrud } from './base.service';
 import { DocFile, FirmaModalData, TipoDocLookup, PosicionFirma } from '../models/firma.model';
 import { environment } from '../../environments/environment';
 
-
-@@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: 'root' })
 export class DocumentosService extends BaseCrud<DocFile> {
-  // Ahora apunta al webhook correcto con su subdominio y slash final
+  // Apunta al webhook de Hostinger con su subdominio y slash final
   public readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-trabajadores/'; 
 
   getByTrabajador(trabajadorId: number): Observable<DocFile[]> {
@@ -46,5 +45,5 @@ export class DocumentosService extends BaseCrud<DocFile> {
 
   cancelarFirma(payload: { firma_id?: number; doc_id?: number }): Observable<DocFile> {
     return this._update({ action: 'cancelarFirma', firmaData: payload });
-    }
+  }
 }

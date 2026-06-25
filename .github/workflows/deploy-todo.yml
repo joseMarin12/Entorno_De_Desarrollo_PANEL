@@ -1,5 +1,3 @@
-name: Deploy Todo el Ecosistema a Cloud Run
-
 on:
   push:
     branches:
@@ -112,7 +110,7 @@ jobs:
           --set-env-vars="POSTGRES_USER=admin,POSTGRES_PASSWORD=SGPasswordPostgres,POSTGRES_DB=panel" \
           --allow-unauthenticated
 
-   # ─── SERVICIO 4: AUTOMATIZACIONES (N8N INTEGRADO) ───
+  # ─── SERVICIO 4: AUTOMATIZACIONES (N8N INTEGRADO) ───
   deploy-n8n:
     runs-on: ubuntu-latest
     steps:
