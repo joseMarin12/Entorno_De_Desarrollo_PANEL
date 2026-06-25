@@ -20,7 +20,7 @@ export interface TrabajadorPage {
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   // MODIFICACIÓN: Apuntamos al proxy de Laravel que se encargará de hablar con tu n8n de forma segura
-  public override readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-trabajadores';
+  public override readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-trabajadores/';
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
       action: 'getTrabajadores', page, limit, filters: { searchText, status, tipo }
