@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class VerifyApiToken
 {
-    private const JWT_SECRET = 'passEncriptada';
+    // 💡 Eliminamos la constante fija para permitir llaves dinámicas desde el entorno
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -69,7 +69,6 @@ class VerifyApiToken
     {
         $parts = explode('.', $token);
         if (count($parts) !== 3) {
-            // 🌟 MODIFICACIÓN AQUÍ: Revela exactamente qué string está llegando desde el frontend
             return [
                 'valid' => false, 
                 'reason' => 'El token no tiene la estructura JWT de 3 partes. Texto recibido en el backend: "' . $token . '"'
@@ -78,9 +77,12 @@ class VerifyApiToken
 
         [$headerB64, $payloadB64, $signatureB64] = $parts;
 
+        // 💡 OBTENER LA CLAVE DEL ENTORNO: Si existe JWT_SECRET en el .env/Cloud Run lo usa, si no, usa 'passEncriptada'
+        $secretKey = env('JWT_SECRET', 'passEncriptada');
+
         // 1. Validar Firma Mecánica
         $expectedSignature = $this->base64UrlEncode(
-            hash_hmac('sha256', "$headerB64.$payloadB64", self::JWT_SECRET, true)
+            hash_hmac('sha256', "$headerB64.$payloadB64", $secretKey, true)
         );
 
         if (!hash_equals($expectedSignature, $signatureB64)) {
@@ -116,7 +118,8 @@ class VerifyApiToken
      */
     private function base64UrlEncode(string $data): string
     {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+        $rtrim = rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+        return $rtrim;
     }
 
     private function base64UrlDecode(string $data): string
