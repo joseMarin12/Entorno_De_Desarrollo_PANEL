@@ -25,7 +25,7 @@ export class AutenticadorService {
   private readonly router = inject(Router);
   
   // URL base apuntando a tu backend
-  private readonly API_URL = `${environment.apiUrl}/api/login`;
+  private readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/login/';
 
   // Signals para el estado global
   currentUser = signal<User | null>(this.getUserFromStorage());
