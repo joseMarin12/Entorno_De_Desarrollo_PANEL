@@ -26,7 +26,7 @@ class AutenticadorController extends Controller
         }
 
         try {
-            // 2. Hacer la petición a tu webhook de n8n
+            // 2. Hacer la petición a tu webhook de n8n (Aseguramos la ruta limpia)
             $response = Http::post('https://n8n.srv1128480.hstgr.cloud/webhook/login', [
                 'email'    => $request->email,
                 'password' => $request->password
@@ -40,8 +40,13 @@ class AutenticadorController extends Controller
                 ], 502);
             }
 
-            // VARIABLE CORREGIDA: Sin espacios en blanco
             $data_n8n = $response->json();
+
+            // 🚀 EL FIX CRÍTICO: Si n8n devuelve un array con el usuario adentro [ { ... } ], 
+            // extraemos la primera posición automáticamente para que no rompa el flujo.
+            if (is_array($data_n8n) && isset($data_n8n[0])) {
+                $data_n8n = $data_n8n[0];
+            }
 
             // 3. Verificar si n8n encontró al usuario
             if (empty($data_n8n) || !isset($data_n8n['password'])) {
