@@ -1,0 +1,89 @@
+.upload-container {
+  margin-top: 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 3rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.upload-box {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 4rem 2rem;
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+/* Cuando arrastramos un archivo por encima, cambiamos el color a azul */
+.upload-box.drag-over {
+  border-color: #476fab;
+  background: #f4f8fc;
+}
+
+.upload-icon {
+  background: #f4f8fc;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem auto;
+}
+
+.upload-box h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.upload-box p {
+  color: #6b7280;
+  margin: 0 0 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.upload-box .btn {
+  margin-bottom: 1rem;
+}
+
+.upload-hint {
+  display: block;
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.file-ready {
+  border-color: #10b981 !important; /* Cambia el borde punteado a verde estable */
+  background-color: #f0fdf4; /* Fondo verde muy clarito de éxito */
+}
+
+.file-details {
+  background: white;
+  border: 1px solid #e5e7eb;
+  padding: 12px 24px;
+  border-radius: 8px;
+  margin: 15px 0;
+  text-align: left;
+  display: inline-block;
+}
+
+.file-details p {
+  margin: 4px 0;
+  color: #374151;
+  font-size: 14px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 15px;
+}

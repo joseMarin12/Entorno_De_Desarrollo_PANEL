@@ -12,6 +12,7 @@ import { autenticadorGuard } from './guards/autenticador.guard';
 import { firstLoginGuard } from './guards/first-login.guard';
 import { TrabajadoresPageComponent } from './features/trabajadores/pages/trabajadores-page/trabajadores-page.component';
 import { AsignacionesPageComponent } from './features/asignaciones/pages/asignaciones-page/asignaciones-page.component';
+import { ImportCsvPageComponent } from './features/import-csv/pages/import-csv-page/import-csv-page-component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -34,6 +35,7 @@ export const routes: Routes = [
       { path: 'usuarios', component: UsuariosPageComponent },
       { path: 'formaciones', component: FormacionesPageComponent },
       { path: 'trabajadores', component: TrabajadoresPageComponent },
+      { path: 'importar-csv', component: ImportCsvPageComponent }
     ]
   }
 ];
