@@ -1,5 +1,5 @@
-import { Injectable, inject } from '@angular/core'; // 🚀 Agregamos 'inject'
-import { HttpClient } from '@angular/common/http';    // 🚀 EL FIX: Importación de HttpClient agregada
+import { Injectable, inject } from '@angular/core'; 
+import { HttpClient } from '@angular/common/http';    
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -8,10 +8,10 @@ import { DocFile, FirmaModalData, TipoDocLookup, PosicionFirma } from '../models
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
-export class DocumentosService extends BaseCrud<DocFile> {
+public class DocumentosService extends BaseCrud<DocFile> {
   
-  // EL FIX: Inyectamos el cliente HTTP para habilitar los métodos manuales (.post)
-  private readonly http = inject(HttpClient);
+  // 🚀 EL FIX DEFINITIVO: Lo renombramos a 'httpClient' para evitar choques con la clase padre BaseCrud
+  private readonly httpClient = inject(HttpClient);
 
   // El FIX de arquitectura: Apunta de manera segura a tu backend de Laravel
   public override readonly API_URL = `${environment.apiUrl}/api/documentos`;
@@ -29,17 +29,20 @@ export class DocumentosService extends BaseCrud<DocFile> {
   }
 
   remove(documentoId: number): Observable<unknown> {
-    return this.http.post(this.API_URL, { action: 'deleteDocumento', documentoId });
+    // 🚀 Usamos httpClient
+    return this.httpClient.post(this.API_URL, { action: 'deleteDocumento', documentoId });
   }
 
   getArchivo(documentoId: number): Observable<{ contenido_b64: string | null }> {
-    return this.http
+    // 🚀 Usamos httpClient
+    return this.httpClient
       .post<{ data: { contenido_b64: string | null }[] }>(this.API_URL, { action: 'getDocumentoArchivo', documentoId })
       .pipe(map(res => res.data?.[0] ?? { contenido_b64: null }));
   }
 
   getTiposDoc(): Observable<TipoDocLookup[]> {
-    return this.http
+    // 🚀 Usamos httpClient
+    return this.httpClient
       .post<{ data: TipoDocLookup[] }>(this.API_URL, { action: 'getTiposDoc' })
       .pipe(map(res => res.data ?? []));
   }
