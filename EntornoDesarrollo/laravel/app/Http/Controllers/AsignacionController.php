@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Http;
 
 class AsignacionController extends Controller
 {
-    private string $n8nUrl = 'http://n8n:5678/webhook/asignaciones';
+    // 🚀 URL de producción actualizada correctamente
+    private string $n8nUrl = 'https://n8n.srv1128480.hstgr.cloud/webhook/asignaciones';
 
     public function proxy(Request $request)
     {
@@ -27,6 +28,15 @@ class AsignacionController extends Controller
             return response()->json(['error' => 'Acción no válida: ' . ($payload['action'] ?? 'null')], 400);
         }
 
+        // 🔒 INYECCIÓN DE SEGURIDAD:
+        // Añadimos al payload los datos del usuario que el middleware VerifyApiToken ya validó.
+        $payload['auth_user'] = [
+            'id'    => $request->input('authenticated_user_id'),
+            'email' => $request->input('authenticated_user_email'),
+            'role'  => $request->input('authenticated_user_role')
+        ];
+
+        // Se envía la petición directamente al webhook en Hostinger
         $response = Http::post($this->n8nUrl, $payload);
 
         $json = $response->json();
