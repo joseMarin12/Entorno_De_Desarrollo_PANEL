@@ -9,7 +9,8 @@ import { Localidad } from "../models/localidad.model";
 
 @Injectable({ providedIn: 'root' })
 export class DireccionesEmpresasApiService extends BaseCrud<DireccionEmpresa> {
-    public override readonly API_URL = `${environment.apiUrl}/direcciones-empresas`;
+    // 🚀 EL FIX: Apuntar al prefijo de la API de Laravel
+    public override readonly API_URL = `${environment.apiUrl}/api/direcciones-empresas`;
 
      findAll(searchText = '', status = '', pais = '', page = 1, limit = 10, idEmpresa: number): Observable<{ data: DireccionEmpresa[], total: number, totalActivos: number, totalInactivos: number }> {
         return this.http.post<{ data: DireccionEmpresa[], total: number, totalActivos: number, totalInactivos: number }>(this.API_URL, {
