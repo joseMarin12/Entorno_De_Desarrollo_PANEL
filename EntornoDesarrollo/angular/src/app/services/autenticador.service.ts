@@ -8,6 +8,8 @@ export interface User {
   id: number;
   email: string;
   roleid?: number;
+  name?: string;
+  surname?: string;
 }
 
 export interface LoginResponse {
@@ -23,10 +25,11 @@ export interface LoginResponse {
 export class AutenticadorService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  // EL FIX: Ahora Angular llama a Laravel en Google Cloud Run, no a n8n directamente
+  
+  // URL centralizada apuntando al Proxy seguro de Laravel en Cloud Run
   private readonly API_URL = `${environment.apiUrl}/api/login`;
 
-  // Signals para el estado global
+  // Signals para el estado global del sistema
   currentUser = signal<User | null>(this.getUserFromStorage());
   firstLoginOverridden = signal<boolean>(sessionStorage.getItem('firstLoginCompleted') === 'true');
 
@@ -34,15 +37,14 @@ export class AutenticadorService {
     return this.http.post<LoginResponse>(this.API_URL, credentials).pipe(
       tap(response => {
         if (response.success && response.user) {
-          // 1. Normalización de rol
+          // 1. Normalización estricta del rol del usuario
           const rawResponse = response as any;
           response.user.roleid = Number(rawResponse.user.roleid || rawResponse.user.role_id || rawResponse.user.id_rol || rawResponse.user.ID_ROL || 2);
           
-          // 2. Guardar persistencia del usuario
+          // 2. Guardar la persistencia del usuario en sesión
           this.saveUser(response.user);
           
-          // 🌟 3. NORMALIZACIÓN ROBUSTA DEL TOKEN
-          // Busca el token bajo diferentes nombres comunes que tu API o n8n puedan estar usando
+          // 3. Normalización robusta y extracción del Token JWT
           const extractedToken = response.token || 
                                  rawResponse.accessToken || 
                                  rawResponse.jwt || 
@@ -51,13 +53,11 @@ export class AutenticadorService {
           if (extractedToken) {
             sessionStorage.setItem('token', extractedToken);
           } else {
-            // Si llega aquí, el login fue exitoso pero el backend NO envió un JWT.
-            console.error('⚠️ ALERTA BI: El login fue exitoso pero no se encontró un Token JWT en la respuesta.', response);
-            // Ya no guardamos el string fijo 'usuario_autenticado' para no romper el middleware de Laravel
+            console.error('⚠️ ALERTA: Login exitoso pero el servidor no adjuntó un Token JWT válido.', response);
             sessionStorage.removeItem('token'); 
           }
           
-          // 4. Actualizar signal
+          // 4. Actualizar el Signal reactivo global
           this.currentUser.set(response.user);
         }
       })
@@ -73,7 +73,7 @@ export class AutenticadorService {
     this.router.navigate(['/login']);
   }
 
-  // --- Helpers de Persistencia ---
+  // --- Helpers de Persistencia en SessionStorage ---
 
   private saveUser(user: User): void {
     sessionStorage.setItem('user', JSON.stringify(user));
@@ -86,7 +86,7 @@ export class AutenticadorService {
     try {
       const user = JSON.parse(userJson);
       if (user && !user.roleid) {
-        user.roleid = 2; // Default
+        user.roleid = 2; // Rol por defecto (Invitado/Usuario común)
       }
       return user;
     } catch (e) {
@@ -102,16 +102,29 @@ export class AutenticadorService {
     return sessionStorage.getItem('token');
   }
 
-  // --- Lógica de Token y Primer Login ---
+  // --- Lógica Avanzada de Token y Desencriptación ---
 
   getDecodedToken(): any {
     const token = this.getToken();
     if (!token || token === 'usuario_autenticado') return null; 
+    
     try {
-      const payload = token.split('.')[1];
-      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-      return JSON.parse(atob(base64));
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+
+      const payload = parts[1];
+      
+      // 🚀 EL FIX CRÍTICO: Reconstrucción del padding Base64Url
+      // Agrega los caracteres '=' faltantes al final del string si su longitud no es múltiplo de 4
+      let base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) {
+        base64 += '=';
+      }
+      
+      // Decodificación nativa segura soportando caracteres UTF-8/Acentos
+      return JSON.parse(decodeURIComponent(escape(atob(base64))));
     } catch (e) {
+      console.error('❌ Error crítico al decodificar el payload del JWT:', e);
       return null;
     }
   }
