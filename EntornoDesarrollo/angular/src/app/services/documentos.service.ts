@@ -8,8 +8,8 @@ import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class DocumentosService extends BaseCrud<DocFile> {
-  // Apunta al webhook de Hostinger con su subdominio y slash final
-  public readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-trabajadores/'; 
+    //EL FIX: Ahora apunta de manera segura a tu backend de Laravel
+  public override readonly API_URL = `${environment.apiUrl}/api/documentos`;
 
   getByTrabajador(trabajadorId: number): Observable<DocFile[]> {
     return this._findAll({ action: 'getDocumentosByTrabajador', trabajadorId });
