@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
+        // 🚀 EL FIX PARA CLOUD RUN: Le dice a Laravel que confíe en los proxies de Google
+        // Esto evita que las peticiones se rompan o se conviertan de POST a GET internamente.
+        $middleware->trustProxies(at: '*');
+
         // 🌟 Apuntamos el alias 'verify.token' a la clase VerifyApiToken
         $middleware->alias([
             'verify.token' => VerifyApiToken::class,
