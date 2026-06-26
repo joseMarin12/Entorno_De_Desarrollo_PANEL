@@ -23,9 +23,8 @@ export interface LoginResponse {
 export class AutenticadorService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  
-  // URL base apuntando a tu backend
-  private readonly API_URL = 'https://n8n.srv1128480.hstgr.cloud/webhook/login/';
+  // EL FIX: Ahora Angular llama a Laravel en Google Cloud Run, no a n8n directamente
+  private readonly API_URL = `${environment.apiUrl}/api/login`;
 
   // Signals para el estado global
   currentUser = signal<User | null>(this.getUserFromStorage());
