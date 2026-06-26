@@ -15,11 +15,16 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
-        // 🚀 EL FIX PARA CLOUD RUN: Le dice a Laravel que confíe en los proxies de Google
-        // Esto evita que las peticiones se rompan o se conviertan de POST a GET internamente.
+        // 🚀 REGLA CLOUD RUN: Confiar en los proxies de Google
         $middleware->trustProxies(at: '*');
 
-        // 🌟 Apuntamos el alias 'verify.token' a la clase VerifyApiToken
+        // 🚀 BLINDAJE API: Obligar a responder en JSON para interceptar redirecciones de validación
+        $middleware->prependToGroup('api', function ($request, $next) {
+            $request->headers->set('Accept', 'application/json');
+            return $next($request);
+        });
+
+        // 🌟 Alias único para el middleware de seguridad de tus rutas protegidas
         $middleware->alias([
             'verify.token' => VerifyApiToken::class,
         ]);
