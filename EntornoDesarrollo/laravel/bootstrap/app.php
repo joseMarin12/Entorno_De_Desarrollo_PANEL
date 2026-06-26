@@ -24,6 +24,21 @@ return Application::configure(basePath: dirname(__DIR__))
             return $next($request);
         });
 
+        // 🚀 CONFIGURACIÓN DE CORS EN LARAVEL 11+:
+        // Le permite explícitamente a tu subdominio de Angular leer las respuestas de la API
+        $middleware->validateCsrfTokens(except: [
+            'api/*', // Desactivar CSRF para las rutas de la API, ya que usas tokens de seguridad
+        ]);
+
+        // Inyectamos las cabeceras CORS de forma global para el dominio frontend
+        $middleware->web(append: [
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
+        
+        $middleware->api(append: [
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
+
         // 🌟 Alias único para el middleware de seguridad de tus rutas protegidas
         $middleware->alias([
             'verify.token' => VerifyApiToken::class,
