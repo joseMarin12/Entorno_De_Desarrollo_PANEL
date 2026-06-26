@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core'; // 🚀 Agregamos 'inject'
+import { HttpClient } from '@angular/common/http';    // 🚀 EL FIX: Importación de HttpClient agregada
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -8,7 +9,11 @@ import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class DocumentosService extends BaseCrud<DocFile> {
-    //EL FIX: Ahora apunta de manera segura a tu backend de Laravel
+  
+  // EL FIX: Inyectamos el cliente HTTP para habilitar los métodos manuales (.post)
+  private readonly http = inject(HttpClient);
+
+  // El FIX de arquitectura: Apunta de manera segura a tu backend de Laravel
   public override readonly API_URL = `${environment.apiUrl}/api/documentos`;
 
   getByTrabajador(trabajadorId: number): Observable<DocFile[]> {
