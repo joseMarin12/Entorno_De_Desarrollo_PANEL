@@ -9,7 +9,8 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class AsignacionesService extends BaseCrud<Asignacion> {
 
-    public readonly API_URL = `${environment.apiUrl}/asignaciones`;
+    // 🚀 EL FIX: Ahora coincide con el prefijo automático de routes/api.php
+    public readonly API_URL = `${environment.apiUrl}/api/asignaciones`;
 
     // ── Estado reactivo ──────────────────────────────────────────────────────
     private _asignaciones = signal<Asignacion[]>([]);
