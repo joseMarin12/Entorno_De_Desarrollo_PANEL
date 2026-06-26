@@ -4,7 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use App\Http\Middleware\VerifyApiToken; // 🌟 Importamos la clase con su nombre real
+use App\Http\Middleware\VerifyApiToken;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,36 +15,29 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
-        // 🚀 REGLA CLOUD RUN: Confiar en los proxies de Google
+        // 🚀 1. Confiar en proxies de Cloud Run (Mantiene HTTPS y método POST)
         $middleware->trustProxies(at: '*');
 
-        // 🚀 BLINDAJE API: Obligar a responder en JSON para interceptar redirecciones de validación
+        // 🚀 2. Blindaje API: Forzar respuesta JSON siempre
         $middleware->prependToGroup('api', function ($request, $next) {
             $request->headers->set('Accept', 'application/json');
             return $next($request);
         });
 
-        // 🚀 CONFIGURACIÓN DE CORS EN LARAVEL 11+:
-        // Le permite explícitamente a tu subdominio de Angular leer las respuestas de la API
+        // 🚀 3. Configuración CORS Global para tu Angular
+        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
+
+        // 🚀 4. Desactivar CSRF solo para rutas API
         $middleware->validateCsrfTokens(except: [
-            'api/*', // Desactivar CSRF para las rutas de la API, ya que usas tokens de seguridad
+            'api/*',
         ]);
 
-        // Inyectamos las cabeceras CORS de forma global para el dominio frontend
-        $middleware->web(append: [
-            \Illuminate\Http\Middleware\HandleCors::class,
-        ]);
-        
-        $middleware->api(append: [
-            \Illuminate\Http\Middleware\HandleCors::class,
-        ]);
-
-        // 🌟 Alias único para el middleware de seguridad de tus rutas protegidas
+        // 🌟 Alias del middleware de autenticación
         $middleware->alias([
             'verify.token' => VerifyApiToken::class,
         ]);
 
-        // Control de redirección estándar para invitados en la API
+        // Evitar redirecciones automáticas de Laravel en la API
         $middleware->redirectGuestsTo(function (Request $request) {
             if ($request->is('api/*')) {
                 return null; 
