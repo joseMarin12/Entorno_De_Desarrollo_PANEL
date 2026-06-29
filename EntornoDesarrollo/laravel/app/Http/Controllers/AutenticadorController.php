@@ -31,7 +31,6 @@ class AutenticadorController extends Controller
                 'password' => $request->password
             ]);
 
-            // Si n8n responde con un error HTTP (4xx o 5xx)
             if ($response->failed()) {
                 return response()->json([
                     'success' => false,
@@ -41,41 +40,30 @@ class AutenticadorController extends Controller
 
             $data_n8n = $response->json();
 
-            // Si n8n devuelve un array con el usuario adentro [ { ... } ], extraemos la primera posición
-            if (is_array($data_n8n) && isset($data_n8n[0])) {
-                $data_n8n = $data_n8n[0];
-            }
-
-            // 3. Verificar si n8n encontró al usuario
-            // 🔴 EL FIX CRÍTICO: Cambiado de 404 a 401 para evitar que el navegador crea que la URL no existe.
-            if (empty($data_n8n) || !isset($data_n8n['password'])) {
+            // 🚀 EL FIX CRÍTICO: Validamos directamente si n8n dice que el login fue exitoso
+            if (empty($data_n8n) || !isset($data_n8n['success']) || $data_n8n['success'] !== true) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'El correo electrónico no está registrado o no es válido.'
+                    'message' => 'El correo electrónico o la contraseña son incorrectos.'
                 ], 401); 
             }
 
-            // 4. Validar la contraseña usando el Hash que nos dio n8n
-            if (!password_verify($request->password, $data_n8n['password'])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'La contraseña ingresada es incorrecta.'
-                ], 401);
-            }
+            // Extraemos los datos del usuario desde el objeto 'user' que envía n8n
+            $userPayload = $data_n8n['user'] ?? [];
 
-            // Estructurar la información limpia del usuario
+            // Mapeamos la información limpia para construir el JWT de la API
             $userData = [
-                'id'      => $data_n8n['id'] ?? null,
-                'name'    => $data_n8n['name'] ?? '',
-                'surname' => $data_n8n['surname'] ?? '',
-                'email'   => $data_n8n['email'] ?? '',
-                'roleid'  => $data_n8n['roleid'] ?? null
+                'id'      => $userPayload['id'] ?? null,
+                'name'    => $userPayload['name'] ?? '',
+                'surname' => $userPayload['surname'] ?? '',
+                'email'   => $userPayload['email'] ?? '',
+                'roleid'  => $userPayload['roleid'] ?? ($data_n8n['roleid'] ?? 1) // Cae en 1 si n8n no lo arrastra al objeto interno
             ];
 
-            // GENERAR EL JWT MANUAL
+            // GENERAR EL JWT MANUAL PARA TU MIDDLEWARE
             $token = $this->generateManualJwt($userData);
 
-            // 5. LOGIN EXITOSO
+            // 5. LOGIN EXITOSO (Devuelve 200 OK y Angular procesará la redirección)
             return response()->json([
                 'success' => true,
                 'message' => 'Autenticación exitosa.',
@@ -98,16 +86,13 @@ class AutenticadorController extends Controller
      */
     private function generateManualJwt(array $user): string
     {
-        // 🔴 EL SEGUNDO FIX: Sincronizado con el middleware para leer variables de entorno en Cloud Run.
         $secret = env('JWT_SECRET', 'passEncriptada'); 
 
-        // Cabecera estándar del JWT
         $header = json_encode([
             'alg' => 'HS256',
             'typ' => 'JWT'
         ]);
 
-        // Estructura interna del Token
         $payload = json_encode([
             'id'         => $user['id'],
             'email'      => $user['email'],
@@ -116,11 +101,9 @@ class AutenticadorController extends Controller
             'firstLogin' => false
         ]);
 
-        // Adaptación Base64 URL Safe
         $headerB64   = rtrim(strtr(base64_encode($header), '+/', '-_'), '=');
         $payloadB64  = rtrim(strtr(base64_encode($payload), '+/', '-_'), '=');
 
-        // Generar la firma criptográfica HMAC-SHA256
         $signature    = hash_hmac('sha256', "$headerB64.$payloadB64", $secret, true);
         $signatureB64 = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
 
