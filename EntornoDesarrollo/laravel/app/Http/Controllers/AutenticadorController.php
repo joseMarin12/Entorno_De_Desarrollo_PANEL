@@ -40,13 +40,16 @@ class AutenticadorController extends Controller
 
             $data_n8n = $response->json();
 
-            // 🚀 EL FIX CRÍTICO: Validamos directamente si n8n dice que el login fue exitoso
+            // Validamos directamente si n8n dice que el login fue exitoso
             if (empty($data_n8n) || !isset($data_n8n['success']) || $data_n8n['success'] !== true) {
                 return response()->json([
                     'success' => false,
                     'message' => 'El correo electrónico o la contraseña son incorrectos.'
                 ], 401); 
             }
+
+            // 🚀 CAPTURAMOS EL VALOR REAL DE N8N (Si no viene, por defecto es false)
+            $firstLogin = $data_n8n['firstLogin'] ?? false;
 
             // Extraemos los datos del usuario desde el objeto 'user' que envía n8n
             $userPayload = $data_n8n['user'] ?? [];
@@ -57,18 +60,19 @@ class AutenticadorController extends Controller
                 'name'    => $userPayload['name'] ?? '',
                 'surname' => $userPayload['surname'] ?? '',
                 'email'   => $userPayload['email'] ?? '',
-                'roleid'  => $userPayload['roleid'] ?? ($data_n8n['roleid'] ?? 1) // Cae en 1 si n8n no lo arrastra al objeto interno
+                'roleid'  => $userPayload['roleid'] ?? ($data_n8n['roleid'] ?? 1)
             ];
 
-            // GENERAR EL JWT MANUAL PARA TU MIDDLEWARE
-            $token = $this->generateManualJwt($userData);
+            // 🚀 PASAMOS EL VALOR REAL AL JWT MANUAL
+            $token = $this->generateManualJwt($userData, $firstLogin);
 
-            // 5. LOGIN EXITOSO (Devuelve 200 OK y Angular procesará la redirección)
+            // 5. LOGIN EXITOSO (Ahora Angular sí recibe el parámetro en la raíz)
             return response()->json([
-                'success' => true,
-                'message' => 'Autenticación exitosa.',
-                'user'    => $userData,
-                'token'   => $token
+                'success'    => true,
+                'message'    => 'Autenticación exitosa.',
+                'user'       => $userData,
+                'token'      => $token,
+                'firstLogin' => $firstLogin // 🚀 ¡AQUÍ ESTÁ EL CAMBIO PARA EL FRONTEND!
             ], 200);
 
         } catch (\Throwable $e) {
@@ -83,8 +87,9 @@ class AutenticadorController extends Controller
 
     /**
      * Genera un token JWT manual compatible con VerifyApiToken
+     * 🚀 Se modificó para recibir el parámetro $firstLogin dinámicamente
      */
-    private function generateManualJwt(array $user): string
+    private function generateManualJwt(array $user, bool $firstLogin): string
     {
         $secret = env('JWT_SECRET', 'passEncriptada'); 
 
@@ -98,7 +103,7 @@ class AutenticadorController extends Controller
             'email'      => $user['email'],
             'role'       => $user['roleid'] ?? 2, 
             'exp'        => time() + (60 * 60 * 24), // Expiración en 24 horas
-            'firstLogin' => false
+            'firstLogin' => $firstLogin // 🚀 YA NO ESTÁ EN FALSE FIJO, toma el valor real
         ]);
 
         $headerB64   = rtrim(strtr(base64_encode($header), '+/', '-_'), '=');
