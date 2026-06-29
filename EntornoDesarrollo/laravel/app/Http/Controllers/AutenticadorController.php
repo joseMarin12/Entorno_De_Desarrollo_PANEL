@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class AutenticadorController extends Controller 
@@ -26,7 +25,7 @@ class AutenticadorController extends Controller
         }
 
         try {
-            // 2. Hacer la petición a tu webhook de n8n (Aseguramos la ruta limpia)
+            // 2. Hacer la petición a tu webhook de n8n
             $response = Http::post('https://n8n.srv1128480.hstgr.cloud/webhook/login', [
                 'email'    => $request->email,
                 'password' => $request->password
@@ -42,18 +41,18 @@ class AutenticadorController extends Controller
 
             $data_n8n = $response->json();
 
-            // 🚀 EL FIX CRÍTICO: Si n8n devuelve un array con el usuario adentro [ { ... } ], 
-            // extraemos la primera posición automáticamente para que no rompa el flujo.
+            // Si n8n devuelve un array con el usuario adentro [ { ... } ], extraemos la primera posición
             if (is_array($data_n8n) && isset($data_n8n[0])) {
                 $data_n8n = $data_n8n[0];
             }
 
             // 3. Verificar si n8n encontró al usuario
+            // 🔴 EL FIX CRÍTICO: Cambiado de 404 a 401 para evitar que el navegador crea que la URL no existe.
             if (empty($data_n8n) || !isset($data_n8n['password'])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'El correo electrónico no está registrado o no es válido.'
-                ], 404);
+                ], 401); 
             }
 
             // 4. Validar la contraseña usando el Hash que nos dio n8n
@@ -64,7 +63,7 @@ class AutenticadorController extends Controller
                 ], 401);
             }
 
-            // 🌟 Estructurar la información limpia del usuario
+            // Estructurar la información limpia del usuario
             $userData = [
                 'id'      => $data_n8n['id'] ?? null,
                 'name'    => $data_n8n['name'] ?? '',
@@ -73,15 +72,15 @@ class AutenticadorController extends Controller
                 'roleid'  => $data_n8n['roleid'] ?? null
             ];
 
-            // 🌟 GENERAR EL JWT MANUAL (Firmado y encriptado con tu frase secreta)
+            // GENERAR EL JWT MANUAL
             $token = $this->generateManualJwt($userData);
 
-            // 5. LOGIN EXITOSO: Devolvemos los datos del usuario Y EL JWT al frontend
+            // 5. LOGIN EXITOSO
             return response()->json([
                 'success' => true,
                 'message' => 'Autenticación exitosa.',
                 'user'    => $userData,
-                'token'   => $token // 🚀 ¡Token JWT adjuntado con éxito!
+                'token'   => $token
             ], 200);
 
         } catch (\Throwable $e) {
@@ -95,12 +94,12 @@ class AutenticadorController extends Controller
     }
 
     /**
-     * Genera un token JWT manual con estructura de 3 partes compatible con VerifyApiToken
+     * Genera un token JWT manual compatible con VerifyApiToken
      */
     private function generateManualJwt(array $user): string
     {
-        // 🔒 Clave secreta exacta del Middleware del Backend
-        $secret = 'passEncriptada'; 
+        // 🔴 EL SEGUNDO FIX: Sincronizado con el middleware para leer variables de entorno en Cloud Run.
+        $secret = env('JWT_SECRET', 'passEncriptada'); 
 
         // Cabecera estándar del JWT
         $header = json_encode([
@@ -108,24 +107,23 @@ class AutenticadorController extends Controller
             'typ' => 'JWT'
         ]);
 
-        // Estructura interna del Token (Contenido útil o Claims)
+        // Estructura interna del Token
         $payload = json_encode([
             'id'         => $user['id'],
             'email'      => $user['email'],
             'role'       => $user['roleid'] ?? 2, 
-            'exp'        => time() + (60 * 60 * 24), // El token expira automáticamente en 24 horas
+            'exp'        => time() + (60 * 60 * 24), // Expiración en 24 horas
             'firstLogin' => false
         ]);
 
-        // Adaptación Base64 compatible con transporte URL seguro (Base64UrlEncode)
+        // Adaptación Base64 URL Safe
         $headerB64   = rtrim(strtr(base64_encode($header), '+/', '-_'), '=');
         $payloadB64  = rtrim(strtr(base64_encode($payload), '+/', '-_'), '=');
 
-        // Generar la firma criptográfica HMAC-SHA256 combinando cabecera y contenido
+        // Generar la firma criptográfica HMAC-SHA256
         $signature    = hash_hmac('sha256', "$headerB64.$payloadB64", $secret, true);
         $signatureB64 = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
 
-        // Unificar las 3 partes reglamentarias separadas por puntos reales
         return "$headerB64.$payloadB64.$signatureB64";
     }
 }
