@@ -3,7 +3,6 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request;
 use App\Http\Middleware\VerifyApiToken;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -15,35 +14,16 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
-        // 🚀 1. Confiar en proxies de Cloud Run (Mantiene HTTPS y método POST)
+        // 🚀 1. CONFIANZA DE PROXY PARA CLOUD RUN
+        // Esto le dice a Laravel que estás detrás del balanceador de Google 
+        // y evita que tus peticiones POST muten a GET.
         $middleware->trustProxies(at: '*');
 
-        // 🚀 2. Blindaje API: Forzar respuesta JSON siempre
-        $middleware->prependToGroup('api', function ($request, $next) {
-            $request->headers->set('Accept', 'application/json');
-            return $next($request);
-        });
-
-        // 🚀 3. Configuración CORS Global para tu Angular
-        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
-
-        // 🚀 4. Desactivar CSRF solo para rutas API
-        $middleware->validateCsrfTokens(except: [
-            'api/*',
-        ]);
-
-        // 🌟 Alias del middleware de autenticación
+        // 🌟 2. ALIAS DE TU MIDDLEWARE EXISTENTE
+        // Registramos el middleware que ya tienes creado para proteger tus rutas.
         $middleware->alias([
             'verify.token' => VerifyApiToken::class,
         ]);
-
-        // Evitar redirecciones automáticas de Laravel en la API
-        $middleware->redirectGuestsTo(function (Request $request) {
-            if ($request->is('api/*')) {
-                return null; 
-            }
-            return '/login';
-        });
 
     })
     ->withExceptions(function (Exceptions $exceptions) {
