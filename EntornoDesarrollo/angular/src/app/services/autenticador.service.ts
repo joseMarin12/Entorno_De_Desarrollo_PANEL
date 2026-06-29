@@ -17,6 +17,8 @@ export interface LoginResponse {
   message?: string;
   user?: User;
   token?: string;
+  // 🚀 EL FIX PARA EL COMPILADOR: Agregamos la propiedad al tipado oficial de la API
+  firstLogin?: boolean; 
 }
 
 @Injectable({
@@ -114,8 +116,7 @@ export class AutenticadorService {
 
       const payload = parts[1];
       
-      // 🚀 EL FIX CRÍTICO: Reconstrucción del padding Base64Url
-      // Agrega los caracteres '=' faltantes al final del string si su longitud no es múltiplo de 4
+      // Reconstrucción del padding Base64Url
       let base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
       while (base64.length % 4) {
         base64 += '=';
