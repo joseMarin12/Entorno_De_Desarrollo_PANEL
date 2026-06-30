@@ -1,5 +1,4 @@
-import { Injectable, inject } from '@angular/core'; 
-import { HttpClient } from '@angular/common/http';    
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -8,40 +7,41 @@ import { DocFile, FirmaModalData, TipoDocLookup, PosicionFirma } from '../models
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
-// 🚀 EL FIX: Cambiado 'public class' por 'export class'
 export class DocumentosService extends BaseCrud<DocFile> {
-  
-  // Mantenemos httpClient para evitar choques con la clase padre BaseCrud
-  private readonly httpClient = inject(HttpClient);
-
-  // Apunta de manera segura a tu backend de Laravel
-  public override readonly API_URL = `${environment.apiUrl}/api/documentos`;
+  // Centralizado en la misma ruta de la rama main
+  public readonly API_URL = `${environment.apiUrl}/trabajadores`;
 
   getByTrabajador(trabajadorId: number): Observable<DocFile[]> {
-    return this._findAll({ action: 'getDocumentosByTrabajador', trabajadorId });
+    // 🔄 NORMALIZADO: 'getDocumentosByTrabajador' -> 'getDocumentos'
+    return this._findAll({ action: 'getDocumentos', trabajadorId });
   }
 
   create(documentoData: any): Observable<DocFile> {
-    return this._create({ action: 'createDocumento', documentoData });
+    // 🔄 NORMALIZADO: 'createDocumento' -> 'create'
+    return this._create({ action: 'create', documentoData });
   }
 
   update(documentoData: any): Observable<DocFile> {
-    return this._update({ action: 'updateDocumento', documentoData });
+    // 🔄 NORMALIZADO: 'updateDocumento' -> 'upload' (o 'update' según tu switch de n8n)
+    return this._update({ action: 'upload', documentoData });
   }
 
   remove(documentoId: number): Observable<unknown> {
-    return this.httpClient.post(this.API_URL, { action: 'deleteDocumento', documentoId });
+    // 🔄 NORMALIZADO: 'deleteDocumento' -> 'delete'
+    return this.http.post(this.API_URL, { action: 'delete', documentoId });
   }
 
   getArchivo(documentoId: number): Observable<{ contenido_b64: string | null }> {
-    return this.httpClient
-      .post<{ data: { contenido_b64: string | null }[] }>(this.API_URL, { action: 'getDocumentoArchivo', documentoId })
+    // 🔄 NORMALIZADO: 'getDocumentoArchivo' -> 'getArchivo'
+    return this.http
+      .post<{ data: { contenido_b64: string | null }[] }>(this.API_URL, { action: 'getArchivo', documentoId })
       .pipe(map(res => res.data?.[0] ?? { contenido_b64: null }));
   }
 
   getTiposDoc(): Observable<TipoDocLookup[]> {
-    return this.httpClient
-      .post<{ data: TipoDocLookup[] }>(this.API_URL, { action: 'getTiposDoc' })
+    // 🔄 NORMALIZADO: 'getTiposDoc' -> 'getTipos'
+    return this.http
+      .post<{ data: TipoDocLookup[] }>(this.API_URL, { action: 'getTipos' })
       .pipe(map(res => res.data ?? []));
   }
 
