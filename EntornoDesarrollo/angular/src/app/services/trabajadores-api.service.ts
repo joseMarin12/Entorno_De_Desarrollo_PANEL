@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Trabajador, TrabajadorFormData } from '../models/trabajador.model';
 import { BaseCrud } from './base.service';
+import { environment } from '../../environments/environment'; // Asegúrate de importar el environment
 
 export interface TrabajadorStats {
   total: number;
@@ -19,8 +20,10 @@ export interface TrabajadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
-  // MODIFICACIÓN: Apuntamos al proxy de Laravel que se encargará de hablar con tu n8n de forma segura
+  
+  // 🔄 CORRECCIÓN: Añadido /api/ para que coincida con las rutas de la API de Laravel
   public readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
+
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
       action: 'getTrabajadores', page, limit, filters: { searchText, status, tipo }
@@ -52,7 +55,6 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     }));
   }
 
- 
   create(data: any): Observable<Trabajador> {
     const { documentos, ...rest } = data;
     const trabajadorData = Object.fromEntries(
@@ -72,7 +74,6 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     return this._toggleStatus({ action: 'toggleTrabajadorStatus', trabajadorId: id });
   }
 
-  
   getProvincias(): Observable<{id: number, nombre: string}[]> {
     return this.http.post<{data: {id: number, nombre: string}[]}>(this.API_URL, { action: 'getProvincias' })
       .pipe(map(res => res.data ?? []));
@@ -93,7 +94,6 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
       .pipe(map(res => res.data ?? []));
   }
 
-  
   getAsignacionesByTrabajador(trabajadorId: number): Observable<any[]> {
     return this.http.post<{data: any[]}>(this.API_URL, { action: 'getAsignacionesByTrabajador', trabajadorId })
       .pipe(map(res => res.data ?? []));
