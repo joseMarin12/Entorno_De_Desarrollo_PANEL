@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class DocumentosService extends BaseCrud<DocFile> {
   // Centralizado en la misma ruta de la rama main
-  public readonly API_URL = `${environment.apiUrl}/trabajadores`;
+  public readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
 
   getByTrabajador(trabajadorId: number): Observable<DocFile[]> {
     // 🔄 NORMALIZADO: 'getDocumentosByTrabajador' -> 'getDocumentos'
