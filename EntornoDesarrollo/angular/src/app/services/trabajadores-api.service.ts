@@ -21,7 +21,7 @@ export interface TrabajadorPage {
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   
-  // 🔄 CORRECCIÓN: Añadido /api/ para que coincida con las rutas de la API de Laravel
+  // En app/services/documentos.service.ts
   public readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
