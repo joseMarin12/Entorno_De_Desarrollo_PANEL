@@ -23,7 +23,6 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   
   // En app/services/documentos.service.ts
   public readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
-
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
       action: 'getTrabajadores', page, limit, filters: { searchText, status, tipo }
