@@ -12,34 +12,29 @@ export class DocumentosService extends BaseCrud<DocFile> {
   public readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
 
   getByTrabajador(trabajadorId: number): Observable<DocFile[]> {
-    // 🔄 NORMALIZADO: 'getDocumentosByTrabajador' -> 'getDocumentos'
     return this._findAll({ action: 'getDocumentos', trabajadorId });
   }
 
   create(documentoData: any): Observable<DocFile> {
-    // 🔄 NORMALIZADO: 'createDocumento' -> 'create'
     return this._create({ action: 'create', documentoData });
   }
 
   update(documentoData: any): Observable<DocFile> {
-    // 🔄 NORMALIZADO: 'updateDocumento' -> 'upload' (o 'update' según tu switch de n8n)
-    return this._update({ action: 'upload', documentoData });
+    // 🔥 CORREGIDO: Se cambia 'upload' por 'updateDocumento' para que n8n active la ruta del UPDATE SQL
+    return this._update({ action: 'updateDocumento', documentoData });
   }
 
   remove(documentoId: number): Observable<unknown> {
-    // 🔄 NORMALIZADO: 'deleteDocumento' -> 'delete'
     return this.http.post(this.API_URL, { action: 'delete', documentoId });
   }
 
   getArchivo(documentoId: number): Observable<{ contenido_b64: string | null }> {
-    // 🔄 NORMALIZADO: 'getDocumentoArchivo' -> 'getArchivo'
     return this.http
       .post<{ data: { contenido_b64: string | null }[] }>(this.API_URL, { action: 'getArchivo', documentoId })
       .pipe(map(res => res.data?.[0] ?? { contenido_b64: null }));
   }
 
   getTiposDoc(): Observable<TipoDocLookup[]> {
-    // 🔄 NORMALIZADO: 'getTiposDoc' -> 'getTipos'
     return this.http
       .post<{ data: TipoDocLookup[] }>(this.API_URL, { action: 'getTipos' })
       .pipe(map(res => res.data ?? []));
