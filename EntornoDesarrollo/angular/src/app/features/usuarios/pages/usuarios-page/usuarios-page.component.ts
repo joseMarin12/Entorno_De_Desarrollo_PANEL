@@ -12,6 +12,9 @@ import { UsuariosModalFormComponent } from '../../components/modal-form/modal-fo
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
 import { environment } from '../../../../../environments/environment';
 
+// IMPORTAMOS EL MODAL DE CSV
+import { ImportCsvModalComponent } from '../../../import-csv/pages/import-csv-page/import-csv-page-component';
+
 @Component({
     selector: 'app-usuarios-page',
     standalone: true,
@@ -23,7 +26,8 @@ import { environment } from '../../../../../environments/environment';
         UsuariosTableComponent,
         UsuariosModalFormComponent,
         UsuariosModalDetailComponent,
-        ConfirmationModalComponent
+        ConfirmationModalComponent,
+        ImportCsvModalComponent // LO REGISTRAMOS AQUÍ
     ],
     templateUrl: './usuarios-page.component.html',
     styles: [`
@@ -46,6 +50,9 @@ export class UsuariosPageComponent implements OnInit {
     showBaja = false;
     showDetail = false;
     selectedId = signal<number | null>(null);
+    
+    // NUEVA VARIABLE PARA EL MODAL DE CSV
+    showImportModal = false; 
 
     // ── Filtros ───────────────────────────────────────
     searchQuery = '';
@@ -93,6 +100,14 @@ export class UsuariosPageComponent implements OnInit {
         this.activeFilter = filter;
         this.currentPage = 1;
         this.loadPage();
+    }
+
+    // ── Evento Éxito CSV ──────────────────────────────
+    onCsvImportado(respuesta: any): void {
+        // Mostramos un toast y recargamos la tabla automáticamente
+        this.toast.show('success', `✓ ${respuesta.message || 'CSV importado correctamente'}`);
+        this.currentPage = 1;
+        this.loadPage(); 
     }
 
     // ── Acciones Tabla ────────────────────────────────

@@ -22,6 +22,7 @@
     (searchChange)="onSearchChange($event)" 
     (filterChange)="onFilterChange($event)" 
     (tipoFilterChange)="onTypeFilterChange($event)" 
+    (importCsvClick)="showImportModal = true"
   />
 
   <app-table
@@ -53,3 +54,10 @@
     (closed)="showBaja = false; selectedId = null" 
   />
 }
+
+<app-import-csv-modal 
+  [isOpen]="showImportModal" 
+  endpointUrl="http://localhost:8000/api/empresas/importar-csv"
+  (close)="showImportModal = false"
+  (importSuccess)="onCsvImportado($event)">
+</app-import-csv-modal>

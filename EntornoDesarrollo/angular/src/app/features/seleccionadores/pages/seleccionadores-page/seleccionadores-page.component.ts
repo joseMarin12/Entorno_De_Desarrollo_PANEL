@@ -12,12 +12,16 @@ import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/conf
 import { TableComponent } from '../../../../shared/table/table.component';
 import { tableColumns } from './seleccionadores-table.config';
 
+// IMPORTAMOS NUESTRO MODAL CSV
+import { ImportCsvModalComponent } from '../../../import-csv/pages/import-csv-page/import-csv-page-component';
+
 @Component({
   selector: 'app-seleccionadores-page',
   standalone: true,
   imports: [
     CommonModule, SelStatsRowComponent, SelToolbarComponent, TableComponent,
-    SelModalFormComponent, SelModalDetailComponent, TopbarComponent, ConfirmationModalComponent
+    SelModalFormComponent, SelModalDetailComponent, TopbarComponent, ConfirmationModalComponent,
+    ImportCsvModalComponent // LO REGISTRAMOS AQUÍ
   ],
   templateUrl: './seleccionadores-page.component.html',
 })
@@ -63,6 +67,10 @@ export class SeleccionadoresPageComponent implements OnInit {
   showForm    = false;
   showConfirm = false;
   showDetail  = false;
+  
+  // NUEVO INTERRUPTOR MODAL CSV
+  showImportModal = false;
+
   confirmMode = ConfirmMode.DESACTIVAR;
   selectedId  = signal<number | null>(null);
   ConfirmMode = ConfirmMode;
@@ -114,6 +122,13 @@ export class SeleccionadoresPageComponent implements OnInit {
       case 'baja': this.onBajaClick(event.id); break;
       case 'activar': this.onActivarClick(event.id); break;
     }
+  }
+
+  // NUEVA FUNCIÓN PARA CUANDO SE SUBA EL CSV CON ÉXITO
+  onCsvImportado(respuesta: any): void {
+    this.toast.show('success', `✓ ${respuesta.message || 'CSV importado correctamente'}`);
+    this.currentPage.set(1);
+    this.loadPage(); 
   }
 
   openAdd(): void {
