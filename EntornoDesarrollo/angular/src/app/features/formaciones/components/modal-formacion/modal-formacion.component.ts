@@ -68,6 +68,11 @@ export class ModalFormacionComponent implements OnInit {
     if (!this.form.id_ejecucion) this.errors['id_ejecucion'] = 'La ejecución es obligatoria';
     if (!this.form.id_responsable) this.errors['id_responsable'] = 'El responsable es obligatorio';
     
+    // VALIDACIONES DE LAS FECHAS AGREGADAS
+    if (!this.form.fecha_prevista) this.errors['fecha_prevista'] = 'La fecha prevista es obligatoria';
+    if (!this.form.fecha_inicio) this.errors['fecha_inicio'] = 'La fecha de inicio es obligatoria';
+    if (!this.form.fecha_fin) this.errors['fecha_fin'] = 'La fecha de fin es obligatoria';
+    
     return Object.keys(this.errors).length === 0;
   }
 

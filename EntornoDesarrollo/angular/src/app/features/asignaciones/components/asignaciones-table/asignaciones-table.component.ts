@@ -38,9 +38,7 @@ export class AsignacionesTableComponent {
       header: 'Empresa',
       type: 'avatar-name',
       nameFields: ['nombre_empresa'],
-      subField: 'id',
-      subPrefix: 'ID: ',
-      activeField: 'activo',
+      activeField: 'activo', // Eliminados subField e id para limpiar el diseño
       colorFn: (id) => this.svc.colorFor(id),
       initialsFn: (row) => this.svc.initials(row),
     },

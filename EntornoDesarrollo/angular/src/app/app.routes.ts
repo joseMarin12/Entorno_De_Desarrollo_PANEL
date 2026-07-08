@@ -33,7 +33,7 @@ export const routes: Routes = [
       { path: 'empresas', component: EmpresasPageComponent },
       { path: 'usuarios', component: UsuariosPageComponent },
       { path: 'formaciones', component: FormacionesPageComponent },
-      { path: 'trabajadores', component: TrabajadoresPageComponent },
+      { path: 'trabajadores', component: TrabajadoresPageComponent }
     ]
   }
 ];

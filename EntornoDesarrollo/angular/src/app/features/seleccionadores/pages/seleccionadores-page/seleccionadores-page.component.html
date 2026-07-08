@@ -2,7 +2,6 @@
 
 <div class="page-content">
 
-    <!-- Cabecera -->
     <div class="page-header">
       <div>
         <div class="page-title">Seleccionadores</div>
@@ -16,7 +15,6 @@
       </button>
     </div>
 
-  <!-- Estadísticas -->
   <app-sel-stats-row 
     [total]="statsTotal()"
     [activos]="statsActivos()"
@@ -24,16 +22,15 @@
     [externos]="statsExternos()"
   />
 
-  <!-- Toolbar: búsqueda + filtros -->
   <div style="margin-bottom:16px">
     <app-sel-toolbar
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
       (tipoFilterChange)="onTypeFilterChange($event)"
+      (importCsvClick)="showImportModal = true"
     />
   </div>
 
-  <!-- Tabla -->
   <app-table
     [columns]="tableColumns"
     [rows]="seleccionadores()"
@@ -47,7 +44,6 @@
 
 </div>
 
-<!-- Modal añadir / editar -->
 @if (showForm) {
   <app-sel-modal-form
     [seleccionador]="selectedSeleccionador"
@@ -57,7 +53,6 @@
   />
 }
 
-<!-- Modal detalle (solo lectura) -->
 @if (showDetail && selectedSeleccionador) {
   <app-sel-modal-detail
     [seleccionador]="selectedSeleccionador"
@@ -66,7 +61,6 @@
   />
 }
 
-<!-- Modal confirmar baja / activar -->
 @if (showConfirm && selectedSeleccionadorNombre()) {
   <app-confirmation-modal
     [name]="selectedSeleccionadorNombre() ?? ''"
@@ -75,3 +69,10 @@
     (closed)="showConfirm = false; selectedId.set(null)"
   />
 }
+
+<app-import-csv-modal 
+  [isOpen]="showImportModal" 
+  endpointUrl="http://localhost:8000/api/seleccionadores/importar-csv"
+  (close)="showImportModal = false"
+  (importSuccess)="onCsvImportado($event)">
+</app-import-csv-modal>

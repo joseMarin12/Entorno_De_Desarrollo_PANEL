@@ -39,9 +39,7 @@ export class FormacionesTableComponent {
       header: 'Formacion',
       type: 'avatar-name',
       nameFields: ['curso'],
-      subField: 'id',
-      subPrefix: 'ID: ',
-      activeField: 'activo',
+      activeField: 'activo', // Hemos quitado subField y subPrefix para ocultar el ID
       colorFn: (id) => this.svc.colorFor(id),
       initialsFn: (row) => this.svc.initials(row),
     },

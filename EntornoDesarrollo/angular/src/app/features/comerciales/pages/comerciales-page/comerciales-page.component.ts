@@ -13,6 +13,9 @@ import { ModalAddComponent } from '../../components/modal-add/modal-add.componen
 import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
 import { ConfirmMode, ConfirmationModalComponent } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 
+// IMPORTAMOS NUESTRO MODAL CSV
+import { ImportCsvModalComponent } from '../../../import-csv/pages/import-csv-page/import-csv-page-component';
+
 @Component({
   selector: 'app-comerciales-page',
   standalone: true,
@@ -25,6 +28,7 @@ import { ConfirmMode, ConfirmationModalComponent } from '../../../../shared/conf
     ModalAddComponent,
     ModalEditComponent,
     ConfirmationModalComponent,
+    ImportCsvModalComponent // LO REGISTRAMOS AQUÍ
   ],
   templateUrl: './comerciales-page.component.html',
 })
@@ -85,6 +89,10 @@ export class ComercialesPageComponent implements OnInit {
   showAdd  = false;
   showEdit = false;
   showBaja = false;
+  
+  // NUEVO INTERRUPTOR MODAL CSV
+  showImportModal = false;
+  
   selectedId = signal<number | null>(null);
 
   // ── Ciclo de vida ─────────────────────────────────────────
@@ -156,6 +164,13 @@ export class ComercialesPageComponent implements OnInit {
     if (type === 'edit')    this.onEditClick(id);
     if (type === 'baja')    this.onBajaClick(id);
     if (type === 'activar') this.onBajaClick(id);
+  }
+
+  // NUEVA FUNCIÓN PARA CUANDO SE SUBA EL CSV CON ÉXITO
+  onCsvImportado(respuesta: any): void {
+    this.toast.show('success', `✓ ${respuesta.message || 'CSV importado correctamente'}`);
+    this.currentPage.set(1);
+    this.loadPage(); 
   }
 
   // ── Modales ───────────────────────────────────────────────

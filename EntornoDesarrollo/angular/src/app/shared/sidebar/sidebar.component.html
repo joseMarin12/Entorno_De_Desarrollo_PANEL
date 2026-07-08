@@ -1,11 +1,9 @@
-<!-- Overlay oscuro para móvil — cierra el sidebar al tocar fuera -->
 <div class="sidebar-overlay" [class.visible]="ui.sidebarOpen()" (click)="ui.closeSidebar()"></div>
 
 <aside class="sidebar" [class.open]="ui.sidebarOpen()">
   <div class="sidebar-logo">
     <div class="logo-text">S<span>g</span> Tech</div>
     <div class="logo-sub">Panel de Administración</div>
-    <!-- Botón cerrar — solo visible en móvil -->
     <button class="sidebar-close-btn" (click)="ui.closeSidebar()" aria-label="Cerrar menú">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
         <line x1="18" y1="6" x2="6" y2="18" />
@@ -53,8 +51,7 @@
 
     <a class="nav-item" routerLink="/formaciones" routerLinkActive="active" (click)="ui.closeSidebar()">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-        <path
-          d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" />
+        <path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" />
       </svg>
       Formaciones
     </a>
@@ -99,6 +96,11 @@
       </svg>
       Informes
     </a>
+
+
+
+   
+
   </nav>
 
   <div class="sidebar-footer">

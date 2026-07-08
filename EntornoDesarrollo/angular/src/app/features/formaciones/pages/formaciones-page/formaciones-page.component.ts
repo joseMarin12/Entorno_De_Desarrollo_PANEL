@@ -13,6 +13,9 @@ import { ModalFormacionComponent } from '../../components/modal-formacion/modal-
 import { ModalParticipantesComponent } from '../../components/modal-participantes/modal-participantes.component';
 import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 
+// IMPORTAMOS EL MODAL CSV
+import { ImportCsvModalComponent } from '../../../import-csv/pages/import-csv-page/import-csv-page-component';
+
 @Component({
   selector: 'app-formaciones-page',
   standalone: true,
@@ -25,6 +28,7 @@ import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/conf
     ModalFormacionComponent,
     ModalParticipantesComponent,
     ConfirmationModalComponent,
+    ImportCsvModalComponent // REGISTRAMOS EL MODAL
   ],
   templateUrl: './formaciones-page.component.html',
 })
@@ -38,12 +42,16 @@ export class FormacionesPageComponent implements OnInit {
   searchField = '';
   activeFilter: string = 'todos';
   currentPage = 1;
-  readonly PAGE_SIZE = 10; // Actualizado a 10 según petición
+  readonly PAGE_SIZE = 10; 
 
   // ── Estado modales ────────────────────────────────
   showForm = false;
   showBaja = false;
   showParticipantes = false;
+  
+  // INTERRUPTOR MODAL CSV
+  showImportModal = false;
+  
   readonly selectedId = signal<number | null>(null);
 
   // ── Ciclo de vida ─────────────────────────────────────────────────────────
@@ -53,6 +61,13 @@ export class FormacionesPageComponent implements OnInit {
 
   loadData(): void {
     this.svc.loadAll(this.searchQuery, this.searchField, this.activeFilter, this.currentPage, this.PAGE_SIZE).subscribe();
+  }
+
+  // ── Evento Éxito CSV ──────────────────────────────
+  onCsvImportado(respuesta: any): void {
+    this.toast.show('success', `✓ ${respuesta.message || 'CSV importado correctamente'}`);
+    this.currentPage = 1;
+    this.loadData(); 
   }
 
   // ── Getters para la vista ─────────────────────────
@@ -92,7 +107,6 @@ export class FormacionesPageComponent implements OnInit {
   onSaveForm(data: any): void {
     const id = this.selectedId();
     if (id) {
-      // Editar
       this.svc.update(id, data).subscribe({
         next: () => {
           this.showForm = false;
@@ -105,7 +119,6 @@ export class FormacionesPageComponent implements OnInit {
         },
       });
     } else {
-      // Añadir
       this.svc.add(data).subscribe({
         next: () => {
           this.showForm = false;

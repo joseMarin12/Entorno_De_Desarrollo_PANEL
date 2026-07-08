@@ -36,6 +36,11 @@ export class SidebarComponent {
     { label: 'Comisiones',   route: '/comisiones',   icon: 'chart' },
     { label: 'Informes',     route: '/informes',     icon: 'table' },
   ];
+
+  // NUEVO: Menú de Datos
+  datosItems: NavItem[] = [
+    { label: 'Importar CSV', route: '/importar-csv', icon: 'upload' },
+  ];
   
   get roleName(): string {
     const roleId = this.auth.currentUser()?.roleid;
