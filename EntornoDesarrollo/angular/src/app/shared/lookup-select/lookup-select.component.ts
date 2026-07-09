@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, forwardRef, inject, signal, computed, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, forwardRef, inject, signal, computed, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 import { LookupService } from '../../services/lookup.service';
@@ -61,16 +61,21 @@ import { LookupService } from '../../services/lookup.service';
               <div class="dropdown-item clear-opt" (mousedown)="selectOption(null)">
                 <em>— Ninguno —</em>
               </div>
-              @if (filteredOptions().length === 0) {
+              @for (opt of filteredOptions(); track $index) {
+                <div class="dropdown-item"
+                     [class.selected]="getValue(opt) == internalValue"
+                     (mousedown)="selectOption(opt)">
+                  {{ getLabel(opt) }}
+                </div>
+              }
+              <!-- Opción crear (opt-in): solo si allowCreate y el texto no coincide con una opción existente -->
+              @if (canCreate()) {
+                <div class="dropdown-item create-opt" (mousedown)="onCreate()">
+                  <span class="create-plus">+</span> {{ createLabel }} «{{ searchText().trim() }}»
+                </div>
+              }
+              @if (filteredOptions().length === 0 && !canCreate()) {
                 <div class="dropdown-item empty">Sin resultados</div>
-              } @else {
-                @for (opt of filteredOptions(); track $index) {
-                  <div class="dropdown-item"
-                       [class.selected]="getValue(opt) == internalValue"
-                       (mousedown)="selectOption(opt)">
-                    {{ getLabel(opt) }}
-                  </div>
-                }
               }
             </div>
           }
@@ -111,6 +116,9 @@ import { LookupService } from '../../services/lookup.service';
     .dropdown-item.empty:hover { background: #fff; }
     .dropdown-item.clear-opt { color: #9e9e9e; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
     .dropdown-item.clear-opt:hover { background: #fdecea; }
+    .dropdown-item.create-opt { color: #476fab; font-weight: 600; border-top: 1px solid #f0f0f0; }
+    .dropdown-item.create-opt:hover { background: #eef3fb; }
+    .create-plus { display: inline-block; font-weight: 700; margin-right: 4px; }
 
     /* ── Spinner ── */
     .select-spinner {
@@ -150,6 +158,10 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
   @Input() required = false;
   @Input() searchable = false;
 
+  @Input() allowCreate = false;
+  @Input() createLabel = 'Crear';
+  @Output() create = new EventEmitter<string>();
+
   /** Cascada: muestra solo las opciones cuyo [filterField] coincide con [filterValue]. */
   @Input() filterField = '';
   @Input() set filterValue(v: any) { this._filterValue.set(v); }
@@ -167,8 +179,7 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
   onChange: any = () => { };
   onTouched: any = () => { };
 
-  // Opciones tras el filtro de cascada (filterField/filterValue). Si hay filterField
-  // pero aún no hay valor padre, no se muestra nada (ej. localidad sin provincia elegida).
+
   baseOptions = computed(() => {
     const all = this.options();
     if (!this.filterField) return all;
@@ -177,12 +188,26 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
     return all.filter(o => o[this.filterField] == fv);
   });
 
-  // Filtra por el texto del buscador sobre las opciones ya filtradas por cascada.
+  // Normaliza para comparar ignorando mayúsculas, tildes y espacios sobrantes ("México" = "mexico").
+  private normalize(v: string): string {
+    return (v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  }
+
+  // Filtra por el texto del buscador (ignorando tildes) sobre las opciones ya filtradas por cascada.
   filteredOptions = computed(() => {
-    const q = this.searchText().toLowerCase().trim();
+    const q = this.normalize(this.searchText());
     const all = this.baseOptions();
     if (!q) return all;
-    return all.filter(opt => this.getLabel(opt).toLowerCase().includes(q));
+    return all.filter(opt => this.normalize(this.getLabel(opt)).includes(q));
+  });
+
+
+  canCreate = computed(() => {
+    if (!this.searchable || !this.allowCreate) return false;
+    const q = this.searchText().trim();
+    if (!q) return false;
+    const qn = this.normalize(q);
+    return !this.baseOptions().some(o => this.normalize(this.getLabel(o)) === qn);
   });
 
   // ── Ciclo de vida ─────────────────────────────────────────────────────────
@@ -289,7 +314,36 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
     this.isOpen.set(false);
   }
 
-  // ── ControlValueAccessor ──────────────────────────────────────────────────
+  
+  onCreate(): void {
+    const q = this.searchText().trim();
+    if (!q) return;
+    this.create.emit(q);
+    this.isOpen.set(false);
+  }
+
+
+  reloadAndSelect(value: any): void {
+    if (!this.apiUrl || !this.action) {
+      this.internalValue = value;
+      this.onChange(value);
+      this.syncSearchText();
+      return;
+    }
+    this.isLoading.set(true);
+    this.lookupSvc.getOptions(this.apiUrl, this.action).subscribe({
+      next: data => {
+        this.options.set(data || []);
+        this.internalValue = value;
+        this.onChange(value);
+        this.syncSearchText();
+        this.isLoading.set(false);
+      },
+      error: () => this.isLoading.set(false)
+    });
+  }
+
+  // ── ControlValueAccessor ──
   writeValue(val: any): void {
     this.internalValue = val;
     this.syncSearchText();

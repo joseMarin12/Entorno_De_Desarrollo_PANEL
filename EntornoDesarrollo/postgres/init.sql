@@ -219,11 +219,13 @@ CREATE TABLE trabajador (
     id_localidad INT,
     freelance BOOLEAN DEFAULT FALSE,
     id_provincia INT,
+    id_pais INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_seleccionadores) REFERENCES seleccionadores(id) ON DELETE SET NULL,
     FOREIGN KEY (id_localidad) REFERENCES localidad(id) ON DELETE SET NULL,
-    FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE SET NULL
+    FOREIGN KEY (id_provincia) REFERENCES provincia(id) ON DELETE SET NULL,
+    FOREIGN KEY (id_pais) REFERENCES pais(id) ON DELETE SET NULL
 );
 
 CREATE TABLE tipo_documento (
@@ -393,9 +395,3 @@ CREATE INDEX idx_documento_tipo ON documento(id_tipo_documento);
 CREATE INDEX idx_firma_estado ON firma(estado);
 
 
-INSERT INTO tipo_empresa (tipo_empresa)
-VALUES
-    ('Tecnológica'),
-    ('Consultoría'),
-    ('Logística'),
-    ('Marketing');

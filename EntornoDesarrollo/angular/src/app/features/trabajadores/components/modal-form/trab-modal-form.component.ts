@@ -172,6 +172,7 @@ export class TrabModalFormComponent implements OnChanges {
       fecha_ini: '',
       fecha_fin: '',
       id_seleccionadores: undefined,
+      id_pais: undefined,
       id_provincia: undefined,
       id_localidad: undefined,
     };
@@ -189,9 +190,54 @@ export class TrabModalFormComponent implements OnChanges {
     this.form.freelance = val;
   }
 
+  /** Al cambiar el país se limpian provincia y localidad; el cascade lo aplica el lookup-select. */
+  onPaisChange(): void {
+    this.form.id_provincia = undefined;
+    this.form.id_localidad = undefined;
+  }
+
   /** Al cambiar la provincia se limpia la localidad; el cascade lo aplica el lookup-select. */
   onProvinciaChange(): void {
     this.form.id_localidad = undefined;
+  }
+
+  // ── Crear geografía si no existe (Get-Or-Create): resuelve en n8n, obtiene el id y lo selecciona ──
+  onCrearPais(nombre: string, sel: LookupSelectComponent): void {
+    this.api.resolverPais(nombre).subscribe({
+      next: (id) => {
+        if (id == null) return;
+        this.form.id_pais = id;
+        this.form.id_provincia = undefined;
+        this.form.id_localidad = undefined;
+        sel.reloadAndSelect(id);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo crear el país'),
+    });
+  }
+
+  onCrearProvincia(nombre: string, sel: LookupSelectComponent): void {
+    if (!this.form.id_pais) { this.toast.show('info', 'Selecciona primero un país'); return; }
+    this.api.resolverProvincia(nombre, this.form.id_pais).subscribe({
+      next: (id) => {
+        if (id == null) return;
+        this.form.id_provincia = id;
+        this.form.id_localidad = undefined;
+        sel.reloadAndSelect(id);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo crear la provincia'),
+    });
+  }
+
+  onCrearLocalidad(nombre: string, sel: LookupSelectComponent): void {
+    if (!this.form.id_provincia) { this.toast.show('info', 'Selecciona primero una provincia'); return; }
+    this.api.resolverLocalidad(nombre, this.form.id_provincia).subscribe({
+      next: (id) => {
+        if (id == null) return;
+        this.form.id_localidad = id;
+        sel.reloadAndSelect(id);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo crear la localidad'),
+    });
   }
 
   // ── Documentos 
