@@ -314,7 +314,7 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
     this.isOpen.set(false);
   }
 
-  
+
   onCreate(): void {
     const q = this.searchText().trim();
     if (!q) return;

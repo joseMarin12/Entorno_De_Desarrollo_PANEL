@@ -4,8 +4,7 @@
       <div>
         <div class="modal-title">{{ isEdit ? 'Editar Formación' : 'Nueva Formación' }}</div>
         <div class="modal-subtitle">
-          {{ isEdit ? 'Modifica los campos de la formación seleccionada' : 'Completa los datos para crear una nueva
-          formación' }}
+          {{ isEdit ? 'Modifica los campos de la formación seleccionada' : 'Completa los datos para crear una nueva formación' }}
         </div>
       </div>
       <button class="modal-close" (click)="close.emit()">
@@ -99,18 +98,21 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Fecha Prevista</label>
-          <input class="form-input" type="date" [(ngModel)]="form.fecha_prevista">
+          <label class="form-label">Fecha Prevista <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['fecha_prevista']" type="date" [(ngModel)]="form.fecha_prevista">
+          @if (errors['fecha_prevista']) { <span class="form-hint error-msg">{{ errors['fecha_prevista'] }}</span> }
         </div>
 
         <div class="form-group">
-          <label class="form-label">Fecha de Inicio</label>
-          <input class="form-input" type="date" [(ngModel)]="form.fecha_inicio">
+          <label class="form-label">Fecha de Inicio <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['fecha_inicio']" type="date" [(ngModel)]="form.fecha_inicio">
+          @if (errors['fecha_inicio']) { <span class="form-hint error-msg">{{ errors['fecha_inicio'] }}</span> }
         </div>
 
         <div class="form-group">
-          <label class="form-label">Fecha de Fin</label>
-          <input class="form-input" type="date" [(ngModel)]="form.fecha_fin">
+          <label class="form-label">Fecha de Fin <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['fecha_fin']" type="date" [(ngModel)]="form.fecha_fin">
+          @if (errors['fecha_fin']) { <span class="form-hint error-msg">{{ errors['fecha_fin'] }}</span> }
         </div>
 
         <div class="form-group">

@@ -42,8 +42,6 @@
 
 @if (showBaja && selectedAsignacion) {
 <app-confirmation-modal name="Asignación #{{selectedAsignacion.id}}"
-  [title]="selectedAsignacion.activo !== false ? '¿Dar de baja asignación?' : '¿Reactivar asignación?'"
-  [description]="selectedAsignacion.activo !== false ? 'La asignación pasará a estado inactivo.' : 'La asignación volverá a estar activa.'"
   [mode]="selectedAsignacion.activo !== false ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
   (confirm)="onConfirmBaja()" (closed)="showBaja = false; selectedId = null" />
 }

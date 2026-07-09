@@ -1,70 +1,55 @@
 <app-topbar pageTitle="Empresas" />
 
-<section class="page-content">
+<div class="page-content">
 
-    <!-- Cabecera -->
-    <div class="page-header">
-      <div>
-        <div class="page-title">Empresas</div>
-        <div class="page-subtitle">Gestión de empresas</div>
-      </div>
-      <button class="btn btn-primary" (click)="openAdd()">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        Nueva Empresa
-      </button>
+  <div class="page-header">
+    <div>
+      <div class="page-title">Empresas</div>
+      <div class="page-subtitle">Gestiona las empresas de Sg Tech</div>
     </div>
+    <button class="btn btn-primary" (click)="openAdd()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      Nueva Empresa
+    </button>
+  </div>
 
-    <!-- Estadísticas -->
-    <app-stats-row 
-      [total]="total()"
-      [activos]="totalActivos()"
-      [inactivos]="totalInactivos()"
-    />
+  <app-stats-row [total]="statsTotal()" [activos]="statsActivos()" [inactivos]="statsInactivos()" />
 
-    <!-- Toolbar: búsqueda + filtros -->
-    <app-toolbar
-      (searchChange)="onSearchChange($event)"
-      (filterChange)="onFilterChange($event)"
-      (tipoFilterChange)="onTypeFilterChange($event)"
-    />
-
-    <!-- Tabla -->
-    <app-empresas-table
-      [empresas]="empresas()"
-      [currentPage]="currentPage()"
-      [pageSize]="PAGE_SIZE"
-      [totalFiltered]="total()"
-      (editClick)="onEditClick($event)"
-      (bajaClick)="onBajaClick($event)"
-      (pageChange)="onPageChange($event)"
-    />
-</section>
-
-<!-- Modales -->
-@if (showAdd) {
-  <app-modal-empresas
-    [existingCIFs]="getExistingCIFs"
-    (saveAdd)="onSaveAdd($event)"
-    (close)="showAdd = false"
+  <app-toolbar 
+    (searchChange)="onSearchChange($event)" 
+    (filterChange)="onFilterChange($event)" 
+    (tipoFilterChange)="onTypeFilterChange($event)" 
   />
+
+  <app-table
+    [columns]="tableColumns"
+    [rows]="empresas()"
+    [currentPage]="currentPage()"
+    [pageSize]="PAGE_SIZE"
+    [totalFiltered]="total()"
+    [entityLabel]="'empresas'"
+    (actionClick)="onTableAction($event)"
+    (pageChange)="onPageChange($event)"
+  />
+
+</div>
+
+@if (showAdd) {
+  <app-empresas-modal (save)="onSaveAdd($any($event))" (close)="showAdd = false" />
 }
 
 @if (showEdit && selectedEmpresa) {
-  <app-modal-empresas
-    [empresa]="selectedEmpresa"
-    [existingCIFs]="existingCIFsForEdit"
-    (saveEdit)="onSaveEdit($event)"
-    (close)="showEdit = false; selectedId = null"
-  />
+  <app-empresas-modal [empresa]="selectedEmpresa" [existingCIFs]="existingCIFsForEdit" (save)="onSaveEdit($any($event))" (close)="showEdit = false; selectedId = null" />
 }
 
 @if (showBaja && selectedEmpresa) {
-  <app-confirmation-modal
-    [name]="selectedEmpresa ? selectedEmpresa.nombre + ' ' + selectedEmpresa.razonSocial : ''"
-    [mode]="selectedEmpresa.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
+  <app-confirmation-modal 
+    [name]="fullName(selectedEmpresa)"
+    [mode]="selectedEmpresa.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR" 
     (confirm)="onConfirmBaja()"
-    (closed)="showBaja = false; selectedId = null"
+    (closed)="showBaja = false; selectedId = null" 
   />
 }
