@@ -19,7 +19,8 @@ export interface ComercialPage {
 
 @Injectable({ providedIn: 'root' })
 export class ComercialesApiService extends BaseCrud<Comercial> {
-  public override readonly API_URL = `${environment.apiUrl}/comerciales`;
+  // 🔥 CORREGIDO: Se añadió '/api/' antes de comerciales para alinearse con routes/api.php
+  public override readonly API_URL = `${environment.apiUrl}/api/comerciales`;
 
   findAll(page = 1, limit = 10, searchText = '', status = ''): Observable<ComercialPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
@@ -31,7 +32,8 @@ export class ComercialesApiService extends BaseCrud<Comercial> {
       }
       const first = raw[0];
       const stats: ComercialStats = {
-        total: first.stats_total ?? 0, activos: first.stats_activos ?? 0,
+        total: first.stats_total ?? 0, 
+        activos: first.stats_activos ?? 0,
         inactivos: first.stats_inactivos ?? 0
       };
       const totalFiltered: number = first.total_filtered ?? raw.length;
