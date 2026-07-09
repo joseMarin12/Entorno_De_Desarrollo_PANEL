@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ComercialController extends Controller
 {
@@ -11,17 +12,23 @@ class ComercialController extends Controller
 
     public function __construct()
     {
-        // URL del webhook de n8n (ajustar según entorno)
-        $this->n8nUrl = env('N8N_WEBHOOK_COMERCIALES', 'http://n8n:5678/webhook/gestion-comerciales');
+        $this->n8nUrl = env('N8N_WEBHOOK_COMERCIALES', 'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-comerciales');
     }
-
-    /**
-     * Proxy genérico: reenvía la acción + datos a n8n
-     */
-
     public function proxy(Request $request)
     {
-        $response = Http::post($this->n8nUrl, $request->all());
-        return response()->json($response->json(), $response->status());
+        try {
+            $response = Http::timeout(30)->post($this->n8nUrl, $request->all());
+            
+            return response()->json($response->json(), $response->status());
+            
+        } catch (\Exception $e) {
+            Log::error('Error de comunicación con n8n en ComercialController: ' . $e->getMessage());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'El servicio de automatización comercial temporalmente no responde.',
+                'dev_details' => $e->getMessage()
+            ], 502); // 502 Bad Gateway
+        }
     }
 }
