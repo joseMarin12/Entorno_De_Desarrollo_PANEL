@@ -93,6 +93,7 @@ export class AsignacionesPageComponent implements OnInit {
         next: () => {
           this.showForm = false;
           this.selectedId = null;
+          this.loadData();
           this.toast.show('info', `✎ Asignación actualizada correctamente.`);
         },
         error: (err) => {
@@ -104,6 +105,8 @@ export class AsignacionesPageComponent implements OnInit {
       this.svc.add(data).subscribe({
         next: () => {
           this.showForm = false;
+          this.currentPage = 1;
+          this.loadData();
           this.toast.show('success', `✓ Asignación añadida correctamente.`);
         },
         error: (err) => {
@@ -127,6 +130,7 @@ export class AsignacionesPageComponent implements OnInit {
       next: () => {
         this.showBaja = false;
         this.selectedId = null;
+        this.loadData();
         if (wasActive) {
           this.toast.show('warning', `⊘ Asignación dada de baja.`);
         } else {
