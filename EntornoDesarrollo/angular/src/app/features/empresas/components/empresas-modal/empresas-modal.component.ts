@@ -1,21 +1,24 @@
 import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, signal, SimpleChanges } from "@angular/core";
+import { Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Empresa } from "../../../../models/empresa.model";
 import { LookupSelectComponent } from "../../../../shared/lookup-select/lookup-select.component";
 import { environment } from "../../../../../environments/environment";
 
+interface FormDireccion { calle: string; ciudad: string; cp: string; }
+interface FormContacto { nombre: string; telefono: string; email: string; }
+
 @Component({
-    selector: "app-modal-empresas",
+    selector: "app-empresas-modal",
     standalone: true,
     imports: [CommonModule, FormsModule, LookupSelectComponent],
     templateUrl: "./empresas-modal.component.html",
 })
 export class EmpresasModalComponent implements OnInit, OnChanges {
-    @Input() empresa: Empresa | null = null;
+    @Input() empresa: any | null = null; // Usamos any temporalmente hasta ajustar tu interface
     @Input() existingCIFs: string[] = [];
-    @Output() saveAdd = new EventEmitter<Omit<Empresa, 'id'>>();
-    @Output() saveEdit = new EventEmitter<Empresa>();
+    
+    @Output() save = new EventEmitter<any>();
     @Output() close = new EventEmitter<void>();
 
     readonly empresasApiUrl = `${environment.apiUrl}/empresas`;
@@ -26,11 +29,13 @@ export class EmpresasModalComponent implements OnInit, OnChanges {
         razonSocial: '',
         cif: '',
         id_tipo_empresa: null as number | null,
-        direcciones: 0,
-        contactos: 0,
         id_comerciales: null as number | null,
         activo: true,
     };
+
+    // Arrays dinámicos para contactos y direcciones
+    direccionesList: FormDireccion[] = [];
+    contactosList: FormContacto[] = [];
 
     errors: Record<string, string> = {};
     private formInitialized = false;
@@ -66,6 +71,7 @@ export class EmpresasModalComponent implements OnInit, OnChanges {
     private fillForm(): void {
         if (this.formInitialized) return;
         if (!this.isEditMode) {
+            this.resetLists();
             this.formInitialized = true;
             return;
         }
@@ -75,13 +81,35 @@ export class EmpresasModalComponent implements OnInit, OnChanges {
             razonSocial: this.empresa!.razonSocial,
             cif: this.empresa!.cif,
             id_tipo_empresa: this.empresa!.id_tipo_empresa ?? null,
-            direcciones: this.empresa!.direcciones,
-            contactos: this.empresa!.contactos,
             id_comerciales: this.empresa!.id_comerciales ?? null,
             activo: this.empresa!.activo,
         };
+
+        // Si la empresa ya trae datos en la BBDD los cargamos, si no, ponemos uno en blanco
+        this.direccionesList = this.empresa.direccionesData?.length ? [...this.empresa.direccionesData] : [{ calle: '', ciudad: '', cp: '' }];
+        this.contactosList = this.empresa.contactosData?.length ? [...this.empresa.contactosData] : [{ nombre: '', telefono: '', email: '' }];
+
         this.errors = {};
         this.formInitialized = true;
+    }
+
+    // ─── Lógica de Arrays Dinámicos ───
+    addDireccion(): void {
+        this.direccionesList.push({ calle: '', ciudad: '', cp: '' });
+    }
+
+    removeDireccion(index: number): void {
+        this.direccionesList.splice(index, 1);
+        if (this.direccionesList.length === 0) this.addDireccion(); // Dejar siempre uno mínimo
+    }
+
+    addContacto(): void {
+        this.contactosList.push({ nombre: '', telefono: '', email: '' });
+    }
+
+    removeContacto(index: number): void {
+        this.contactosList.splice(index, 1);
+        if (this.contactosList.length === 0) this.addContacto(); // Dejar siempre uno mínimo
     }
 
     toggleActivo(): void {
@@ -100,19 +128,24 @@ export class EmpresasModalComponent implements OnInit, OnChanges {
         else if (this.existingCIFs.includes(this.form.cif.trim().toUpperCase())) {
             this.errors['cif'] = 'Este CIF ya está registrado';
         }
+        
         if (Object.keys(this.errors).length > 0) return;
 
+        // Limpiamos los vacíos antes de enviar
+        const direccionesValidas = this.direccionesList.filter(d => d.calle || d.ciudad || d.cp);
+        const contactosValidos = this.contactosList.filter(c => c.nombre || c.telefono || c.email);
+
+        const payload = {
+            ...this.form,
+            id_tipo_empresa: this.form.id_tipo_empresa!,
+            direccionesData: direccionesValidas,
+            contactosData: contactosValidos
+        };
+
         if (this.isEditMode) {
-            this.saveEdit.emit({
-                id: this.empresa!.id,
-                ...this.form,
-                id_tipo_empresa: this.form.id_tipo_empresa!,
-            });
+            this.save.emit({ id: this.empresa!.id, ...payload });
         } else {
-            this.saveAdd.emit({
-                ...this.form,
-                id_tipo_empresa: this.form.id_tipo_empresa!,
-            });
+            this.save.emit(payload);
             this.reset();
         }
     }
@@ -123,11 +156,15 @@ export class EmpresasModalComponent implements OnInit, OnChanges {
             razonSocial: '',
             cif: '',
             id_tipo_empresa: null,
-            direcciones: 0,
-            contactos: 0,
             id_comerciales: null,
             activo: true,
         };
+        this.resetLists();
         this.errors = {};
+    }
+
+    private resetLists(): void {
+        this.direccionesList = [{ calle: '', ciudad: '', cp: '' }];
+        this.contactosList = [{ nombre: '', telefono: '', email: '' }];
     }
 }

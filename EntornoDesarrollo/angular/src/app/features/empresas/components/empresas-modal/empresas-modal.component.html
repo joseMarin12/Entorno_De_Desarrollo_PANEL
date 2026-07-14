@@ -1,5 +1,5 @@
 <div class="modal-overlay open">
-  <div class="modal" style="max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
+  <div class="modal" style="max-width: 700px; max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div>
         <div class="modal-title">{{ title }}</div>
@@ -14,7 +14,7 @@
 
     <div class="modal-body">
       <div class="form-grid">
-
+        <!-- DATOS PRINCIPALES DE LA EMPRESA -->
         <div class="form-group">
           <label class="form-label">Nombre <span class="req">*</span></label>
           <input class="form-input" [class.error]="errors['nombre']" type="text" placeholder="Ej: SGTech" [(ngModel)]="form.nombre">
@@ -37,7 +37,7 @@
             [searchable]="true"
             valueField="id"
             labelField="nombre"
-            placeholder="Seleccionar tipo de empresa..."
+            placeholder="Seleccionar tipo..."
             [(ngModel)]="form.id_tipo_empresa"
           />
           @if (errors['id_tipo_empresa']) { 
@@ -52,18 +52,6 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Direcciones</label>
-          <input class="form-input" type="number" [(ngModel)]="form.direcciones" disabled>
-          <span class="form-hint">Se actualiza automáticamente al añadir direcciones</span>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Contactos</label>
-          <input class="form-input" type="number" [(ngModel)]="form.contactos" disabled>
-          <span class="form-hint">Se actualiza automáticamente al añadir contactos</span>
-        </div>
-
-        <div class="form-group">
           <app-lookup-select
             [apiUrl]="asignacionesApiUrl"
             action="getComerciales"
@@ -74,7 +62,7 @@
             placeholder="Sin comercial asignado"
             [(ngModel)]="form.id_comerciales"
           />
-        </div>        
+        </div>
 
         <div class="form-group full">
           <label class="form-label">Estado {{ isEditMode ? '' : 'inicial' }}</label>
@@ -88,6 +76,67 @@
             </div>
           </div>
         </div>
+
+        <!-- SECCIÓN DE DIRECCIONES DINÁMICAS -->
+        <div class="form-group full" style="margin-top: 1.5rem;">
+          <h3 style="font-size: 14px; font-weight: 600; color: #476fab; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px;">
+            Direcciones
+          </h3>
+          
+          @for (dir of direccionesList; track $index) {
+            <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end;">
+              <div style="flex: 2;">
+                <label class="form-label" style="font-size: 11px;">Dirección / Calle</label>
+                <input class="form-input" type="text" placeholder="Ej: C/ Mayor 12" [(ngModel)]="dir.calle">
+              </div>
+              <div style="flex: 1;">
+                <label class="form-label" style="font-size: 11px;">Ciudad</label>
+                <input class="form-input" type="text" placeholder="Ej: Madrid" [(ngModel)]="dir.ciudad">
+              </div>
+              <div style="flex: 1;">
+                <label class="form-label" style="font-size: 11px;">CP</label>
+                <input class="form-input" type="text" placeholder="Ej: 28001" [(ngModel)]="dir.cp">
+              </div>
+              <button class="btn" style="background: transparent; border: 1px solid #ff4d4f; color: #ff4d4f; padding: 8px 12px;" (click)="removeDireccion($index)" title="Eliminar dirección">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </div>
+          }
+          <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px; margin-top: 5px;" (click)="addDireccion()">
+            + Nueva dirección
+          </button>
+        </div>
+
+        <!-- SECCIÓN DE CONTACTOS DINÁMICOS -->
+        <div class="form-group full" style="margin-top: 1.5rem;">
+          <h3 style="font-size: 14px; font-weight: 600; color: #476fab; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px;">
+            Contactos
+          </h3>
+          
+          @for (contacto of contactosList; track $index) {
+            <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end;">
+              <div style="flex: 1.5;">
+                <label class="form-label" style="font-size: 11px;">Nombre del contacto</label>
+                <input class="form-input" type="text" placeholder="Ej: Juan Pérez" [(ngModel)]="contacto.nombre">
+              </div>
+              <div style="flex: 1;">
+                <label class="form-label" style="font-size: 11px;">Teléfono</label>
+                <input class="form-input" type="text" placeholder="Ej: 600123456" [(ngModel)]="contacto.telefono">
+              </div>
+              <div style="flex: 1.5;">
+                <label class="form-label" style="font-size: 11px;">Email</label>
+                <input class="form-input" type="email" placeholder="Ej: juan@empresa.com" [(ngModel)]="contacto.email">
+              </div>
+              <button class="btn" style="background: transparent; border: 1px solid #ff4d4f; color: #ff4d4f; padding: 8px 12px;" (click)="removeContacto($index)" title="Eliminar contacto">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </div>
+          }
+          <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px; margin-top: 5px;" (click)="addContacto()">
+            + Nuevo contacto
+          </button>
+        </div>
+
       </div>
     </div>
 

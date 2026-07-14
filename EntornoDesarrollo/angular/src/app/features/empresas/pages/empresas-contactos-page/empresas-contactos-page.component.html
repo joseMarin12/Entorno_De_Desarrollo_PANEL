@@ -1,5 +1,51 @@
-<div class="page-card">
-  <h1>Gestión de contactos</h1>
-  <p>Empresa ID: {{ empresaId }}</p>
-  <p>Aquí puedes gestionar los contactos de la empresa seleccionada.</p>
+<div class="page-content">
+  <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <div class="page-title">Contactos</div>
+      <div class="page-subtitle">Contactos registrados para: <strong>{{ nombreEmpresa() }}</strong></div>
+    </div>
+    <button class="btn btn-outline" (click)="volver()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right: 5px;">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Volver a Empresas
+    </button>
+  </div>
+
+  @if (cargando()) {
+    <div style="padding: 2rem; text-align: center; color: #666;">Cargando contactos...</div>
+  } @else {
+    @if (contactos().length === 0) {
+      <div style="background: white; border-radius: 8px; padding: 3rem; text-align: center; color: #666; border: 1px dashed #ccc; margin-top: 1rem;">
+        No hay contactos registrados para esta empresa. <br>
+        Puedes añadirlos editando la empresa desde la tabla principal.
+      </div>
+    } @else {
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+        @for (contacto of contactos(); track $index) {
+          <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #eee;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+              <div style="background: #eef2f6; color: #476fab; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;">
+                {{ (contacto.nombre?.charAt(0) || 'C').toUpperCase() }}
+              </div>
+              <div style="font-weight: 600; font-size: 16px; color: #333;">
+                {{ contacto.nombre || 'Sin nombre' }}
+              </div>
+            </div>
+            
+            <div style="font-size: 14px; color: #666; display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" fill="none" stroke="#888" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                {{ contacto.telefono || 'Sin teléfono' }}
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" fill="none" stroke="#888" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                {{ contacto.email || 'Sin email' }}
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
 </div>

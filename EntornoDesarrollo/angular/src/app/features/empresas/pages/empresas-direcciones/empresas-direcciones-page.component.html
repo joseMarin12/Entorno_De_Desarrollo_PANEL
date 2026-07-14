@@ -1,0 +1,45 @@
+<div class="page-content">
+  <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <div class="page-title">Direcciones</div>
+      <div class="page-subtitle">Ubicaciones registradas para: <strong>{{ nombreEmpresa() }}</strong></div>
+    </div>
+    <button class="btn btn-outline" (click)="volver()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right: 5px;">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Volver a Empresas
+    </button>
+  </div>
+
+  @if (cargando()) {
+    <div style="padding: 2rem; text-align: center; color: #666;">Cargando direcciones...</div>
+  } @else {
+    @if (direcciones().length === 0) {
+      <div style="background: white; border-radius: 8px; padding: 3rem; text-align: center; color: #666; border: 1px dashed #ccc; margin-top: 1rem;">
+        No hay direcciones registradas para esta empresa. <br>
+        Puedes añadirlas editando la empresa desde la tabla principal.
+      </div>
+    } @else {
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+        @for (dir of direcciones(); track $index) {
+          <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #eee;">
+            <div style="display: flex; align-items: flex-start; gap: 15px;">
+              <div style="background: #fff4e5; color: #ff9800; padding: 12px; border-radius: 8px;">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div style="font-weight: 600; font-size: 16px; color: #333;">
+                  {{ dir.calle || 'Calle sin especificar' }}
+                </div>
+                <div style="font-size: 14px; color: #666;">
+                  {{ dir.ciudad || 'Ciudad no especificada' }}{{ dir.cp ? ', ' + dir.cp : '' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

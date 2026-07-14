@@ -5,7 +5,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-stats-row',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './stats-row.component.html'
+  templateUrl: './stats-row.component.html',
+  styleUrls: ['./stats-row.component.scss'] // Asegúrate de que este archivo exista, si no, quita esta línea
 })
 export class StatsRowComponent {
   total = input(0);
