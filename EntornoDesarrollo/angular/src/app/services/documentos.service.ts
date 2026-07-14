@@ -36,7 +36,7 @@ export class DocumentosService extends BaseCrud<DocFile> {
 
   getTiposDoc(): Observable<TipoDocLookup[]> {
     return this.http
-      .post<{ data: TipoDocLookup[] }>(this.API_URL, { action: 'getTipos' })
+      .post<{ data: TipoDocLookup[] }>(this.API_URL, { action: 'getTiposDoc' })
       .pipe(map(res => res.data ?? []));
   }
 
