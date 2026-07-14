@@ -20,7 +20,8 @@ export interface TrabajadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
-  public readonly API_URL = `${environment.apiUrl}/trabajadores`;
+  // FIX: apuntar al prefijo /api del proxy de Laravel
+  public override readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
 
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
