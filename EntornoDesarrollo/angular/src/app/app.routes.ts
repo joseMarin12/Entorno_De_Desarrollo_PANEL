@@ -12,7 +12,6 @@ import { autenticadorGuard } from './guards/autenticador.guard';
 import { firstLoginGuard } from './guards/first-login.guard';
 import { TrabajadoresPageComponent } from './features/trabajadores/pages/trabajadores-page/trabajadores-page.component';
 import { AsignacionesPageComponent } from './features/asignaciones/pages/asignaciones-page/asignaciones-page.component';
-import { ImportCsvPageComponent } from './features/import-csv/pages/import-csv-page/import-csv-page-component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -20,11 +19,11 @@ export const routes: Routes = [
   {
     path: 'change-password',
     component: ChangePasswordComponent,
-    canActivate: [autenticadorGuard, firstLoginGuard]
+    canActivate: [autenticadorGuard] // Solo necesita estar logueado
   },
   {
     path: '',
-    canActivate: [autenticadorGuard, firstLoginGuard],
+    canActivate: [autenticadorGuard], // ✅ Eliminado firstLoginGuard de aquí
     children: [
       { path: 'asignaciones', component: AsignacionesPageComponent },
       { path: 'comerciales', component: ComercialesPageComponent },
@@ -34,8 +33,7 @@ export const routes: Routes = [
       { path: 'empresas', component: EmpresasPageComponent },
       { path: 'usuarios', component: UsuariosPageComponent },
       { path: 'formaciones', component: FormacionesPageComponent },
-      { path: 'trabajadores', component: TrabajadoresPageComponent },
-      { path: 'importar-csv', component: ImportCsvPageComponent }
+      { path: 'trabajadores', component: TrabajadoresPageComponent }
     ]
   }
 ];

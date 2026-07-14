@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Trabajador, TrabajadorFormData } from '../models/trabajador.model';
 import { BaseCrud } from './base.service';
-import { environment } from '../../environments/environment';
+import { environment } from '../../environments/environment'; // Asegúrate de importar el environment
 
 export interface TrabajadorStats {
   total: number;
@@ -64,7 +64,6 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     );
     return this._create({ action: 'createTrabajador', trabajadorData, documentos });
   }
-
 
   update(id: number, data: TrabajadorFormData): Observable<Trabajador> {
     const trabajadorData = Object.fromEntries(

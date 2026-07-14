@@ -6,7 +6,9 @@ type ApiResponse<TEntity> = { data: TEntity[] };
 
 export abstract class BaseCrud<TEntity> {
   protected readonly http = inject(HttpClient);
-  protected abstract readonly API_URL: string;
+  
+  // CORRECCIÓN: Cambiado de protected a public para permitir el acceso desde los archivos HTML (.html)
+  public abstract readonly API_URL: string;
 
   protected _findAll<TBody extends object>(body: TBody): Observable<TEntity[]> {
     return this.http.post<ApiResponse<TEntity>>(this.API_URL, body)

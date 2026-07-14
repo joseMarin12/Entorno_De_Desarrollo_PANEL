@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000/api',
-};
+  apiUrl: 'https://panel-1079064952465.us-central1.run.app'
+  };

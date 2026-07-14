@@ -6,36 +6,37 @@ import { BaseCrud } from './base.service';
 import { DocFile, FirmaModalData, TipoDocLookup, PosicionFirma } from '../models/firma.model';
 import { environment } from '../../environments/environment';
 
-
 @Injectable({ providedIn: 'root' })
 export class DocumentosService extends BaseCrud<DocFile> {
-  public readonly API_URL = `${environment.apiUrl}/trabajadores`;
+  // Centralizado en la misma ruta de la rama main
+  public readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
 
   getByTrabajador(trabajadorId: number): Observable<DocFile[]> {
-    return this._findAll({ action: 'getDocumentosByTrabajador', trabajadorId });
+    return this._findAll({ action: 'getDocumentos', trabajadorId });
   }
 
   create(documentoData: any): Observable<DocFile> {
-    return this._create({ action: 'createDocumento', documentoData });
+    return this._create({ action: 'create', documentoData });
   }
 
   update(documentoData: any): Observable<DocFile> {
+    // 🔥 CORREGIDO: Se cambia 'upload' por 'updateDocumento' para que n8n active la ruta del UPDATE SQL
     return this._update({ action: 'updateDocumento', documentoData });
   }
 
   remove(documentoId: number): Observable<unknown> {
-    return this.http.post(this.API_URL, { action: 'deleteDocumento', documentoId });
+    return this.http.post(this.API_URL, { action: 'delete', documentoId });
   }
 
   getArchivo(documentoId: number): Observable<{ contenido_b64: string | null }> {
     return this.http
-      .post<{ data: { contenido_b64: string | null }[] }>(this.API_URL, { action: 'getDocumentoArchivo', documentoId })
+      .post<{ data: { contenido_b64: string | null }[] }>(this.API_URL, { action: 'getArchivo', documentoId })
       .pipe(map(res => res.data?.[0] ?? { contenido_b64: null }));
   }
 
   getTiposDoc(): Observable<TipoDocLookup[]> {
     return this.http
-      .post<{ data: TipoDocLookup[] }>(this.API_URL, { action: 'getTiposDoc' })
+      .post<{ data: TipoDocLookup[] }>(this.API_URL, { action: 'getTipos' })
       .pipe(map(res => res.data ?? []));
   }
 
@@ -46,5 +47,4 @@ export class DocumentosService extends BaseCrud<DocFile> {
   cancelarFirma(payload: { firma_id?: number; doc_id?: number }): Observable<DocFile> {
     return this._update({ action: 'cancelarFirma', firmaData: payload });
   }
-
 }

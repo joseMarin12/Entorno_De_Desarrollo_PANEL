@@ -2,7 +2,6 @@
 
 <div class="page-content">
 
-  <!-- Cabecera -->
   <div class="page-header">
     <div>
       <div class="page-title">Formaciones</div>
@@ -17,24 +16,33 @@
     </button>
   </div>
 
-  <!-- Estadísticas -->
   <app-stats-row [total]="svc.total()" [activas]="svc.totalActivos()" [inactivas]="svc.totalInactivos()" />
 
-  <!-- Toolbar: búsqueda + filtros -->
-  <app-shared-filter 
-    placeholder="Buscar por curso o denominación..."
-    (searchChange)="onSearchChange($event)" 
-    (filterChange)="onFilterChange($event)" 
-  />
+  <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; width: 100%;">
+    <div style="flex: 1; max-width: 420px;">
+      <app-shared-filter 
+        placeholder="Buscar por curso o denominación..."
+        (searchChange)="onSearchChange($event)" 
+        (filterChange)="onFilterChange($event)" 
+      />
+    </div>
+    
+    <button class="btn btn-primary" style="background-color: #476fab; border: none; margin-left: auto; display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 0.5rem 1rem; border-radius: 6px; color: white; font-size: 14px; font-weight: 500;" (click)="showImportModal = true">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      Carga masiva CSV
+    </button>
+  </div>
 
-  <!-- Tabla -->
   <app-formaciones-table [formaciones]="svc.formaciones()" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"
     [totalFiltered]="svc.totalFiltered()" (editClick)="onEditClick($event)" (bajaClick)="onBajaClick($event)"
     (participantesClick)="onParticipantesClick($event)" (pageChange)="onPageChange($event)" />
 
 </div>
 
-<!-- Modales -->
 @if (showForm) {
 <app-modal-formacion [formacion]="selectedformacion() ?? undefined" (save)="onSaveForm($event)"
   (close)="showForm = false; selectedId.set(null)" />
@@ -49,3 +57,10 @@
 @if (showParticipantes && selectedformacion()) {
 <app-modal-participantes [formacion]="selectedformacion()!" (close)="showParticipantes = false; selectedId.set(null)" />
 }
+
+<app-import-csv-modal 
+  [isOpen]="showImportModal" 
+  endpointUrl="http://localhost:8000/api/formaciones/importar-csv"
+  (close)="showImportModal = false"
+  (importSuccess)="onCsvImportado($event)">
+</app-import-csv-modal>

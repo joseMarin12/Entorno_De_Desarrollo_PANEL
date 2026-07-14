@@ -2,7 +2,6 @@
 
 <div class="page-content">
 
-    <!-- Cabecera -->
     <div class="page-header">
       <div>
         <div class="page-title">Usuarios</div>
@@ -16,16 +15,14 @@
       </button>
     </div>
 
-    <!-- Estadísticas -->
     <app-usuarios-stats-row />
 
-    <!-- Toolbar: búsqueda + filtros -->
     <app-usuarios-toolbar
       (searchChange)="onSearch($event)"
       (filterChange)="onFilterChange($event)"
+      (importCsvClick)="showImportModal = true"
     />
 
-    <!-- Tabla -->
     <app-usuarios-table
       [usuarios]="svc.usuarios()"
       [currentPage]="currentPage"
@@ -39,7 +36,6 @@
 
 </div>
 
-<!-- Modales -->
 @if (showForm) {
   <app-usuarios-modal-form
     [usuario]="selectedUsuario() || null"
@@ -67,3 +63,10 @@
     (close)="showDetail = false; selectedId.set(null)"
   />
 }
+
+<app-import-csv-modal 
+  [isOpen]="showImportModal" 
+  endpointUrl="http://localhost:8000/api/usuarios/importar-csv"
+  (close)="showImportModal = false"
+  (importSuccess)="onCsvImportado($event)">
+</app-import-csv-modal>

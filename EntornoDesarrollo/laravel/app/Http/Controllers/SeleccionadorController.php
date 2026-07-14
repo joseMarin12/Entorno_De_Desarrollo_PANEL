@@ -11,17 +11,25 @@ class SeleccionadorController extends Controller
 
     public function __construct()
     {
-        // Usamos la URL que nos pasaste como base, configurable desde el .env
-        $this->n8nUrl = env('N8N_WEBHOOK_SELECCIONADORES', 'http://n8n:5678/webhook/gestion-seleccionadores');
+        // Usamos la URL de producción de n8n en Hostinger, configurable desde el .env
+        $this->n8nUrl = env(
+            'N8N_WEBHOOK_SELECCIONADORES', 
+            'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-seleccionadores'
+        );
     }
 
     /**
-     * Proxy para Seleccionadores: Reenvía acción + datos a n8n
+     * Proxy para Seleccionadores: Reenvía acción + datos + headers a n8n
      */
     public function proxy(Request $request)
     {
         try {
-            $response = Http::post($this->n8nUrl, $request->all());
+            // CORRECCIÓN CRÍTICA: Capturamos la cabecera Authorization que envía Angular
+            // y se la inyectamos a la petición saliente hacia n8n para que el nodo IF no falle.
+            $response = Http::withHeaders([
+                'Authorization' => $request->header('Authorization'),
+                'Accept'        => 'application/json',
+            ])->post($this->n8nUrl, $request->all());
 
             if ($response->failed()) {
                 return response()->json([
@@ -30,8 +38,10 @@ class SeleccionadorController extends Controller
                     'details' => $response->json() ?? $response->body()
                 ], $response->status());
             }
-
-            return response()->json($response->json(), $response->status());
+          return response()->json($response->json(), $response->status());
+                ->header('Access-Control-Allow-Origin', 'https://panel-frontend-1079064952465.us-central1.run.app')
+                ->header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
 
         } catch (\Exception $e) {
             return response()->json([

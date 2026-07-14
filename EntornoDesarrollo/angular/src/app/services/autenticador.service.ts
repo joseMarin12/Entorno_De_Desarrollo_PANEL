@@ -8,6 +8,8 @@ export interface User {
   id: number;
   email: string;
   roleid?: number;
+  name?: string;
+  surname?: string;
 }
 
 export interface LoginResponse {
@@ -15,6 +17,8 @@ export interface LoginResponse {
   message?: string;
   user?: User;
   token?: string;
+  // 🚀 EL FIX PARA EL COMPILADOR: Agregamos la propiedad al tipado oficial de la API
+  firstLogin?: boolean; 
 }
 
 @Injectable({
@@ -23,23 +27,39 @@ export interface LoginResponse {
 export class AutenticadorService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly API_URL = `${environment.apiUrl}/login`;
+  
+  // URL centralizada apuntando al Proxy seguro de Laravel en Cloud Run
+  private readonly API_URL = `${environment.apiUrl}/api/login`;
 
-  // Signal para el estado del usuario
+  // Signals para el estado global del sistema
   currentUser = signal<User | null>(this.getUserFromStorage());
+  firstLoginOverridden = signal<boolean>(sessionStorage.getItem('firstLoginCompleted') === 'true');
 
   login(credentials: { email: string; password: string }): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.API_URL, credentials).pipe(
       tap(response => {
         if (response.success && response.user) {
-          // Normalizar el user para asegurar que roleid existe
-          const rawUser = response.user as any;
-          response.user.roleid = Number(rawUser.roleid || rawUser.role_id || rawUser.id_rol || rawUser.ID_ROL || 2);
+          // 1. Normalización estricta del rol del usuario
+          const rawResponse = response as any;
+          response.user.roleid = Number(rawResponse.user.roleid || rawResponse.user.role_id || rawResponse.user.id_rol || rawResponse.user.ID_ROL || 2);
           
+          // 2. Guardar la persistencia del usuario en sesión
           this.saveUser(response.user);
-          if (response.token) {
-            sessionStorage.setItem('token', response.token);
+          
+          // 3. Normalización robusta y extracción del Token JWT
+          const extractedToken = response.token || 
+                                 rawResponse.accessToken || 
+                                 rawResponse.jwt || 
+                                 rawResponse.data?.token;
+
+          if (extractedToken) {
+            sessionStorage.setItem('token', extractedToken);
+          } else {
+            console.error('⚠️ ALERTA: Login exitoso pero el servidor no adjuntó un Token JWT válido.', response);
+            sessionStorage.removeItem('token'); 
           }
+          
+          // 4. Actualizar el Signal reactivo global
           this.currentUser.set(response.user);
         }
       })
@@ -55,6 +75,8 @@ export class AutenticadorService {
     this.router.navigate(['/login']);
   }
 
+  // --- Helpers de Persistencia en SessionStorage ---
+
   private saveUser(user: User): void {
     sessionStorage.setItem('user', JSON.stringify(user));
   }
@@ -65,9 +87,8 @@ export class AutenticadorService {
     
     try {
       const user = JSON.parse(userJson);
-      // Asegurar normalización incluso al cargar de storage
       if (user && !user.roleid) {
-        user.roleid = Number(user.roleid || user.role_id || user.id_rol || user.ID_ROL || 2);
+        user.roleid = 2; // Rol por defecto (Invitado/Usuario común)
       }
       return user;
     } catch (e) {
@@ -76,34 +97,42 @@ export class AutenticadorService {
   }
 
   isAuthenticated(): boolean {
-    return this.currentUser() !== null;
+    return this.currentUser() !== null && !!sessionStorage.getItem('token');
   }
 
   getToken(): string | null {
     return sessionStorage.getItem('token');
   }
 
+  // --- Lógica Avanzada de Token y Desencriptación ---
+
   getDecodedToken(): any {
     const token = this.getToken();
-    if (!token) return null;
+    if (!token || token === 'usuario_autenticado') return null; 
+    
     try {
-      const payload = token.split('.')[1];
-      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-      return JSON.parse(atob(base64));
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+
+      const payload = parts[1];
+      
+      // Reconstrucción del padding Base64Url
+      let base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) {
+        base64 += '=';
+      }
+      
+      // Decodificación nativa segura soportando caracteres UTF-8/Acentos
+      return JSON.parse(decodeURIComponent(escape(atob(base64))));
     } catch (e) {
+      console.error('❌ Error crítico al decodificar el payload del JWT:', e);
       return null;
     }
   }
 
   getUserId(): number | null {
-    return this.getDecodedToken()?.id || null;
+    return this.currentUser()?.id || null;
   }
-
-  getUserEmail(): string | null {
-    return this.getDecodedToken()?.email || null;
-  }
-
-  private firstLoginOverridden = signal(sessionStorage.getItem('firstLoginCompleted') === 'true');
 
   isFirstLogin(): boolean {
     if (this.firstLoginOverridden()) return false;

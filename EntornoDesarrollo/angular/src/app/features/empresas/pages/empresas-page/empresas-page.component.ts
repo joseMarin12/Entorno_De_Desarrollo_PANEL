@@ -12,6 +12,9 @@ import { EmpresasApiService } from '../../../../services/empresas-api.service';
 import { EmpresasModalComponent } from "../../components/empresas-modal/empresas-modal.component";
 import { EMPRESAS_COLUMNS } from './empresas-table.config'; 
 
+// IMPORTAMOS NUESTRO MODAL CSV
+import { ImportCsvModalComponent } from '../../../import-csv/pages/import-csv-page/import-csv-page-component';
+
 @Component({
   selector: 'app-empresas-page',
   standalone: true,
@@ -22,7 +25,8 @@ import { EMPRESAS_COLUMNS } from './empresas-table.config';
     StatsRowComponent,
     EmpToolbarComponent,
     EmpresasModalComponent,
-    ConfirmationModalComponent
+    ConfirmationModalComponent,
+    ImportCsvModalComponent // LO REGISTRAMOS AQUÍ
   ],
   schemas: [NO_ERRORS_SCHEMA],
   templateUrl: './empresas-page.component.html',
@@ -61,6 +65,10 @@ export class EmpresasPageComponent implements OnInit {
   showAdd  = false;
   showEdit = false;
   showBaja = false;
+  
+  // NUEVO INTERRUPTOR MODAL CSV
+  showImportModal = false;
+  
   selectedId: number | null = null;
 
   // ── Ciclo de vida ─────────────────────────────────
@@ -120,6 +128,13 @@ export class EmpresasPageComponent implements OnInit {
         this.goToContactos(event.id);
         break;
     }
+  }
+
+  // NUEVA FUNCIÓN PARA CUANDO SE SUBA EL CSV CON ÉXITO
+  onCsvImportado(respuesta: any): void {
+    this.toast.show('success', `✓ ${respuesta.message || 'CSV importado correctamente'}`);
+    this.currentPage.set(1);
+    this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter); 
   }
 
   goToDirecciones(id: number): void {

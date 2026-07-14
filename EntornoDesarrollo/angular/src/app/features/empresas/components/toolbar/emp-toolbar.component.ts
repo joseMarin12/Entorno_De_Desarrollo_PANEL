@@ -18,6 +18,9 @@ export class EmpToolbarComponent {
   @Output() searchChange = new EventEmitter<string>();
   @Output() filterChange = new EventEmitter<EmpFilterType>();
   @Output() tipoFilterChange = new EventEmitter<EmpFilterTipoType>();
+  
+  // NUEVO EVENTO PARA EL BOTÓN CSV
+  @Output() importCsvClick = new EventEmitter<void>();
 
   private empresasApi = inject(EmpresasApiService);
   private _tipos = signal<TipoEmpresa[]>([]);
@@ -30,5 +33,9 @@ export class EmpToolbarComponent {
   async ngOnInit(): Promise<void> {
     const tipos = await firstValueFrom(this.empresasApi.findTipos());
     this._tipos.set(tipos);
+  }
+
+  emitImportClick(): void {
+    this.importCsvClick.emit();
   }
 }

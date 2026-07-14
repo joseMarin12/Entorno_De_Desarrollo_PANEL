@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
@@ -9,7 +9,8 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class FormacionesService extends BaseCrud<Formacion> {
 
-    public readonly API_URL = `${environment.apiUrl}/formaciones`;
+    // Apunta al Proxy de Laravel. Asegúrate de que coincida con tus rutas de Laravel
+    public readonly API_URL = `${environment.apiUrl}/api/formaciones`;
 
     // ── Estado reactivo ──────────────────────────────────────────────────────
     private _formaciones = signal<Formacion[]>([]);
@@ -38,6 +39,7 @@ export class FormacionesService extends BaseCrud<Formacion> {
                     if (list && list.length > 0 && list[0].id !== undefined && list[0].id !== null) {
                         this._formaciones.set(list);
                         const first = list[0] as any;
+                        // n8n debe mapear estas propiedades dentro de los objetos de la lista
                         this.totalFiltered.set(Number(first.total_records) || list.length);
                         this.total.set(Number(first.total_global) || 0);
                         this.totalActivos.set(Number(first.total_activos) || 0);

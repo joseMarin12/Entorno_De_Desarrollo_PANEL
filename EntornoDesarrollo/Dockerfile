@@ -1,8 +1,6 @@
 # === ETAPA 1: Compilar la interfaz de Angular 17 ===
 FROM node:18-alpine AS angular-build
 WORKDIR /app
-
-# Copiamos TODOS los archivos de la raíz para asegurar que encuentre los archivos de configuración
 COPY . .
 WORKDIR /app/angular
 RUN npm ci
@@ -40,22 +38,19 @@ RUN echo '<Directory /var/www/html/public/> \n\
 WORKDIR /var/www/html
 COPY ./laravel/ .
 RUN rm -f ./Dockerfile
-RUN cp .env.example .env
-RUN composer install --no-interaction --optimize-autoloader --no-dev
-RUN php artisan key:generate
+RUN cp .env.example .env || true
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
+RUN php artisan key:generate --force
 
-# --- UNIFICACIÓN BUSCADORA DESDE LA NUEVA RUTA ---
-RUN mkdir -p /tmp/angular-dist
-COPY --from=angular-build /app/angular/dist/ /tmp/angular-dist/
-RUN TARGET_DIR=$(find /tmp/angular-dist -name "index.html" -exec dirname {} \; | head -n 1) && \
-    if [ -n "$TARGET_DIR" ]; then \
-        cp -r $TARGET_DIR/* /var/www/html/public/; \
-    fi
+# --- UNIFICACIÓN CON LA RUTA REAL QUE ENCONTRAMOS ---
+# Copiamos directamente los archivos de Angular 17 a la carpeta pública que lee Apache
+COPY --from=angular-build /app/angular/dist/mi-panel/browser/ /var/www/html/public/
 
-RUN chown -R www-data:www-data /var/www/html /var/www/html/storage /var/www/html/bootstrap/cache
+# Asignamos permisos correctos del sistema operativo para evitar el error Forbidden
+RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
 
 EXPOSE 8080
 ENV PORT 8080
 RUN sed -i "s/Listen 80/Listen 8080/g" /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
 
-CMD ["php", "-d", "variables_order=EGPCS", "-S", "0.0.0.0:8080", "-t", "public"]
+CMD ["apache2-foreground"]

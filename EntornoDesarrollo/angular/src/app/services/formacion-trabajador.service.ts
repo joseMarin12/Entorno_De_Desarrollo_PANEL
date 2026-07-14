@@ -8,8 +8,8 @@ import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class FormacionTrabajadorService extends BaseCrud<Trabajador> {
-
-  protected readonly API_URL = `${environment.apiUrl}/formaciones`;
+// EL FIX: Añadimos /api/ y lo cambiamos a plural para hacer match con Laravel
+public override readonly API_URL = `${environment.apiUrl}/api/formaciones`;
 
   // ── Estado reactivo ──────────────────────────────────────────────────────
   private _trabajadores = signal<Trabajador[]>([]);

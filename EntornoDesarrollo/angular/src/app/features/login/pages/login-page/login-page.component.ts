@@ -26,26 +26,30 @@ export class LoginPageComponent {
   loading = false;
 
   onSubmit(): void {
-    if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched();
-      return;
-    }
+    if (this.loginForm.invalid) return;
 
     this.loading = true;
     const { email, password } = this.loginForm.getRawValue();
 
     this.authService.login({ email: email!, password: password! }).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response?.success) {
           this.toastService.show('success', '¡Bienvenido!');
-          this.router.navigate(['/usuarios']); // O la ruta que prefieras por defecto
+          
+          // 🚀 CONTROL CRÍTICO DE PRIMER LOGIN (RAMA MAIN)
+          if (response?.firstLogin === true) {
+            // Si es la primera vez, lo forzamos a ir a cambiar la contraseña obligatoriamente
+            this.router.navigate(['/change-password']);
+          } else {
+            // Si ya la cambió en el pasado, pasa de largo a la pantalla por defecto
+            this.router.navigate(['/usuarios']);
+          }
         } else {
-          this.toastService.show('error', response.message || 'Credenciales incorrectas');
+          this.toastService.show('error', response?.message || 'Error de autenticación');
         }
         this.loading = false;
       },
-      error: (err) => {
-        console.error('Login error:', err);
+      error: () => {
         this.toastService.show('error', 'Error al conectar con el servidor');
         this.loading = false;
       }
