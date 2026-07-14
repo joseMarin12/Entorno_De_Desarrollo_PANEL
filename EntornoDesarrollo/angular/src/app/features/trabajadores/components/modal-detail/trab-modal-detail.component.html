@@ -131,6 +131,13 @@
               </div>
             </div>
             <div class="detail-item">
+              <div class="detail-label">País</div>
+              <div class="detail-value">
+                @if (trabajador.pais_nombre) { {{ trabajador.pais_nombre }} }
+                @else { <span class="empty-dash">—</span> }
+              </div>
+            </div>
+            <div class="detail-item">
               <div class="detail-label">Provincia / Localidad</div>
               <div class="detail-value">
                 @if (trabajador.provincia_nombre || trabajador.localidad_nombre) {
@@ -211,50 +218,27 @@
       @if (activeTab() === 'asignaciones') {
 
         @if (asignaciones.length > 0) {
-          <div class="section-box" style="margin-bottom: 0;">
-            <span class="section-box-title">Historial de asignaciones ({{ totalAsignaciones }})</span>
+          <span class="section-box-title" style="display:block; margin-bottom: 14px;">Historial de asignaciones ({{ totalAsignaciones }})</span>
 
-            @for (a of asignaciones; track a.id; let last = $last) {
-              <!-- Empresa + Estado -->
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                <span style="font-size: 14px; font-weight: 600; color: var(--text);">{{ a.empresa_nombre }}</span>
-                <span class="badge" [class.badge-active]="a.activo" [class.badge-inactive]="!a.activo">
-                  {{ a.activo ? 'Activa' : 'Finalizada' }}
+          @for (a of asignaciones; track a.id) {
+            <div class="asig-card">
+              <div class="asig-band">
+                <div class="asig-empresa">{{ a.empresa_nombre }}</div>
+                <span class="act-badge" [class.on]="a.activo" [class.off]="!a.activo">
+                  <span class="dot"></span>{{ a.activo ? 'Activa' : 'De baja' }}
                 </span>
               </div>
 
-              <!-- Grid de detalles -->
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <div class="detail-label">Comercial</div>
-                  <div class="detail-value">{{ a.comercial_nombre }}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Tarifa</div>
-                  <div class="detail-value">
-                    @if (a.tarifa) { {{ a.tarifa }} €/día }
-                    @else { <span class="empty-dash">—</span> }
-                  </div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Fecha inicio</div>
-                  <div class="detail-value">{{ formatDate(a.fecha_ini) }}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Fecha fin</div>
-                  <div class="detail-value">
-                    @if (a.fecha_fin) { {{ formatDate(a.fecha_fin) }} }
-                    @else { <span class="empty-dash">En curso</span> }
-                  </div>
+              <div class="asig-body">
+                <div class="kv-grid">
+                  <div class="kv"><div class="k">Comercial</div><div class="v">{{ a.comercial_nombre || '—' }}</div></div>
+                  <div class="kv"><div class="k">Tarifa</div><div class="v">{{ a.tarifa != null ? formatMoney(a.tarifa) + '/día' : '—' }}</div></div>
+                  <div class="kv"><div class="k">Fecha inicio</div><div class="v">{{ formatDate(a.fecha_ini) }}</div></div>
+                  <div class="kv"><div class="k">Fecha fin</div><div class="v">{{ a.fecha_fin ? formatDate(a.fecha_fin) : '—' }}</div></div>
                 </div>
               </div>
-
-              <!-- Separador entre asignaciones -->
-              @if (!last) {
-                <div style="height: 1px; background: var(--border); margin: 20px 0;"></div>
-              }
-            }
-          </div>
+            </div>
+          }
         } @else {
           <div class="empty-tab">
             <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -271,55 +255,39 @@
       @if (activeTab() === 'formaciones') {
 
         @if (formaciones.length > 0) {
-          <div class="section-box" style="margin-bottom: 0;">
-            <span class="section-box-title">Formaciones inscritas ({{ totalFormaciones }})</span>
+          <span class="section-box-title" style="display:block; margin-bottom: 14px;">Formaciones inscritas ({{ totalFormaciones }})</span>
 
-            @for (f of formaciones; track f.id; let last = $last) {
-              <!-- Nombre + Estado -->
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                <span style="font-size: 14px; font-weight: 600; color: var(--text);">{{ f.curso }}</span>
-                <span class="badge" [class.badge-active]="f.estado === 'Finalizada' || f.estado === 'En curso'" [class.badge-inactive]="f.estado === 'Cancelada'" [style.background]="f.estado === 'En curso' ? '#e3f2fd' : f.estado === 'Planificada' ? '#fff3e0' : ''" [style.color]="f.estado === 'En curso' ? '#1565c0' : f.estado === 'Planificada' ? '#e65100' : ''">
-                  {{ f.estado }}
+          @for (f of formaciones; track f.id) {
+            <div class="rec-card">
+              <div class="rec-head">
+                <div class="rec-head-main">
+                  <div>
+                    <div class="rec-title">{{ f.curso }}</div>
+                    @if (f.denominacion) { <div class="rec-sub">{{ f.denominacion }}</div> }
+                  </div>
+                </div>
+                <span class="act-badge" [class.on]="f.activo" [class.off]="!f.activo">
+                  <span class="dot"></span>{{ f.activo ? 'Activa' : 'De baja' }}
                 </span>
               </div>
 
-              <!-- Grid de detalles -->
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <div class="detail-label">Área</div>
-                  <div class="detail-value">{{ f.area }}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Modalidad</div>
-                  <div class="detail-value">{{ f.modalidad }}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Periodo</div>
-                  <div class="detail-value">{{ formatDate(f.fecha_inicio) }} → {{ formatDate(f.fecha_fin) }}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Asistencia</div>
-                  <div class="detail-value">
-                    @if (f.asistencia === true) { ✓ Asistió }
-                    @else if (f.asistencia === false) { ✗ No asistió }
-                    @else { <span class="empty-dash">Pendiente</span> }
-                  </div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Eficacia</div>
-                  <div class="detail-value">
-                    @if (f.eficacia) { {{ f.eficacia }} }
-                    @else { <span class="empty-dash">Pendiente</span> }
-                  </div>
+              <div class="subsec">
+                <div class="subsec-title">Datos de la formación</div>
+                <div class="kv-grid">
+                  <div class="kv"><div class="k">Área</div><div class="v">{{ f.area || '—' }}</div></div>
+                  <div class="kv"><div class="k">Modalidad</div><div class="v">{{ f.modalidad || '—' }}</div></div>
+                  <div class="kv"><div class="k">Año</div><div class="v">{{ f.anio || '—' }}</div></div>
+                  <div class="kv"><div class="k">Responsable</div><div class="v">{{ (f.responsable || '').trim() || '—' }}</div></div>
+                  <div class="kv"><div class="k">Duración</div><div class="v">{{ f.duracion != null ? f.duracion + ' h' : '—' }}</div></div>
+                  <div class="kv"><div class="k">Horario</div><div class="v">{{ f.horario || '—' }}</div></div>
+                  <div class="kv"><div class="k">Jornada</div><div class="v">{{ f.dentro_fuera_jornada || '—' }}</div></div>
+                  <div class="kv"><div class="k">Fecha inicio</div><div class="v">{{ formatDate(f.fecha_inicio) }}</div></div>
+                  <div class="kv"><div class="k">Fecha fin</div><div class="v">{{ f.fecha_fin ? formatDate(f.fecha_fin) : '—' }}</div></div>
                 </div>
               </div>
 
-              <!-- Separador entre formaciones -->
-              @if (!last) {
-                <div style="height: 1px; background: var(--border); margin: 20px 0;"></div>
-              }
-            }
-          </div>
+            </div>
+          }
         } @else {
           <div class="empty-tab">
             <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">

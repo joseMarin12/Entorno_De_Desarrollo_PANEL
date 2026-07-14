@@ -20,9 +20,11 @@ export interface Trabajador {
   id_localidad?: number;
   freelance: boolean;
   id_provincia?: number;
+  id_pais?: number;
   seleccionador_nombre?: string;
   provincia_nombre?: string;
   localidad_nombre?: string;
+  pais_nombre?: string;
   asignado?: boolean;
   created_at?: string;
   updated_at?: string;
