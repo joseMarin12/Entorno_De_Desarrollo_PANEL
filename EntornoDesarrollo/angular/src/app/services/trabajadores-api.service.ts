@@ -20,9 +20,9 @@ export interface TrabajadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
-  
-  // En app/services/documentos.service.ts
-  public readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
+  public readonly API_URL = `${environment.apiUrl}/trabajadores`;
+
+
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
       action: 'getTrabajadores', page, limit, filters: { searchText, status, tipo }
@@ -41,9 +41,11 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
         freelances: first.stats_freelances ?? 0
       };
 
+
       if (raw.length === 1 && first.id == null) {
         return { data: [], totalFiltered: 0, stats };
       }
+
 
       const data: Trabajador[] = raw.map(item => {
         const { total_filtered, stats_total, stats_activos, stats_inactivos, stats_freelances, ...cleanItem } = item;
@@ -54,7 +56,8 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     }));
   }
 
-  create(data: any): Observable<Trabajador> {
+
+  create(data: TrabajadorFormData): Observable<Trabajador> {
     const { documentos, ...rest } = data;
     const trabajadorData = Object.fromEntries(
       Object.entries(rest).map(([key, val]) => [key, val === undefined ? null : val])
@@ -69,29 +72,11 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     return this._update({ action: 'updateTrabajador', trabajadorId: id, trabajadorData });
   }
 
+
   toggleStatus(id: number): Observable<Trabajador> {
     return this._toggleStatus({ action: 'toggleTrabajadorStatus', trabajadorId: id });
   }
 
-  getProvincias(): Observable<{id: number, nombre: string}[]> {
-    return this.http.post<{data: {id: number, nombre: string}[]}>(this.API_URL, { action: 'getProvincias' })
-      .pipe(map(res => res.data ?? []));
-  }
-
-  getLocalidades(): Observable<{id: number, id_provincia: number, nombre: string}[]> {
-    return this.http.post<{data: {id: number, id_provincia: number, nombre: string}[]}>(this.API_URL, { action: 'getLocalidades' })
-      .pipe(map(res => res.data ?? []));
-  }
-
-  getSeleccionadoresLookup(): Observable<{id: number, nombre: string, tipo: string}[]> {
-    return this.http.post<{data: {id: number, nombre: string, tipo: string}[]}>(this.API_URL, { action: 'getSeleccionadoresLookup' })
-      .pipe(map(res => res.data ?? []));
-  }
-
-  getTiposDoc(): Observable<{id: number, tipo: string}[]> {
-    return this.http.post<{data: {id: number, tipo: string}[]}>(this.API_URL, { action: 'getTiposDoc' })
-      .pipe(map(res => res.data ?? []));
-  }
 
   getAsignacionesByTrabajador(trabajadorId: number): Observable<any[]> {
     return this.http.post<{data: any[]}>(this.API_URL, { action: 'getAsignacionesByTrabajador', trabajadorId })
@@ -101,5 +86,21 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
   getFormacionesByTrabajador(trabajadorId: number): Observable<any[]> {
     return this.http.post<{data: any[]}>(this.API_URL, { action: 'getFormacionesByTrabajador', trabajadorId })
       .pipe(map(res => res.data ?? []));
+  }
+
+  // geografía: crea si no existe
+  resolverPais(nombre: string): Observable<number> {
+    return this.http.post<{ data: { id: number }[] }>(this.API_URL, { action: 'resolverPais', nombre })
+      .pipe(map(res => res.data?.[0]?.id));
+  }
+
+  resolverProvincia(nombre: string, idPais: number): Observable<number> {
+    return this.http.post<{ data: { id: number }[] }>(this.API_URL, { action: 'resolverProvincia', nombre, id_pais: idPais })
+      .pipe(map(res => res.data?.[0]?.id));
+  }
+
+  resolverLocalidad(nombre: string, idProvincia: number): Observable<number> {
+    return this.http.post<{ data: { id: number }[] }>(this.API_URL, { action: 'resolverLocalidad', nombre, id_provincia: idProvincia })
+      .pipe(map(res => res.data?.[0]?.id));
   }
 }

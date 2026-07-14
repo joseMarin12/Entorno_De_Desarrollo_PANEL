@@ -155,23 +155,34 @@
           />
         </div>
 
-        <!-- CASCADE SELECT: Provincia → Localidad -->
+        <!-- CASCADE SELECT: País → Provincia → Localidad (con "+ Crear" si no existe) -->
         <div class="form-grid" style="margin-bottom: 16px;">
           <div class="form-group">
-            <app-lookup-select
-              [apiUrl]="api.API_URL" action="getProvincias" [searchable]="true"
-              label="Provincia" placeholder="Seleccionar provincia..."
-              [(ngModel)]="form.id_provincia" (ngModelChange)="onProvinciaChange()">
+            <app-lookup-select #paisSel
+              [apiUrl]="api.API_URL" action="getPaises" [searchable]="true" [allowCreate]="true"
+              label="País" placeholder="Seleccionar o crear país..."
+              [(ngModel)]="form.id_pais" (ngModelChange)="onPaisChange()"
+              (create)="onCrearPais($event, paisSel)">
             </app-lookup-select>
           </div>
           <div class="form-group">
-            <app-lookup-select
-              [apiUrl]="api.API_URL" action="getLocalidades" [searchable]="true"
-              label="Localidad" placeholder="Seleccionar localidad..."
-              filterField="id_provincia" [filterValue]="form.id_provincia"
-              [(ngModel)]="form.id_localidad">
+            <app-lookup-select #provSel
+              [apiUrl]="api.API_URL" action="getProvincias" [searchable]="true" [allowCreate]="true"
+              label="Provincia" placeholder="Seleccionar o crear provincia..."
+              filterField="id_pais" [filterValue]="form.id_pais"
+              [(ngModel)]="form.id_provincia" (ngModelChange)="onProvinciaChange()"
+              (create)="onCrearProvincia($event, provSel)">
             </app-lookup-select>
           </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <app-lookup-select #locSel
+            [apiUrl]="api.API_URL" action="getLocalidades" [searchable]="true" [allowCreate]="true"
+            label="Localidad" placeholder="Seleccionar o crear localidad..."
+            filterField="id_provincia" [filterValue]="form.id_provincia"
+            [(ngModel)]="form.id_localidad"
+            (create)="onCrearLocalidad($event, locSel)">
+          </app-lookup-select>
         </div>
 
         <div class="form-group">

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, forwardRef, inject, signal, computed, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, forwardRef, inject, signal, computed, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 import { LookupService } from '../../services/lookup.service';
@@ -18,6 +18,7 @@ import { LookupService } from '../../services/lookup.service';
       <div class="select-wrapper" [class.loading]="isLoading()" [class.open]="isOpen()">
 
         @if (!searchable) {
+          <!-- ── Modo select normal ── -->
           <select
             class="form-input"
             [class.error]="hasError"
@@ -36,6 +37,7 @@ import { LookupService } from '../../services/lookup.service';
           </select>
 
         } @else {
+          <!-- ── Modo buscador ── -->
           <input
             type="text"
             autocomplete="off"
@@ -55,19 +57,25 @@ import { LookupService } from '../../services/lookup.service';
 
           @if (isOpen()) {
             <div class="dropdown-menu">
+              <!-- Opción limpiar -->
               <div class="dropdown-item clear-opt" (mousedown)="selectOption(null)">
                 <em>— Ninguno —</em>
               </div>
-              @if (filteredOptions().length === 0) {
+              @for (opt of filteredOptions(); track $index) {
+                <div class="dropdown-item"
+                     [class.selected]="getValue(opt) == internalValue"
+                     (mousedown)="selectOption(opt)">
+                  {{ getLabel(opt) }}
+                </div>
+              }
+              <!-- Opción crear (opt-in): solo si allowCreate y el texto no coincide con una opción existente -->
+              @if (canCreate()) {
+                <div class="dropdown-item create-opt" (mousedown)="onCreate()">
+                  <span class="create-plus">+</span> {{ createLabel }} «{{ searchText().trim() }}»
+                </div>
+              }
+              @if (filteredOptions().length === 0 && !canCreate()) {
                 <div class="dropdown-item empty">Sin resultados</div>
-              } @else {
-                @for (opt of filteredOptions(); track $index) {
-                  <div class="dropdown-item"
-                       [class.selected]="getValue(opt) == internalValue"
-                       (mousedown)="selectOption(opt)">
-                    {{ getLabel(opt) }}
-                  </div>
-                }
               }
             </div>
           }
@@ -83,12 +91,15 @@ import { LookupService } from '../../services/lookup.service';
     .select-wrapper { position: relative; width: 100%; }
     .select-wrapper.loading select,
     .select-wrapper.loading input { color: #999; }
+
+    /* ── Searchable ── */
     .search-input { width: 100%; padding-right: 32px !important; }
     .select-arrow {
       position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
       cursor: pointer; color: #9e9e9e; display: flex; align-items: center;
     }
     .select-wrapper.open .select-arrow svg { transform: rotate(180deg); }
+
     .dropdown-menu {
       position: absolute; top: calc(100% + 4px); left: 0; right: 0;
       background: #fff; border: 1px solid #e4e6f0; border-radius: 8px;
@@ -105,6 +116,11 @@ import { LookupService } from '../../services/lookup.service';
     .dropdown-item.empty:hover { background: #fff; }
     .dropdown-item.clear-opt { color: #9e9e9e; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
     .dropdown-item.clear-opt:hover { background: #fdecea; }
+    .dropdown-item.create-opt { color: #476fab; font-weight: 600; border-top: 1px solid #f0f0f0; }
+    .dropdown-item.create-opt:hover { background: #eef3fb; }
+    .create-plus { display: inline-block; font-weight: 700; margin-right: 4px; }
+
+    /* ── Spinner ── */
     .select-spinner {
       position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
       width: 14px; height: 14px;
@@ -142,13 +158,19 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
   @Input() required = false;
   @Input() searchable = false;
 
+  @Input() allowCreate = false;
+  @Input() createLabel = 'Crear';
+  @Output() create = new EventEmitter<string>();
+
+  /** Cascada: muestra solo las opciones cuyo [filterField] coincide con [filterValue]. */
   @Input() filterField = '';
   @Input() set filterValue(v: any) { this._filterValue.set(v); }
 
+  // ── Estado ────────────────────────────────────────────────────────────────
   options = signal<any[]>([]);
   isLoading = signal(false);
   isOpen = signal(false);
-  searchText = signal('');
+  searchText = signal('');   // ← signal para que computed() reaccione
   private _filterValue = signal<any>(null);
 
   internalValue: any = null;
@@ -156,6 +178,7 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
 
   onChange: any = () => { };
   onTouched: any = () => { };
+
 
   baseOptions = computed(() => {
     const all = this.options();
@@ -165,13 +188,29 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
     return all.filter(o => o[this.filterField] == fv);
   });
 
+  // Normaliza para comparar ignorando mayúsculas, tildes y espacios sobrantes ("México" = "mexico").
+  private normalize(v: string): string {
+    return (v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  }
+
+  // Filtra por el texto del buscador (ignorando tildes) sobre las opciones ya filtradas por cascada.
   filteredOptions = computed(() => {
-    const q = this.searchText().toLowerCase().trim();
+    const q = this.normalize(this.searchText());
     const all = this.baseOptions();
     if (!q) return all;
-    return all.filter(opt => this.getLabel(opt).toLowerCase().includes(q));
+    return all.filter(opt => this.normalize(this.getLabel(opt)).includes(q));
   });
 
+
+  canCreate = computed(() => {
+    if (!this.searchable || !this.allowCreate) return false;
+    const q = this.searchText().trim();
+    if (!q) return false;
+    const qn = this.normalize(q);
+    return !this.baseOptions().some(o => this.normalize(this.getLabel(o)) === qn);
+  });
+
+  // ── Ciclo de vida ─────────────────────────────────────────────────────────
   onClickOutside(event: Event) {
     if (this.searchable && !this.elRef.nativeElement.contains(event.target as Node)) {
       this.closeDropdown();
@@ -194,6 +233,7 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
     }
   }
 
+  // ── Carga de datos ────────────────────────────────────────────────────────
   private loadData(): void {
     if (!this.apiUrl || !this.action) return;
     this.isLoading.set(true);
@@ -210,6 +250,7 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
     });
   }
 
+  // ── Helpers ───────────────────────────────────────────────────────────────
   getValue(opt: any): any {
     if (!opt) return null;
     if (typeof opt === 'string') return opt;
@@ -232,21 +273,23 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
     }
   }
 
+  // ── Handlers select normal ────────────────────────────────────────────────
   onSelectChange(): void {
     this.onChange(this.internalValue);
     this.onTouched();
   }
 
+  // ── Handlers modo searchable ──────────────────────────────────────────────
   onSearchInput(text: string): void {
     this.searchText.set(text);
-    this.isOpen.set(true);
+    this.isOpen.set(true);   // mantiene el dropdown abierto mientras escribe
   }
 
   toggleDropdown(event: Event): void {
-    event.preventDefault();
+    event.preventDefault();  // mousedown: evita que el input pierda focus
     this.isOpen.set(!this.isOpen());
     if (this.isOpen()) {
-      this.searchText.set('');
+      this.searchText.set('');  // limpia para facilitar nueva búsqueda
     } else {
       this.syncSearchText();
     }
@@ -271,6 +314,36 @@ export class LookupSelectComponent implements OnInit, OnChanges, ControlValueAcc
     this.isOpen.set(false);
   }
 
+
+  onCreate(): void {
+    const q = this.searchText().trim();
+    if (!q) return;
+    this.create.emit(q);
+    this.isOpen.set(false);
+  }
+
+
+  reloadAndSelect(value: any): void {
+    if (!this.apiUrl || !this.action) {
+      this.internalValue = value;
+      this.onChange(value);
+      this.syncSearchText();
+      return;
+    }
+    this.isLoading.set(true);
+    this.lookupSvc.getOptions(this.apiUrl, this.action).subscribe({
+      next: data => {
+        this.options.set(data || []);
+        this.internalValue = value;
+        this.onChange(value);
+        this.syncSearchText();
+        this.isLoading.set(false);
+      },
+      error: () => this.isLoading.set(false)
+    });
+  }
+
+  // ── ControlValueAccessor ──
   writeValue(val: any): void {
     this.internalValue = val;
     this.syncSearchText();

@@ -35,16 +35,23 @@ export class AsignacionesService extends BaseCrud<Asignacion> {
         return this._findAll({ action: 'getAsignaciones', filters: { searchText, searchField, activo }, page, pageSize }).pipe(
             tap({
                 next: list => {
-                    if (list && list.length > 0 && list[0].id !== undefined && list[0].id !== null) {
-                        this._asignaciones.set(list);
-                        const first = list[0] as any;
-                        this.totalFiltered.set(Number(first.total_records) || list.length);
+                    const rows = (list ?? []) as any[];
+                    if (rows.length === 0) {
+                        // Sin datos ni fila-resumen: reseteamos todo (caso extremo, p. ej. error de datos).
+                        this._asignaciones.set([]);
+                        this.totalFiltered.set(0);
+                        this.total.set(0);
+                        this.totalActivos.set(0);
+                        this.totalInactivos.set(0);
+                    } else {
+                        // Las estadísticas globales viajan en cada fila, incluida la fila-resumen
+                        // (id null) que devuelve el backend cuando la búsqueda no tiene resultados.
+                        const first = rows[0];
                         this.total.set(Number(first.total_global) || 0);
                         this.totalActivos.set(Number(first.total_activos) || 0);
                         this.totalInactivos.set(Number(first.total_inactivos) || 0);
-                    } else {
-                        this._asignaciones.set([]);
-                        this.totalFiltered.set(0);
+                        this.totalFiltered.set(Number(first.total_records) || 0);
+                        this._asignaciones.set(rows.filter(r => r.id !== null && r.id !== undefined));
                     }
                     this.loading.set(false);
                 },
@@ -59,7 +66,7 @@ export class AsignacionesService extends BaseCrud<Asignacion> {
         this.error.set(null);
         return this._create({ action: 'createAsignacion', asignacionData: data }).pipe(
             tap({
-                next: created => { this._asignaciones.update(list => [created, ...list]); this.loading.set(false); },
+                next: () => this.loading.set(false),
                 error: e => { this.error.set(e?.message ?? 'Error al crear'); this.loading.set(false); },
             })
         );
@@ -70,7 +77,7 @@ export class AsignacionesService extends BaseCrud<Asignacion> {
         this.error.set(null);
         return this._update({ action: 'updateAsignacion', asignacionId: id, asignacionData: data }).pipe(
             tap({
-                next: updated => { this._asignaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c)); this.loading.set(false); },
+                next: () => this.loading.set(false),
                 error: e => { this.error.set(e?.message ?? 'Error al actualizar'); this.loading.set(false); },
             })
         );
@@ -81,7 +88,7 @@ export class AsignacionesService extends BaseCrud<Asignacion> {
         this.error.set(null);
         return this._toggleStatus({ action: 'toggleAsignacionStatus', asignacionId: id }).pipe(
             tap({
-                next: updated => { this._asignaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c)); this.loading.set(false); },
+                next: () => this.loading.set(false),
                 error: e => { this.error.set(e?.message ?? 'Error al cambiar estado'); this.loading.set(false); },
             })
         );

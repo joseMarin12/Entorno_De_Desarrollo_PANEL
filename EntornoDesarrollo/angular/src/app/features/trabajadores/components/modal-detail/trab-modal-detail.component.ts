@@ -29,6 +29,39 @@ import { DocUploadFormComponent, NuevoDocumento } from '../doc-upload-form/doc-u
 
     .empty-dash { color: #a1a1aa; font-weight: 400; }
 
+    /* ── Tarjetas de registro (asignaciones / formaciones), modo lectura ── */
+    .rec-card { background: #f8f9fd; border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 14px; }
+    .rec-card:last-child { margin-bottom: 0; }
+    .rec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .rec-head-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .rec-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .rec-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Tarjeta de asignación con cabecera (Opción C, banda gris) ── */
+    .asig-card { background: #f8f9fd; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
+    .asig-card:last-child { margin-bottom: 0; }
+    .asig-band {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 12px 24px;
+      background: #eff1f9;
+      border-bottom: 1px solid #e6e8f2;
+    }
+    .asig-empresa { font-size: 16px; font-weight: 700; color: var(--purple-dark); letter-spacing: -0.2px; }
+    .asig-body { padding: 18px 24px; }
+
+    .act-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
+    .act-badge .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .act-badge.on { background: #d1fae5; color: #065f46; }
+    .act-badge.on .dot { background: #10b981; }
+    .act-badge.off { background: #fee2e2; color: #991b1b; }
+    .act-badge.off .dot { background: #ef4444; }
+
+    .subsec { margin-top: 16px; }
+    .subsec-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #8a86b8; margin-bottom: 10px; }
+    .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+    .kv .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); font-weight: 700; margin-bottom: 3px; }
+    .kv .v { font-size: 13px; color: var(--text); font-weight: 500; }
+
     .section-box {
       background: #f8f9fd;
       border: 1px solid var(--border);
@@ -662,5 +695,11 @@ export class TrabModalDetailComponent implements OnDestroy {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
     return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  /** Formatea un número como euros. '—' si es null/undefined. */
+  formatMoney(n?: number | null): string {
+    if (n == null) return '—';
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n);
   }
 }
