@@ -45,6 +45,8 @@ export interface IconWithInfoOptions {
   badgeField?: string;
   badgeType?: string;
   badgeLabel?: string;
+  /** If set, renders the cell as a button that emits actionClick with this type. Disabled per column's activeField. */
+  actionType?: string;
 }
 
 export interface ColumnDef {
