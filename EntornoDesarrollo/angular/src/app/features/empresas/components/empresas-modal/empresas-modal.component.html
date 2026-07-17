@@ -68,18 +68,6 @@
 </div>
  
         <div class="form-group">
-<label class="form-label">Direcciones</label>
-<input class="form-input" type="number" [(ngModel)]="form.direcciones" disabled>
-<span class="form-hint">Se actualiza automáticamente al añadir direcciones</span>
-</div>
- 
-        <div class="form-group">
-<label class="form-label">Contactos</label>
-<input class="form-input" type="number" [(ngModel)]="form.contactos" disabled>
-<span class="form-hint">Se actualiza automáticamente al añadir contactos</span>
-</div>
- 
-        <div class="form-group">
 <app-lookup-select
 
             [apiUrl]="asignacionesApiUrl"
@@ -100,7 +88,124 @@
 
           />
 </div>
- 
+
+        @if (isEditMode) {
+          <div class="form-group full">
+            <label class="form-label">Direcciones</label>
+
+            @for (row of direccionesRows; track row._key) {
+              <div class="repeat-card">
+                <button type="button" class="repeat-remove-btn" title="Quitar dirección" (click)="removeDireccionRow(row._key)">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label">Dirección</label>
+                    <input class="form-input" type="text" placeholder="Ej: Calle Principal 123" [(ngModel)]="row.direccion">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Código Postal</label>
+                    <input class="form-input" type="text" placeholder="Ej: 28001" [(ngModel)]="row.codigoPostal">
+                  </div>
+                  <div class="form-group">
+                    <app-lookup-select
+                      [apiUrl]="direccionesApiUrl"
+                      action="getPaises"
+                      label="País"
+                      labelField="pais"
+                      placeholder="Selecciona un país..."
+                      [searchable]="true"
+                      [(ngModel)]="row.id_pais"
+                      (ngModelChange)="onDireccionPaisChange(row)"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <app-lookup-select
+                      [apiUrl]="direccionesApiUrl"
+                      action="getProvincias"
+                      label="Provincia"
+                      labelField="provincia"
+                      filterField="id_pais"
+                      [filterValue]="row.id_pais"
+                      placeholder="Selecciona una provincia..."
+                      [searchable]="true"
+                      [(ngModel)]="row.id_provincia"
+                      (ngModelChange)="onDireccionProvinciaChange(row)"
+                    />
+                  </div>
+                  <div class="form-group full">
+                    <app-lookup-select
+                      [apiUrl]="direccionesApiUrl"
+                      action="getLocalidades"
+                      label="Localidad"
+                      labelField="localidad"
+                      filterField="id_provincia"
+                      [filterValue]="row.id_provincia"
+                      placeholder="Selecciona una localidad..."
+                      [searchable]="true"
+                      [(ngModel)]="row.id_localidad"
+                    />
+                  </div>
+                </div>
+              </div>
+            }
+
+            <button type="button" class="btn-add-row" (click)="addDireccionRow()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Añadir dirección
+            </button>
+            @if (errors['direccionesRows']) { <span class="form-hint error-msg">{{ errors['direccionesRows'] }}</span> }
+          </div>
+
+          <div class="form-group full">
+            <label class="form-label">Contactos</label>
+
+            @for (row of contactosRows; track row._key) {
+              <div class="repeat-card">
+                <button type="button" class="repeat-remove-btn" title="Quitar contacto" (click)="removeContactoRow(row._key)">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input class="form-input" type="text" placeholder="Ej: Laura" [(ngModel)]="row.nombre">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Primer apellido</label>
+                    <input class="form-input" type="text" placeholder="Ej: García" [(ngModel)]="row.primer_apellido">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input class="form-input" type="tel" placeholder="+34 600 000 000" [(ngModel)]="row.telefono">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input class="form-input" type="email" placeholder="nombre@empresa.com" [(ngModel)]="row.email">
+                  </div>
+                  <div class="form-group full">
+                    <label class="form-label">Cargo</label>
+                    <input class="form-input" type="text" placeholder="Ej: Director de RRHH" [(ngModel)]="row.cargo">
+                  </div>
+                </div>
+              </div>
+            }
+
+            <button type="button" class="btn-add-row" (click)="addContactoRow()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Añadir contacto
+            </button>
+            @if (errors['contactosRows']) { <span class="form-hint error-msg">{{ errors['contactosRows'] }}</span> }
+          </div>
+        }
+
         <div class="form-group full">
 <label class="form-label">Estado {{ isEditMode ? '' : 'inicial' }}</label>
 <div class="toggle-wrap" (click)="toggleActivo()">

@@ -1,16 +1,21 @@
-import { Component, computed, inject, OnInit, signal, NO_ERRORS_SCHEMA } from '@angular/core'; 
+import { Component, computed, inject, OnInit, signal, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router'; 
+import { catchError, forkJoin, Observable, of } from 'rxjs';
 import { ToastService } from '../../../../services/toast.service';
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
-import { TableComponent } from '../../../../shared/table/table.component'; 
+import { TableComponent } from '../../../../shared/table/table.component';
 import { Empresa } from '../../../../models/empresa.model';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
 import { EmpToolbarComponent, EmpFilterType, EmpFilterTipoType } from '../../components/toolbar/emp-toolbar.component';
 import { ConfirmationModalComponent, ConfirmMode } from "../../../../shared/confirmation-modal/confirmation-modal.component";
 import { EmpresasApiService } from '../../../../services/empresas-api.service';
+import { DireccionesEmpresasApiService } from '../../../../services/direcciones-empresas-api.service';
+import { ContactosEmpresasApiService } from '../../../../services/contactos-empresas-api.service';
 import { EmpresasModalComponent } from "../../components/empresas-modal/empresas-modal.component";
-import { EMPRESAS_COLUMNS } from './empresas-table.config'; 
+import { GuardarEmpresaPayload, NuevaDireccionPayload, NuevoContactoPayload } from "../../components/empresas-modal/empresas-modal.component";
+import { EmpresaDireccionesModalComponent } from "../../components/empresa-direcciones-modal/empresa-direcciones-modal.component";
+import { EmpresaContactosModalComponent } from "../../components/empresa-contactos-modal/empresa-contactos-modal.component";
+import { EMPRESAS_COLUMNS } from './empresas-table.config';
 
 @Component({
   selector: 'app-empresas-page',
@@ -18,10 +23,12 @@ import { EMPRESAS_COLUMNS } from './empresas-table.config';
   imports: [
     CommonModule,
     TopbarComponent,
-    TableComponent, 
+    TableComponent,
     StatsRowComponent,
     EmpToolbarComponent,
     EmpresasModalComponent,
+    EmpresaDireccionesModalComponent,
+    EmpresaContactosModalComponent,
     ConfirmationModalComponent
   ],
   schemas: [NO_ERRORS_SCHEMA],
@@ -30,7 +37,8 @@ import { EMPRESAS_COLUMNS } from './empresas-table.config';
 export class EmpresasPageComponent implements OnInit {
   api = inject(EmpresasApiService);
   toast = inject(ToastService);
-  private readonly router = inject(Router); 
+  private readonly direccionesApi = inject(DireccionesEmpresasApiService);
+  private readonly contactosApi = inject(ContactosEmpresasApiService);
 
   ConfirmMode = ConfirmMode;
   tableColumns = EMPRESAS_COLUMNS; 
@@ -61,7 +69,10 @@ export class EmpresasPageComponent implements OnInit {
   showAdd  = false;
   showEdit = false;
   showBaja = false;
+  showDirecciones = false;
+  showContactos = false;
   selectedId: number | null = null;
+  relacionesEmpresaId: number | null = null;
 
   // ── Ciclo de vida ─────────────────────────────────
   ngOnInit(): void {
@@ -72,6 +83,16 @@ export class EmpresasPageComponent implements OnInit {
   get selectedEmpresa(): Empresa | null {
     if (this.selectedId === null) return null;
     return this.getById(this.selectedId) ?? null;
+  }
+
+  get relacionesEmpresa(): Empresa | null {
+    if (this.relacionesEmpresaId === null) return null;
+    return this.getById(this.relacionesEmpresaId) ?? null;
+  }
+
+  /** Los contadores de direcciones/contactos de la tabla pueden haber cambiado dentro del modal. */
+  onRelacionesClosed(): void {
+    this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
   }
 
   private loadAll(searchText = '', status = '', tipo = ''): void {
@@ -113,24 +134,15 @@ export class EmpresasPageComponent implements OnInit {
       case 'activar':
         this.onBajaClick(event.id);
         break;
-      case 'location': 
-        this.goToDirecciones(event.id);
+      case 'location':
+        this.relacionesEmpresaId = event.id;
+        this.showDirecciones = true;
         break;
-      case 'phone': 
-        this.goToContactos(event.id);
+      case 'phone':
+        this.relacionesEmpresaId = event.id;
+        this.showContactos = true;
         break;
     }
-  }
-
-  goToDirecciones(id: number): void {
-    const emp = this.getById(id);
-    this.router.navigate(['/empresas', id, 'direcciones'], {
-      state: { nombreEmpresa: this.fullName(emp!) }
-    });
-  }
-
-  goToContactos(id: number): void {
-    this.router.navigate(['/empresas', id, 'contactos']);
   }
 
   // ── Handlers ──────────────────────────────────────
@@ -161,13 +173,14 @@ export class EmpresasPageComponent implements OnInit {
     this.showAdd = true;
   }
 
-  onSaveAdd(data: Omit<Empresa, 'id'>): void {
-    this.api.create({ ...data, id: null }).subscribe({
+  onSaveAdd(payload: GuardarEmpresaPayload<Omit<Empresa, 'id'>>): void {
+    this.api.create({ ...payload.empresa, id: null }).subscribe({
       next: (created) => {
         this._empresas.update(list => [created, ...list]);
         this.showAdd = false;
-        this.toast.show('success', `✓ Empresa <strong>${data.nombre}</strong> añadida correctamente`);
-        this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
+        this.toast.show('success', `✓ Empresa <strong>${payload.empresa.nombre}</strong> añadida correctamente`);
+        this.persistirDireccionesYContactos(created.id!, payload.direcciones, payload.contactos)
+          .subscribe(() => this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter));
       },
       error: () => this.toast.show('error', '✗ No se pudo añadir la empresa. Inténtalo de nuevo.'),
     });
@@ -178,16 +191,33 @@ export class EmpresasPageComponent implements OnInit {
     this.showEdit = true;
   }
 
-  onSaveEdit(data: Empresa): void {
+  onSaveEdit(payload: GuardarEmpresaPayload<Empresa>): void {
+    const data = payload.empresa;
     this.api.update(data.id!, data).subscribe({
       next: (updated) => {
         this._empresas.update(list => list.map(e => e.id === data.id ? updated : e));
         this.showEdit = false;
         this.selectedId = null;
         this.toast.show('info', `✎ Empresa <strong>${data.nombre} ${data.razonSocial}</strong> actualizada correctamente`);
+        this.persistirDireccionesYContactos(data.id!, payload.direcciones, payload.contactos)
+          .subscribe(() => this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter));
       },
       error: () => this.toast.show('error', '✗ No se pudo actualizar la empresa. Inténtalo de nuevo.'),
     });
+  }
+
+  private persistirDireccionesYContactos(idEmpresa: number, direcciones: NuevaDireccionPayload[], contactos: NuevoContactoPayload[]): Observable<unknown[]> {
+    if (direcciones.length === 0 && contactos.length === 0) return of([]);
+
+    const llamadas = [
+      ...direcciones.map(d => this.direccionesApi.create({ ...d, id_empresa: idEmpresa, activo: true }).pipe(
+        catchError(() => { this.toast.show('error', `✗ No se pudo añadir la dirección "${d.direccion}".`); return of(null); })
+      )),
+      ...contactos.map(c => this.contactosApi.create({ ...c, id_empresa: idEmpresa }).pipe(
+        catchError(() => { this.toast.show('error', `✗ No se pudo añadir el contacto "${c.nombre}".`); return of(null); })
+      )),
+    ];
+    return forkJoin(llamadas);
   }
 
   onBajaClick(id: number): void {

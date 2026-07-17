@@ -28,8 +28,8 @@
 
         <div class="form-group">
           <app-lookup-select
-            apiUrl="http://localhost:5678/webhook"
-            action="getPaisesLookup"
+            [apiUrl]="direccionesApiUrl"
+            action="getPaises"
             label="País"
             labelField="pais"
             placeholder="Selecciona un país..."
@@ -46,8 +46,8 @@
 
         <div class="form-group">
           <app-lookup-select
-            apiUrl="http://localhost:5678/webhook"
-            action="getProvinciasLookup"
+            [apiUrl]="direccionesApiUrl"
+            action="getProvincias"
             label="Provincia"
             labelField="provincia"
             filterField="id_pais"
@@ -64,8 +64,8 @@
 
         <div class="form-group">
           <app-lookup-select
-            apiUrl="http://localhost:5678/webhook"
-            action="getLocalidadesLookup"
+            [apiUrl]="direccionesApiUrl"
+            action="getLocalidades"
             label="Localidad"
             labelField="localidad"
             filterField="id_provincia"

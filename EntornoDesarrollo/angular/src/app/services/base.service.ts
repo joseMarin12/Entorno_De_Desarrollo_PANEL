@@ -27,4 +27,9 @@ export abstract class BaseCrud<TEntity> {
     return this.http.post<ApiResponse<TEntity>>(this.API_URL, body)
       .pipe(map(res => res.data[0]));
   }
+
+  protected _delete<TBody extends object>(body: TBody): Observable<TEntity> {
+    return this.http.post<ApiResponse<TEntity>>(this.API_URL, body)
+      .pipe(map(res => res.data[0]));
+  }
 }
