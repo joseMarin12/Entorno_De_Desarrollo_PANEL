@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-07T10:13:04.197Z",
+  "updatedAt": "2026-07-17T11:56:23.394Z",
   "createdAt": "2026-06-09T15:50:26.135Z",
   "id": "BGb49M7YNQQlAxwx",
   "name": "Usuarios",
@@ -443,114 +443,11 @@
     },
     {
       "parameters": {
-        "operation": "update",
-        "schema": {
-          "__rl": true,
-          "mode": "list",
-          "value": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "user",
-          "mode": "list",
-          "cachedResultName": "user"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "id": "={{ $json.id }}",
-            "name": "={{ $json.name }}",
-            "surname": "={{ $json.surname }}",
-            "email": "={{ $json.email }}",
-            "password": "={{ $json.password }}",
-            "roleid": "={{ $json.roleid }}",
-            "enabled": "={{ $json.enabled }}",
-            "first_login": "={{ $json.first_login }}"
-          },
-          "matchingColumns": [
-            "id"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "name",
-              "displayName": "name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "surname",
-              "displayName": "surname",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "email",
-              "displayName": "email",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "roleid",
-              "displayName": "roleid",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "enabled",
-              "displayName": "enabled",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "boolean",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "password",
-              "displayName": "password",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "first_login",
-              "displayName": "first_login",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "boolean",
-              "canBeUsedToMatch": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
+        "operation": "executeQuery",
+        "query": "UPDATE \"user\" SET name = $1, surname = $2, email = $3, roleid = $4, enabled = $5, password = COALESCE($6, password), first_login = COALESCE($7, first_login) WHERE id = $8 RETURNING id, name, surname, email, roleid, enabled;",
+        "options": {
+          "queryReplacement": "={{ [$json.name, $json.surname, $json.email, $json.roleid, $json.enabled, $json.password ?? null, $json.first_login ?? null, $json.id] }}"
+        }
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -1183,9 +1080,9 @@
   "meta": null,
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "78c081b0-b018-4eda-a6a8-12592cad9a65",
-  "activeVersionId": "78c081b0-b018-4eda-a6a8-12592cad9a65",
-  "versionCounter": 5,
+  "versionId": "15760784-41dd-4606-970f-172482813d71",
+  "activeVersionId": "15760784-41dd-4606-970f-172482813d71",
+  "versionCounter": 6,
   "triggerCount": 2,
   "sourceWorkflowId": null,
   "tags": [],
