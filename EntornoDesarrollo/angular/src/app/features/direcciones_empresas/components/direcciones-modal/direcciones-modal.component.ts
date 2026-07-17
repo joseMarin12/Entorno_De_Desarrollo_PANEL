@@ -9,6 +9,7 @@ import { Localidad } from "../../../../models/localidad.model";
 import { forkJoin } from "rxjs";
 // 1. Importamos el selector inteligente reutilizable
 import { LookupSelectComponent } from "../../../../shared/lookup-select/lookup-select.component";
+import { environment } from "../../../../../environments/environment";
 
 @Component({
     selector: "app-modal-direcciones",
@@ -24,6 +25,7 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
     @Output() close = new EventEmitter<void>();
 
     private direccionesApi = inject(DireccionesEmpresasApiService);
+    readonly direccionesApiUrl = `${environment.apiUrl}/direcciones-empresas`;
 
     private _paises = signal<Pais[]>([]);
     private _provincias = signal<Provincia[]>([]);

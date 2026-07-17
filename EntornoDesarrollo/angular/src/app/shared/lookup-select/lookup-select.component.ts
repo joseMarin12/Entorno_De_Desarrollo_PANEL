@@ -27,11 +27,11 @@ import { LookupService } from '../../services/lookup.service';
             (change)="onSelectChange()">
 
             @if (isLoading()) {
-              <option [value]="null">Cargando opciones...</option>
+              <option [ngValue]="null">Cargando opciones...</option>
             } @else {
-              <option [value]="null">{{ placeholder }}</option>
+              <option [ngValue]="null">{{ placeholder }}</option>
               @for (opt of baseOptions(); track $index) {
-                <option [value]="getValue(opt)">{{ getLabel(opt) }}</option>
+                <option [ngValue]="getValue(opt)">{{ getLabel(opt) }}</option>
               }
             }
           </select>

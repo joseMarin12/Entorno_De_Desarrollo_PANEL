@@ -1,0 +1,102 @@
+<div class="modal-overlay open">
+  <div class="modal" style="max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Contactos</div>
+        <div class="modal-subtitle">{{ nombreEmpresa || 'Empresa' }}</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      @if (!loadingContactos && contactos.length === 0 && !showNewContacto) {
+        <div class="empty-hint">Esta empresa todavía no tiene contactos registrados.</div>
+      }
+
+      @for (c of contactos; track c.id) {
+        <div class="repeat-card">
+          <button type="button" class="repeat-remove-btn" title="Eliminar contacto" (click)="deleteContacto(c.id!)">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nombre</label>
+              <input class="form-input" type="text" [value]="c.nombre" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Primer apellido</label>
+              <input class="form-input" type="text" [value]="c.primer_apellido" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input class="form-input" type="text" [value]="c.telefono" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="text" [value]="c.email" disabled>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Cargo</label>
+              <input class="form-input" type="text" [value]="c.cargo" disabled>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (showNewContacto) {
+        <div class="repeat-card">
+          <button type="button" class="repeat-remove-btn" title="Cancelar" (click)="cancelNewContacto()">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nombre</label>
+              <input class="form-input" type="text" placeholder="Ej: Laura" [(ngModel)]="newContacto.nombre">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Primer apellido</label>
+              <input class="form-input" type="text" placeholder="Ej: García" [(ngModel)]="newContacto.primer_apellido">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input class="form-input" type="tel" placeholder="+34 600 000 000" [(ngModel)]="newContacto.telefono">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="email" placeholder="nombre@empresa.com" [(ngModel)]="newContacto.email">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Cargo</label>
+              <input class="form-input" type="text" placeholder="Ej: Director de RRHH" [(ngModel)]="newContacto.cargo">
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 10px 0 0; border-top: none;">
+            <button class="btn btn-outline" (click)="cancelNewContacto()">Cancelar</button>
+            <button class="btn btn-primary" [disabled]="savingContacto" (click)="saveNewContacto()">
+              {{ savingContacto ? 'Guardando...' : 'Guardar contacto' }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <button type="button" class="btn-add-row" (click)="openNewContacto()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Añadir contacto
+        </button>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="close.emit()">Cerrar</button>
+    </div>
+  </div>
+</div>

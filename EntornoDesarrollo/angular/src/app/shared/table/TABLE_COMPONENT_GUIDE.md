@@ -221,6 +221,25 @@ const emailBudgetColumn: ColumnDef = {
 
 Cada icono se renderiza con color configurable via `iconColor` (default: 'currentColor').
 
+### icon-with-info clicable (contador-botón)
+
+Si además de mostrar información quieres que la celda sea un botón que navegue o dispare una acción (por ejemplo, un contador de "Direcciones" que lleve a otra pantalla), añade `actionType` dentro de `iconWithInfoConfig`. La celda se renderiza como `<button>`, emite `actionClick` con ese `type`, y se deshabilita automáticamente según `col.activeField` (igual que el resto de columnas):
+
+```ts
+const direccionesColumn: ColumnDef = {
+  header: 'Direcciones',
+  type: 'icon-with-info',
+  activeField: 'activo', // se deshabilita si la fila está inactiva
+  iconWithInfoConfig: {
+    icon: 'location',
+    mainField: 'direcciones', // contador
+    actionType: 'location',   // llega en actionClick como { type: 'location', id }
+  },
+};
+```
+
+Si no defines `actionType`, la celda se comporta como siempre: solo lectura, sin botón (así la usa por ejemplo Direcciones de Empresas para mostrar la dirección).
+
 ## 7) Como usa el componente getFieldValue() internamente
 
 El componente proporciona un método helper `getFieldValue()` que se usa internamente en la columna `icon-with-info`:

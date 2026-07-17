@@ -1,5 +1,11 @@
 {
+  "updatedAt": "2026-06-19T07:55:52.897Z",
+  "createdAt": "2026-06-17T12:32:37.495Z",
+  "id": "CW5yZR1Gss5YETye",
   "name": "Empresas",
+  "description": null,
+  "active": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -133,30 +139,30 @@
           "renameFallbackOutput": "Invalid Action"
         }
       },
-      "id": "67c6b610-288b-4d02-89c1-afaf7ca81aa6",
+      "id": "50610cd7-c380-47be-8181-cc4eff566394",
       "name": "Route by Action",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        960,
-        464
+        3136,
+        2144
       ]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(i => ({\n  id: i.json.id,\n  nombre: i.json.nombre,\n  razonSocial: i.json.razon_social,\n  cif: i.json.cif,\n  activo: i.json.activo,\n  id_tipo_empresa: i.json.id_tipo_empresa,\n  tipo: i.json.tipo,\n  id_comerciales: i.json.id_comerciales,\n  comercial: i.json.comercial,\n  direcciones: Number(i.json.direcciones),\n  contactos: Number(i.json.contactos)\n})),\n\"total\": $input.first().json.total_count,\n\"totalActivos\": $input.first().json.total_activos,\n\"totalInactivos\": $input.first().json.total_inactivos\n} }}",
+        "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(i => ({\n  id: i.json.id,\n  nombre: i.json.nombre,\n  razonSocial: i.json.razon_social,\n  cif: i.json.cif,\n  activo: i.json.activo,\n  id_tipo_empresa: i.json.id_tipo_empresa,\n  tipo: i.json.tipo,\n  id_comerciales: i.json.id_comerciales,\n  comercial: i.json.comercial,\n  direcciones: Number(i.json.direcciones),\n  contactos: Number(i.json.contactos)\n})),\n\"total\": $input.first().json.total_count,\n\"totalActivos\": $input.first().json.total_activos,\n\"totalInactivos\": $input.first().json.total_inactivos,\n\"stats_total\": $input.first().json.stats_total,\n\"stats_activos\": $input.first().json.stats_activos,\n\"stats_inactivos\": $input.first().json.stats_inactivos\n} }}",
         "options": {
           "responseCode": 200
         }
       },
-      "id": "feddefd9-8b7e-4697-8bf4-3403e3827a90",
+      "id": "6a2735bc-8b22-4776-bc76-6a638958b2f6",
       "name": "Respond Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        2192,
-        512
+        4368,
+        2192
       ]
     },
     {
@@ -179,13 +185,13 @@
         },
         "options": {}
       },
-      "id": "d9591d07-29e7-46ff-96c6-88446d59fcbd",
+      "id": "a322a57c-de72-4822-8d08-4e84f9071202",
       "name": "Invalid Action Response",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1184,
-        960
+        3360,
+        2640
       ]
     },
     {
@@ -196,13 +202,13 @@
           "responseCode": 400
         }
       },
-      "id": "11e5e307-aded-4917-bbf0-4654a25b0139",
+      "id": "694b3f32-2156-4bcc-a2a8-184fff6ddd22",
       "name": "Respond Error",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1408,
-        960
+        3584,
+        2640
       ]
     },
     {
@@ -212,13 +218,13 @@
         "width": 340,
         "color": 4
       },
-      "id": "bad02da0-40a8-4682-a9ab-da41725b7136",
+      "id": "cf06ea48-af67-4ca2-9ef4-a4ade20b6c30",
       "name": "Sticky Note 7ebaaad5",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        0,
-        0
+        2176,
+        1680
       ]
     },
     {
@@ -228,27 +234,27 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "c116ae12-ce42-4fba-b117-b63f2c9396a5",
+      "id": "0c73534c-60db-40a2-9e0e-49049fe30606",
       "name": "Gestión Empresas API",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        416,
-        528
+        2592,
+        2208
       ],
       "webhookId": "0105c6ba-d2f2-478a-87b6-cf65f658184e"
     },
     {
       "parameters": {
-        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = $input.item.json.body.page || 1;\nconst limit = $input.item.json.body.limit || 10;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT e.id, e.nombre_empresa AS nombre, e.razon_social, e.cif, e.created_at, e.activo, e.id_tipo_empresa,\nt.tipo_empresa AS tipo, e.id_comerciales, NULLIF(CONCAT(com.nombre, ' ', com.primer_apellido), ' ') AS comercial, COUNT(DISTINCT d.id) AS direcciones, \nCOUNT(DISTINCT c.id) AS contactos, COUNT(*) OVER() AS total_count,\nCOUNT(*) FILTER (WHERE e.activo = true) OVER() AS total_activos, COUNT(*) FILTER (WHERE e.activo = false) OVER() AS total_inactivos\nFROM empresa e \nLEFT JOIN tipo_empresa t ON t.id = e.id_tipo_empresa\nLEFT JOIN comerciales com ON com.id = e.id_comerciales\nLEFT JOIN direccion_empresa d ON d.id_empresa = e.id \nLEFT JOIN contacto_empresa c ON c.id_empresa = e.id \nWHERE 1=1`;\n\nif (filters.searchText && filters.searchText.trim() !== '') {\n  conditions.push(`(e.nombre_empresa ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.tipo && filters.tipo.trim() !== '') {\n  conditions.push(`t.tipo_empresa = $${paramIndex}`);\n  params.push(filters.tipo);\n  paramIndex++;\n}\n\nif (filters.status && filters.status.trim() !== '') {\n  if (filters.status === 'activa') {\n    conditions.push(`e.activo = true`);\n  } else if (filters.status === 'baja') {\n    conditions.push(`e.activo = false`);\n  }\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\nquery += ' GROUP BY e.id, e.nombre_empresa, t.tipo_empresa, com.nombre, com.primer_apellido';\nquery += ' ORDER BY e.created_at ASC';\nquery += ` LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [{\n  json: {\n    query: query,\n    params: params.join(',')\n  }\n}];"
+        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = $input.item.json.body.page || 1;\nconst limit = $input.item.json.body.limit || 10;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT e.id, e.nombre_empresa AS nombre, e.razon_social, e.cif, e.created_at, e.activo, e.id_tipo_empresa,\nt.tipo_empresa AS tipo, e.id_comerciales, NULLIF(CONCAT(com.nombre, ' ', com.primer_apellido), ' ') AS comercial, COUNT(DISTINCT d.id) AS direcciones, \nCOUNT(DISTINCT c.id) AS contactos, COUNT(*) OVER() AS total_count,\nCOUNT(*) FILTER (WHERE e.activo = true) OVER() AS total_activos, COUNT(*) FILTER (WHERE e.activo = false) OVER() AS total_inactivos,\n(SELECT COUNT(*) FROM empresa) AS stats_total,\n(SELECT COUNT(*) FROM empresa WHERE activo = true) AS stats_activos,\n(SELECT COUNT(*) FROM empresa WHERE activo = false) AS stats_inactivos\nFROM empresa e \nLEFT JOIN tipo_empresa t ON t.id = e.id_tipo_empresa\nLEFT JOIN comerciales com ON com.id = e.id_comerciales\nLEFT JOIN direccion_empresa d ON d.id_empresa = e.id \nLEFT JOIN contacto_empresa c ON c.id_empresa = e.id \nWHERE 1=1`;\n\nif (filters.searchText && filters.searchText.trim() !== '') {\n  conditions.push(`(e.nombre_empresa ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.tipo && filters.tipo.trim() !== '') {\n  conditions.push(`t.tipo_empresa = $${paramIndex}`);\n  params.push(filters.tipo);\n  paramIndex++;\n}\n\nif (filters.status && filters.status.trim() !== '') {\n  if (filters.status === 'activa') {\n    conditions.push(`e.activo = true`);\n  } else if (filters.status === 'baja') {\n    conditions.push(`e.activo = false`);\n  }\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\nquery += ' GROUP BY e.id, e.nombre_empresa, t.tipo_empresa, com.nombre, com.primer_apellido';\nquery += ' ORDER BY e.created_at ASC';\nquery += ` LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [{\n  json: {\n    query: query,\n    params: params.join(',')\n  }\n}];"
       },
-      "id": "5c0375ea-63f8-42cb-b692-1802b9795dfb",
+      "id": "5c230002-b729-4048-bf13-4b17bd545c9a",
       "name": "Build Get Empresas Query",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1232,
-        224
+        3408,
+        1904
       ]
     },
     {
@@ -259,17 +265,17 @@
           "queryReplacement": "={{ $json.params }}"
         }
       },
-      "id": "b8fbc43f-90d8-4d60-8538-109ca33a1334",
+      "id": "5bf38de7-87c0-4c4e-82cb-1a2482190f04",
       "name": "Get Empresas",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1408,
-        176
+        3584,
+        1856
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -282,17 +288,17 @@
           "queryReplacement": "={{ $json.params }}"
         }
       },
-      "id": "18f5f80a-272a-41c2-897c-88d0485884eb",
+      "id": "1c70eff5-2978-42ec-a6d7-c217d1b4ed2c",
       "name": "Create Empresa",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1408,
-        352
+        3584,
+        2032
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -305,17 +311,17 @@
           "queryReplacement": "={{ $json.body.empresaData.nombre }},{{ $json.body.empresaData.razonSocial }},{{ $json.body.empresaData.cif }},{{ $json.body.empresaData.id_tipo_empresa }},{{ $json.body.empresaData.id_comerciales }},{{ $json.body.empresaData.activo }},{{ $json.body.empresaId }}"
         }
       },
-      "id": "a6bc9718-9bae-45fa-a306-9bb367e10f11",
+      "id": "b19f2ba7-0031-421b-9159-28eafb8df220",
       "name": "Update Empresa",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1408,
-        512
+        3584,
+        2192
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -328,17 +334,17 @@
           "queryReplacement": "={{ $json.body.empresaId }}"
         }
       },
-      "id": "1c1112af-423f-4d82-b11d-740c277a408a",
+      "id": "3dfd7ebd-281f-4578-b9f4-c11c9f10cd7b",
       "name": "Toggle Empresa Status",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1408,
-        640
+        3584,
+        2320
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -347,13 +353,13 @@
       "parameters": {
         "jsCode": "const body = $input.item.json.body;\n\nconst fields = ['nombre_empresa', 'razon_social', 'cif', 'id_tipo_empresa', 'activo'];\nconst values = [body.empresaData.nombre, body.empresaData.razonSocial, body.empresaData.cif, body.empresaData.id_tipo_empresa, body.empresaData.activo];\n\nif (body.empresaData.id_comerciales !== null && body.empresaData.id_comerciales !== undefined) {\n  fields.push('id_comerciales');\n  values.push(body.empresaData.id_comerciales);\n}\n\nconst placeholders = values.map((_, i) => `$${i + 1}`).join(', ');\n\nreturn [{\n  json: {\n    query: `INSERT INTO empresa (${fields.join(', ')})\n            VALUES (${placeholders})\n            RETURNING id, nombre_empresa AS nombre, razon_social, cif, id_tipo_empresa, id_comerciales, activo, created_at`,\n    params: values.join(',')\n  }\n}];"
       },
-      "id": "01c9c80e-6f12-45d9-ac78-943532f9965b",
+      "id": "3f4f2d10-1d40-4caf-86c9-4864d1a16733",
       "name": "Build Create Empresas Query",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1232,
-        384
+        3408,
+        2064
       ]
     },
     {
@@ -362,17 +368,17 @@
         "query": "SELECT id, tipo_empresa as nombre from tipo_empresa;",
         "options": {}
       },
-      "id": "c32c3c5b-c754-4752-87e7-88f92f2a1acf",
+      "id": "16db9d70-fa32-40d0-8c4e-9db335f9699d",
       "name": "Get Tipos Empresa",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1408,
-        800
+        3584,
+        2480
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -384,10 +390,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1632,
-        512
+        3808,
+        2192
       ],
-      "id": "a0500ee3-e750-4d31-97bc-a3405d35d74a",
+      "id": "7cd023fe-78df-4d81-993b-ec8c9b09fb1b",
       "name": "Build Get Created Empresa"
     },
     {
@@ -398,33 +404,20 @@
           "queryReplacement": "={{ $json.params }}"
         }
       },
-      "id": "a6252cf5-7368-4d9c-85bc-e8b99510a640",
+      "id": "8759a521-056d-45b2-978b-40a04394886d",
       "name": "Get Created Empresa",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1792,
-        512
+        3968,
+        2192
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsCode": "const jwt = require('jsonwebtoken');\n\nconst JWT_SECRET = 'passEncriptada';\nconst PUBLIC_ACTIONS = ['getRole'];\n\nconst body = $json.body;\nconst action = body?.action || '';\n\nif (PUBLIC_ACTIONS.includes(action)) {\n  return [{ json: { ...$json, _bypass: true } }];\n}\n\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst bodyToken  = body?.token || '';\nconst rawToken   = authHeader || bodyToken;\n\nconst token = rawToken.replace('Bearer ', '').trim();\n\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\n\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{\n    json: {\n      ...$json,\n      _auth: { id: decoded.id, email: decoded.email, role: decoded.role }\n    }\n  }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido o expirado - ' + err.message } }];\n}"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        560,
-        528
-      ],
-      "id": "2caa1458-5497-4329-8554-ebd2447b5ddc",
-      "name": "JWT Verify"
     },
     {
       "parameters": {
@@ -453,10 +446,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        704,
-        528
+        2880,
+        2208
       ],
-      "id": "8b054755-5ed3-48e8-af31-050d7c837277",
+      "id": "47e74ddc-99be-409b-959e-0e5f28cc1650",
       "name": "Auth Error?"
     },
     {
@@ -470,14 +463,26 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        960,
-        272
+        3136,
+        1952
       ],
-      "id": "4e0ab95b-9cd7-4f94-b282-862626136900",
+      "id": "f200846f-df6d-4248-ac90-256c7d459011",
       "name": "Respond 401"
+    },
+    {
+      "parameters": {
+        "jsCode": "const jwt = require('jsonwebtoken');\n\nconst JWT_SECRET = 'passEncriptada';\nconst PUBLIC_ACTIONS = ['getRole'];\n\nconst body = $json.body;\nconst action = body?.action || '';\n\nif (PUBLIC_ACTIONS.includes(action)) {\n  return [{ json: { ...$json, _bypass: true } }];\n}\n\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst bodyToken  = body?.token || '';\nconst rawToken   = authHeader || bodyToken;\n\nconst token = rawToken.replace('Bearer ', '').trim();\n\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\n\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{\n    json: {\n      ...$json,\n      _auth: { id: decoded.id, email: decoded.email, role: decoded.role }\n    }\n  }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido o expirado - ' + err.message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2736,
+        2208
+      ],
+      "id": "36c2499a-dc7e-4476-afc0-e57fcba9a2c9",
+      "name": "JWT Verify1"
     }
   ],
-  "pinData": {},
   "connections": {
     "Route by Action": {
       "main": [
@@ -540,7 +545,7 @@
       "main": [
         [
           {
-            "node": "JWT Verify",
+            "node": "JWT Verify1",
             "type": "main",
             "index": 0
           }
@@ -646,17 +651,6 @@
         ]
       ]
     },
-    "JWT Verify": {
-      "main": [
-        [
-          {
-            "node": "Auth Error?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Auth Error?": {
       "main": [
         [
@@ -674,19 +668,58 @@
           }
         ]
       ]
+    },
+    "JWT Verify1": {
+      "main": [
+        [
+          {
+            "node": "Auth Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "b98215a5-7698-42d0-a786-781e9031f311",
+  "staticData": null,
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "94bc228e902207efbd44f4d6dbc4148b9ebb4baca0f02c4dc60eb60cc029d59e"
+    "templateCredsSetupCompleted": true
   },
-  "id": "r86yuIN2Mr8fvtRp",
-  "tags": []
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "78f30d05-41fc-4dc6-88c7-7df044fb6485",
+  "activeVersionId": "78f30d05-41fc-4dc6-88c7-7df044fb6485",
+  "versionCounter": 7,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-06-17T12:32:37.495Z",
+      "createdAt": "2026-06-17T12:32:37.495Z",
+      "role": "workflow:owner",
+      "workflowId": "CW5yZR1Gss5YETye",
+      "projectId": "1jsMnEE0b9kf1UbY",
+      "project": {
+        "updatedAt": "2026-06-09T15:17:52.663Z",
+        "createdAt": "2026-06-09T15:08:07.727Z",
+        "id": "1jsMnEE0b9kf1UbY",
+        "name": "Tomás Vázquez Blanco <tomas.vazquez@sgtech.tech>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "2b7f1a40-07c5-4722-9fa9-880fa5bfcdfd"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version 78f30d05",
+    "description": ""
+  }
 }

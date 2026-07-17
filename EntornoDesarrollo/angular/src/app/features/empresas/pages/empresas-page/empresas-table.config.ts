@@ -34,17 +34,21 @@ export const EMPRESAS_COLUMNS: ColumnDef[] = [
   {
     header: 'Direcciones',
     type: 'icon-with-info',
+    activeField: 'activo',
     iconWithInfoConfig: {
       icon: 'location',
-      mainField: 'direcciones'
+      mainField: 'direcciones',
+      actionType: 'location'
     }
   },
   {
     header: 'Contacto',
     type: 'icon-with-info',
+    activeField: 'activo',
     iconWithInfoConfig: {
       icon: 'phone',
-      mainField: 'contactos'
+      mainField: 'contactos',
+      actionType: 'phone'
     }
   },
   {
