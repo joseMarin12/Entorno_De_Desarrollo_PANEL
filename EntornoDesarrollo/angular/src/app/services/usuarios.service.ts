@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, map, catchError, throwError } from 'rxjs';
 import { Usuario, Role } from '../models/usuarios.model';
@@ -15,10 +15,16 @@ export class UsuariosService extends BaseCrud<Usuario> {
   readonly error    = signal<string | null>(null);
   readonly totalRecords = signal(0);
 
+  // Totales globales (fijos, no cambian al filtrar/paginar) — vienen del backend.
+  private readonly _statsTotal = signal(0);
+  private readonly _statsActivos = signal(0);
+  private readonly _statsInactivos = signal(0);
+
   readonly usuarios = this._usuarios.asReadonly();
   readonly total    = this.totalRecords.asReadonly();
-  readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
-  readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
+  readonly activos  = this._statsActivos.asReadonly();
+  readonly inactivos = this._statsInactivos.asReadonly();
+  readonly statsTotal = this._statsTotal.asReadonly();
 
   private _roles = signal<Role[]>([]);
   readonly roles = this._roles.asReadonly();
@@ -57,6 +63,9 @@ export class UsuariosService extends BaseCrud<Usuario> {
           const firstRow = rawData[0] as any;
           const total = Number(firstRow.total_count || mapped.length);
           this.totalRecords.set(total);
+          this._statsTotal.set(Number(firstRow.stats_total ?? total));
+          this._statsActivos.set(Number(firstRow.stats_activos ?? 0));
+          this._statsInactivos.set(Number(firstRow.stats_inactivos ?? 0));
         } else {
           this.totalRecords.set(0);
         }
