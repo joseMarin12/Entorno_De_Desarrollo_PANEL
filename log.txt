@@ -1,5 +1,0 @@
-a6aad44 Delete EntornoDesarrollo directory
-3c72075 Configuración inicial del entorno y código base
-206ad5f Añadir .env.example de Laravel
-c788a5b Añadir EntornoDesarrollo con Docker Compose
-3975904 Initial commit
