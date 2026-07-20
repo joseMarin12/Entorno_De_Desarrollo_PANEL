@@ -95,6 +95,10 @@ export class EmpresasPageComponent implements OnInit {
     this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
   }
 
+  onCsvImported(): void {
+    this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
+  }
+
   private loadAll(searchText = '', status = '', tipo = ''): void {
     this.api.findAll(searchText, status, tipo, this.currentPage(), this.PAGE_SIZE).subscribe({
       next: (res: any) => { 

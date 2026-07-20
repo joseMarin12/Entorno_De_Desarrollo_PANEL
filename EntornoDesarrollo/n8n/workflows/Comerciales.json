@@ -1,68 +1,549 @@
 {
+  "name": "Comerciales",
+  "id": "tB0kGFHt9QdS6haq",
+  "active": true,
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
         "path": "gestion-comerciales",
         "responseMode": "responseNode",
-        "options": { "allowedOrigins": "*" }
+        "options": {}
       },
-      "id": "f83aed11-1a23-48e6-a046-232232dc6ae0",
+      "id": "372654a2-fdda-48b2-a63b-f70dc553ccb4",
       "name": "API de Gestión de Comerciales",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [-544, 496],
-      "webhookId": "comerciales-webhook-uuid-0001"
+      "position": [
+        -1024,
+        384
+      ],
+      "webhookId": "6ca0ffbe-8509-40b9-9546-d9744b7282dd"
     },
     {
       "parameters": {
-        "jsCode": "const jwt = require('jsonwebtoken');\nconst JWT_SECRET = 'passEncriptada';\nconst body = $json.body || {};\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst token = authHeader.replace('Bearer ', '').trim();\n\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{ json: { ...$json, _auth: decoded } }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido' } }];\n}"
+        "jsCode": "const jwt = require('jsonwebtoken');\n\nconst JWT_SECRET = 'passEncriptada';\nconst PUBLIC_ACTIONS = [];\n\nconst body = $json.body;\nconst action = body?.action || '';\n\nif (PUBLIC_ACTIONS.includes(action)) {\n  return [{ json: { ...$json, _bypass: true } }];\n}\n\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst bodyToken  = body?.token || '';\nconst rawToken   = authHeader || bodyToken;\n\nconst token = rawToken.replace('Bearer ', '').trim();\n\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\n\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{\n    json: {\n      ...$json,\n      _auth: { id: decoded.id, email: decoded.email, role: decoded.role }\n    }\n  }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido o expirado - ' + err.message } }];\n}"
       },
-      "id": "jwt-verify-comerciales",
+      "id": "bc69aa93-4243-4a7c-a2b6-a688256c5509",
       "name": "JWT Verify",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-320, 300]
+      "position": [
+        -832,
+        384
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "conditions": [{ "id": "auth-check", "leftValue": "={{ $json._authError }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
-        }
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "auth-check-001",
+              "leftValue": "={{ $json._authError }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       },
-      "id": "auth-error-check",
+      "id": "09c7eef1-50e3-4493-a61e-207d523a524f",
       "name": "Auth Error?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [-100, 300]
+      "position": [
+        -672,
+        384
+      ]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify({ success: false, message: $json.message }) }}",
-        "options": { "responseCode": 401 }
+        "options": {
+          "responseCode": 401
+        }
       },
-      "id": "respond-401",
-      "name": "Respond Unauthorized",
+      "id": "368a6c09-5c3f-4f0b-a856-00f0f935223f",
+      "name": "Respond 401",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
-      "position": [128, 200]
+      "position": [
+        -432,
+        64
+      ]
     },
     {
       "parameters": {
-        "rules": { "values": [ { "conditions": { "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "getAll", "operator": { "type": "string", "operation": "equals" } }] }, "outputKey": "Get Comerciales" }, { "conditions": { "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "create", "operator": { "type": "string", "operation": "equals" } }] }, "outputKey": "Create Comercial" }, { "conditions": { "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "update", "operator": { "type": "string", "operation": "equals" } }] }, "outputKey": "Update Comercial" }, { "conditions": { "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "toggleStatus", "operator": { "type": "string", "operation": "equals" } }] }, "outputKey": "Toggle Status" } ] },
-        "options": { "fallbackOutput": "extra" }
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getAll",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ea39c10d-e765-4ee4-8445-b2e8d7d04021"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Comerciales"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "create",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "eca138b6-fd28-4683-bcb3-cc3920b10fff"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Create Comercial"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "update",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b99255f7-efb4-4388-8c9d-8bc1a9d53437"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Update Comercial"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "toggleStatus",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b62cdb5b-3f8f-43d9-99cf-ece9c7a80020"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Toggle Status"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Invalid Action"
+        }
       },
-      "id": "e87d22bc-a45d-47a5-a57e-e884aee8f6d6",
+      "id": "f7a45d3b-1d01-475f-944d-082fb0491ce6",
       "name": "Route by Action",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
-      "position": [128, 448]
+      "position": [
+        -416,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst page = $input.item.json.body.page || 1;\nconst limit = $input.item.json.body.limit || 10;\nconst offset = (page - 1) * limit;\n\nconst conditions = [];\nconst params = [];\nlet paramIndex = 1;\n\nlet query = `SELECT c.id, c.nombre, c.primer_apellido, c.segundo_apellido, c.telefono, c.email, c.activo, c.created_at, c.updated_at,\nCOUNT(*) OVER() AS total_filtered,\n(SELECT COUNT(*) FROM comerciales) AS stats_total,\n(SELECT COUNT(*) FROM comerciales WHERE activo = true) AS stats_activos,\n(SELECT COUNT(*) FROM comerciales WHERE activo = false) AS stats_inactivos\nFROM comerciales c\nWHERE 1=1`;\n\nif (filters.searchText && filters.searchText.trim() !== '') {\n  conditions.push(`(c.nombre ILIKE $${paramIndex} OR c.primer_apellido ILIKE $${paramIndex} OR c.email ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.status && filters.status.trim() !== '') {\n  if (filters.status === 'activo' || filters.status === 'activos') {\n    conditions.push('c.activo = true');\n  } else if (filters.status === 'baja' || filters.status === 'inactivos') {\n    conditions.push('c.activo = false');\n  }\n}\n\nif (conditions.length > 0) {\n  query += ' AND ' + conditions.join(' AND ');\n}\n\nquery += ' ORDER BY c.id ASC';\nquery += ` LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [{\n  json: {\n    query: query,\n    params: params.join(',')\n  }\n}];"
+      },
+      "id": "bfede3d8-7207-4607-b939-33aac3ed3f69",
+      "name": "Build Get Comerciales Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "id": "8924ff73-db86-4886-aadf-5cf359546d0a",
+      "name": "Get Comerciales",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body;\nconst cd = body.comercialData || {};\n\nconst fields = ['nombre', 'primer_apellido', 'segundo_apellido', 'telefono', 'email', 'activo'];\nconst values = [\n  cd.nombre ?? null,\n  cd.primer_apellido ?? null,\n  cd.segundo_apellido ?? null,\n  cd.telefono ?? null,\n  cd.email ?? null,\n  cd.activo !== undefined ? cd.activo : true\n];\n\nconst placeholders = values.map((_, i) => `$${i + 1}`).join(', ');\n\nreturn [{\n  json: {\n    query: `INSERT INTO comerciales (${fields.join(', ')}) VALUES (${placeholders}) RETURNING *`,\n    params: values\n  }\n}];"
+      },
+      "id": "4a70a917-b0e7-46d8-ab4e-e0b13505a101",
+      "name": "Build Create Comercial Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {
+          "queryReplacement": "={{ $json.params }}"
+        }
+      },
+      "id": "0d01d912-bda1-4f54-97f5-7c4223845bdb",
+      "name": "Create Comercial",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE comerciales SET nombre = $1, primer_apellido = $2, segundo_apellido = $3, telefono = $4, email = $5, activo = $6, updated_at = NOW() WHERE id = $7 RETURNING *;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.comercialData.nombre, $json.body.comercialData.primer_apellido, $json.body.comercialData.segundo_apellido, $json.body.comercialData.telefono, $json.body.comercialData.email, $json.body.comercialData.activo, $json.body.comercialId] }}"
+        }
+      },
+      "id": "eeaf3fb5-33b6-41d9-aaff-d8c27dc255fa",
+      "name": "Update Comercial",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        336
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE comerciales SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING *;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.comercialId] }}"
+        }
+      },
+      "id": "8cebf09c-7a71-44c6-916c-c132c90daf0b",
+      "name": "Toggle Comercial Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        464
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(i => ({\n  id: i.json.id,\n  nombre: i.json.nombre,\n  primer_apellido: i.json.primer_apellido,\n  segundo_apellido: i.json.segundo_apellido,\n  telefono: i.json.telefono,\n  email: i.json.email,\n  activo: i.json.activo,\n  created_at: i.json.created_at,\n  updated_at: i.json.updated_at,\n  total_filtered: i.json.total_filtered,\n  stats_total: i.json.stats_total,\n  stats_activos: i.json.stats_activos,\n  stats_inactivos: i.json.stats_inactivos\n})) } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "12a72c79-4602-4d86-a3bb-4405ec468561",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        800,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "1762c95c-e5ae-43fc-b533-b794412b7aa2",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        800,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "2",
+              "name": "error",
+              "value": "Invalid action. Supported actions: getAll, create, update, toggleStatus",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a6ee8109-500f-4735-acf4-1b04d585eea7",
+      "name": "Invalid Action Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        976
+      ]
     }
   ],
   "connections": {
-    "API de Gestión de Comerciales": { "main": [[ { "node": "JWT Verify", "type": "main", "index": 0 } ]] },
-    "JWT Verify": { "main": [[ { "node": "Auth Error?", "type": "main", "index": 0 } ]] },
-    "Auth Error?": { "main": [[ { "node": "Respond Unauthorized", "type": "main", "index": 0 } ], [ { "node": "Route by Action", "type": "main", "index": 0 } ]] }
-  }
+    "API de Gestión de Comerciales": {
+      "main": [
+        [
+          {
+            "node": "JWT Verify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JWT Verify": {
+      "main": [
+        [
+          {
+            "node": "Auth Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Error?": {
+      "main": [
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Route by Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Action": {
+      "main": [
+        [
+          {
+            "node": "Build Get Comerciales Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Create Comercial Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Comercial",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Toggle Comercial Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Action Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Get Comerciales Query": {
+      "main": [
+        [
+          {
+            "node": "Get Comerciales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Comerciales": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Create Comercial Query": {
+      "main": [
+        [
+          {
+            "node": "Create Comercial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Comercial": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Comercial": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toggle Comercial Status": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid Action Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0ecc67ee-4f50-4215-8790-f090e2ce1ff5",
+  "meta": {},
+  "tags": []
 }

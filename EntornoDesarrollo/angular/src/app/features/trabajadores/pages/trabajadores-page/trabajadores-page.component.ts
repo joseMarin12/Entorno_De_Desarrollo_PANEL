@@ -121,6 +121,8 @@ export class TrabajadoresPageComponent implements OnInit, OnDestroy {
     return this._trabajadores().map(t => t.dni_nif_pasaporte?.trim()).filter(Boolean) as string[];
   });
 
+  onCsvImported(): void { this.currentPage.set(1); this.loadPage(); }
+
   onSearchChange(q: string): void { this.searchQuery.set(q); this.currentPage.set(1); this.loadPage(); }
   onFilterChange(f: TrabFilterType): void { this.activeFilter.set(f); this.currentPage.set(1); this.loadPage(); }
   onTypeFilterChange(t: TrabFilterTipoType): void { this.typeFilter.set(t); this.currentPage.set(1); this.loadPage(); }

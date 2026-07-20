@@ -21,10 +21,14 @@
   <app-stats-row [total]="svc.total()" [activas]="svc.totalActivos()" [inactivas]="svc.totalInactivos()" />
 
   <!-- Toolbar: búsqueda + filtros -->
-  <app-shared-filter 
+  <app-shared-filter
     placeholder="Buscar por empresa o trabajador..."
-    (searchChange)="onSearchChange($event)" 
-    (filterChange)="onFilterChange($event)" 
+    [csvColumns]="csvColumns"
+    [csvImportRow]="csvImportRow"
+    [csvRowLabel]="csvRowLabel"
+    (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
+    (dataChanged)="onCsvImported()"
   />
 
   <!-- Tabla -->

@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Observable, catchError, firstValueFrom, map, throwError } from 'rxjs';
 
 import { FormacionesService } from '../../../../services/formaciones.service';
 import { ToastService } from '../../../../services/toast.service';
@@ -8,6 +9,7 @@ import { Formacion } from '../../../../models/formacion.model';
 import { TopbarComponent } from '../../../../shared/topbar/topbar.component';
 import { StatsRowComponent } from '../../components/stats-row/stats-row.component';
 import { SharedFilterComponent } from '../../../../shared/shared-filter/shared-filter.component';
+import { CsvColumnDef, CsvImportRowOutcome } from '../../../../shared/csv-import/csv-import.component';
 import { FormacionesTableComponent } from '../../components/formaciones-table/formaciones-table.component';
 import { ModalFormacionComponent } from '../../components/modal-formacion/modal-formacion.component';
 import { ModalParticipantesComponent } from '../../components/modal-participantes/modal-participantes.component';
@@ -46,9 +48,98 @@ export class FormacionesPageComponent implements OnInit {
   showParticipantes = false;
   readonly selectedId = signal<number | null>(null);
 
+  // ── Carga masiva CSV ──────────────────────────────
+  private areas: { id: number; nombre: string }[] = [];
+  private modalidades: { id: number; nombre: string }[] = [];
+  private ejecuciones: { id: number; nombre: string }[] = [];
+  private responsables: { id: number; name: string }[] = [];
+
+  readonly csvColumns: CsvColumnDef[] = [
+    { key: 'curso', label: 'curso', required: true },
+    { key: 'denominacion', label: 'denominacion', required: true },
+    { key: 'area', label: 'area', required: true },
+    { key: 'modalidad', label: 'modalidad', required: true },
+    { key: 'ejecucion', label: 'ejecucion', required: true },
+    { key: 'responsable', label: 'responsable', required: true },
+    { key: 'fecha_prevista', label: 'fecha_prevista (AAAA-MM-DD)', required: true },
+    { key: 'fecha_inicio', label: 'fecha_inicio (AAAA-MM-DD)', required: true },
+    { key: 'fecha_fin', label: 'fecha_fin (AAAA-MM-DD)', required: true },
+    { key: 'horario', label: 'horario', required: false },
+    { key: 'recursos', label: 'recursos', required: false },
+  ];
+
+  csvRowLabel = (row: Record<string, string>): string => row['curso'];
+
+  csvImportRow = (row: Record<string, string>): Observable<CsvImportRowOutcome> => {
+    const findByNombre = (list: { id: number; nombre: string }[], texto: string) =>
+      list.find(x => x.nombre.trim().toLowerCase() === texto.trim().toLowerCase());
+
+    const area = findByNombre(this.areas, row['area']);
+    if (!area) return throwError(() => new Error(`El área "${row['area']}" no existe`));
+
+    const modalidad = findByNombre(this.modalidades, row['modalidad']);
+    if (!modalidad) return throwError(() => new Error(`La modalidad "${row['modalidad']}" no existe`));
+
+    const ejecucion = findByNombre(this.ejecuciones, row['ejecucion']);
+    if (!ejecucion) return throwError(() => new Error(`La ejecución "${row['ejecucion']}" no existe`));
+
+    const responsableTexto = row['responsable'].trim().toLowerCase();
+    const responsable = this.responsables.find(r => r.name.trim().toLowerCase() === responsableTexto);
+    if (!responsable) return throwError(() => new Error(`El responsable "${row['responsable']}" no existe`));
+
+    const fechaValida = (f: string) => /^\d{4}-\d{2}-\d{2}$/.test(f);
+    for (const campo of ['fecha_prevista', 'fecha_inicio', 'fecha_fin'] as const) {
+      if (!fechaValida(row[campo])) {
+        return throwError(() => new Error(`El campo "${campo}" debe tener formato AAAA-MM-DD`));
+      }
+    }
+
+    const data: Omit<Formacion, 'id'> = {
+      curso: row['curso'].trim(),
+      denominacion: row['denominacion'].trim(),
+      motivo: '',
+      id_area: area.id,
+      recursos: row['recursos'] || '',
+      id_responsable: responsable.id,
+      id_modalidad: modalidad.id,
+      duracion: 0,
+      dentro_fuera_jornada: '',
+      observaciones: '',
+      fecha_prevista: row['fecha_prevista'],
+      fecha_inicio: row['fecha_inicio'],
+      fecha_fin: row['fecha_fin'],
+      horario: row['horario'] || '',
+      id_ejecucion: ejecucion.id,
+      eficacia: '',
+      anio: new Date(row['fecha_inicio']).getFullYear(),
+      coste: 0,
+      bonificacion: 0,
+      total: 0,
+      id_estado: 1,
+      activo: true,
+    };
+
+    return this.svc.add(data).pipe(
+      map(() => ({})),
+      catchError(err => throwError(() => new Error(err?.error?.message || err?.message || 'No se pudo crear la formación')))
+    );
+  };
+
+  onCsvImported(): void {
+    this.loadData();
+  }
+
   // ── Ciclo de vida ─────────────────────────────────────────────────────────
   ngOnInit(): void {
     this.loadData();
+    this.loadCsvLookups();
+  }
+
+  private async loadCsvLookups(): Promise<void> {
+    this.areas = await firstValueFrom(this.svc.getAreas());
+    this.modalidades = await firstValueFrom(this.svc.getModalidades());
+    this.ejecuciones = await firstValueFrom(this.svc.getEjecuciones());
+    this.responsables = await firstValueFrom(this.svc.getResponsables());
   }
 
   loadData(): void {

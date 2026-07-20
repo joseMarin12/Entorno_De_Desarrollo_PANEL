@@ -87,6 +87,23 @@ export class FormacionesService extends BaseCrud<Formacion> {
         );
     }
 
+    // ── Lookups ──────────────────────────────────────────────────────────────
+    getAreas(): Observable<{ id: number; nombre: string }[]> {
+        return this._findAll({ action: 'getArea' }) as unknown as Observable<{ id: number; nombre: string }[]>;
+    }
+
+    getModalidades(): Observable<{ id: number; nombre: string }[]> {
+        return this._findAll({ action: 'getModalidad' }) as unknown as Observable<{ id: number; nombre: string }[]>;
+    }
+
+    getEjecuciones(): Observable<{ id: number; nombre: string }[]> {
+        return this._findAll({ action: 'getEjecucion' }) as unknown as Observable<{ id: number; nombre: string }[]>;
+    }
+
+    getResponsables(): Observable<{ id: number; name: string }[]> {
+        return this._findAll({ action: 'getResponsable' }) as unknown as Observable<{ id: number; name: string }[]>;
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
     getById(id: number): Formacion | undefined {
         return this._formaciones().find(c => c.id === id);

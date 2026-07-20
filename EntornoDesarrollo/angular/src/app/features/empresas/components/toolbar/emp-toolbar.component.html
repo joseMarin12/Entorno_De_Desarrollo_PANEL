@@ -33,4 +33,11 @@
         }
       </select>
 
+      <app-csv-import
+        [columns]="csvColumns"
+        [importRow]="importEmpresaRow"
+        [rowLabel]="csvRowLabel"
+        (imported)="dataChanged.emit()"
+      />
+
     </div>

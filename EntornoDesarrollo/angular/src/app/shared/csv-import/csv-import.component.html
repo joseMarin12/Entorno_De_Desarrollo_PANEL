@@ -1,0 +1,119 @@
+<button type="button" class="btn btn-primary" (click)="open()">
+  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+  Carga masiva CSV
+</button>
+
+@if (showModal()) {
+  <div class="modal-overlay open" (click)="close()" (keydown.enter)="close()">
+    <div class="modal modal-sm" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">Importar Archivo CSV</div>
+        @if (state() !== 'processing') {
+          <button type="button" class="modal-close" (click)="close()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        }
+      </div>
+
+      <div class="modal-body">
+        @if (state() === 'idle') {
+          <div
+            class="csv-dropzone"
+            [class.dragging]="isDragging()"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave()"
+            (drop)="onDrop($event)"
+            (click)="fileInput.click()"
+            (keydown.enter)="fileInput.click()"
+          >
+            <div class="csv-dropzone-icon">
+              <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
+            <div class="csv-dropzone-title">Arrastra tu archivo CSV aquí</div>
+            <div class="csv-dropzone-subtitle">o haz clic para buscarlo</div>
+            <button type="button" class="btn btn-primary" (click)="$event.stopPropagation(); fileInput.click()">
+              Buscar archivo
+            </button>
+            <input #fileInput type="file" accept=".csv" hidden (click)="$event.stopPropagation()" (change)="onFileSelected($event)" />
+          </div>
+          @if (columns.length) {
+            <div class="csv-columns-hint">
+              Cabeceras esperadas: {{ columnsHint }}
+            </div>
+          }
+        }
+
+        @if (state() === 'loaded') {
+          <div class="csv-dropzone csv-dropzone--loaded">
+            <div class="csv-dropzone-icon csv-dropzone-icon--success">
+              <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+            </div>
+            <div class="csv-dropzone-title">¡Archivo cargado!</div>
+            <div class="csv-file-box">Archivo: {{ fileName() }}</div>
+          </div>
+          @if (parseError()) {
+            <div class="csv-error-banner">{{ parseError() }}</div>
+          }
+        }
+
+        @if (state() === 'processing') {
+          <div class="csv-processing">
+            <div class="csv-spinner"></div>
+            <div class="csv-dropzone-title">Importando datos…</div>
+            <div class="csv-dropzone-subtitle">Fila {{ processedRows() }} de {{ totalRows() }}</div>
+          </div>
+        }
+
+        @if (state() === 'done') {
+          <div class="csv-summary">
+            <div class="csv-summary-ok">✓ {{ successCount() }} de {{ totalRows() }} filas importadas correctamente</div>
+
+            @if (notes().length) {
+              <div class="csv-notes-title">Contraseñas temporales asignadas:</div>
+              <ul class="csv-note-list">
+                @for (n of notes(); track n.row) {
+                  <li><strong>{{ n.label }}</strong>: {{ n.note }}</li>
+                }
+              </ul>
+            }
+
+            @if (errors().length) {
+              <div class="csv-summary-fail">✗ {{ errors().length }} filas con errores:</div>
+              <ul class="csv-error-list">
+                @for (e of errors(); track e.row) {
+                  <li><strong>Fila {{ e.row }}</strong> ({{ e.label }}): {{ e.message }}</li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      </div>
+
+      @if (state() === 'loaded') {
+        <div class="modal-footer">
+          <button type="button" class="btn btn-dark" (click)="confirmImport()">Confirmar</button>
+          <button type="button" class="btn btn-outline" (click)="cancelFile()">Cancelar</button>
+        </div>
+      }
+
+      @if (state() === 'done') {
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" (click)="close()">Cerrar</button>
+        </div>
+      }
+    </div>
+  </div>
+}

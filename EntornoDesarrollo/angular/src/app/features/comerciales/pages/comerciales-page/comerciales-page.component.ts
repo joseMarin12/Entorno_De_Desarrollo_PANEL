@@ -134,6 +134,11 @@ export class ComercialesPageComponent implements OnInit {
   }
 
   // ── Handlers de filtro y paginación ──────────────────────
+  onCsvImported(): void {
+    this.currentPage.set(1);
+    this.loadPage();
+  }
+
   onSearchChange(q: string): void {
     this.searchQuery.set(q);
     this.currentPage.set(1);

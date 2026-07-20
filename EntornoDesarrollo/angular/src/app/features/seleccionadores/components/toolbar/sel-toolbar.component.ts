@@ -1,6 +1,10 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Observable, catchError, firstValueFrom, map, throwError } from 'rxjs';
+import { CsvImportComponent, CsvColumnDef, CsvImportRowOutcome } from '../../../../shared/csv-import/csv-import.component';
+import { SeleccionadoresApiService } from '../../../../services/seleccionadores-api.service';
+import { Seleccionador } from '../../../../models/seleccionador.model';
 
 export type SelFilterType     = '' | 'activo' | 'baja';
 export type SelFilterTipoType = '' | 'interno' | 'externo';
@@ -8,7 +12,7 @@ export type SelFilterTipoType = '' | 'interno' | 'externo';
 @Component({
   selector: 'app-sel-toolbar',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CsvImportComponent],
   template: `
     <div class="toolbar sel-toolbar">
 
@@ -48,6 +52,13 @@ export type SelFilterTipoType = '' | 'interno' | 'externo';
         <option value="baja">De baja</option>
       </select>
 
+      <app-csv-import
+        [columns]="csvColumns"
+        [importRow]="importSeleccionadorRow"
+        [rowLabel]="csvRowLabel"
+        (imported)="dataChanged.emit()"
+      />
+
     </div>
   `,
   styles: [`
@@ -59,7 +70,7 @@ export type SelFilterTipoType = '' | 'interno' | 'externo';
       height: 38px;
       cursor: pointer;
     }
-    
+
     @media (max-width: 768px) {
       .custom-select { width: 100%; }
       .search-wrap { max-width: 100% !important; }
@@ -70,8 +81,105 @@ export class SelToolbarComponent {
   @Output() searchChange     = new EventEmitter<string>();
   @Output() filterChange     = new EventEmitter<SelFilterType>();
   @Output() tipoFilterChange = new EventEmitter<SelFilterTipoType>();
+  @Output() dataChanged      = new EventEmitter<void>();
+
+  private api = inject(SeleccionadoresApiService);
+  private empresas: { id: number; nombre: string }[] = [];
+  private emailsEnEsteLote = new Set<string>();
 
   searchValue = '';
   filterValue: SelFilterType     = '';
   tipoValue:   SelFilterTipoType = '';
+
+  readonly csvColumns: CsvColumnDef[] = [
+    { key: 'nombre', label: 'nombre', required: true },
+    { key: 'primer_apellido', label: 'primer_apellido', required: true },
+    { key: 'tipo', label: 'tipo (interno/externo)', required: true },
+    { key: 'email', label: 'email (obligatorio si tipo=externo)', required: false },
+    { key: 'telefono', label: 'telefono', required: false },
+    { key: 'empresa', label: 'empresa (obligatorio si tipo=externo)', required: false },
+    { key: 'fecha_ini', label: 'fecha_ini (AAAA-MM-DD)', required: false },
+    { key: 'salario', label: 'salario', required: false },
+    { key: 'fee', label: 'fee (0-100)', required: false },
+  ];
+
+  csvRowLabel = (row: Record<string, string>): string =>
+    `${row['nombre']} ${row['primer_apellido']}`;
+
+  async ngOnInit(): Promise<void> {
+    this.empresas = await firstValueFrom(this.api.getEmpresas());
+  }
+
+  importSeleccionadorRow = (row: Record<string, string>): Observable<CsvImportRowOutcome> => {
+    const tipo = row['tipo'].trim().toLowerCase();
+    if (tipo !== 'interno' && tipo !== 'externo') {
+      return throwError(() => new Error('El campo "tipo" debe ser "interno" o "externo"'));
+    }
+
+    const data: Omit<Seleccionador, 'id'> = {
+      nombre: row['nombre'].trim(),
+      primer_apellido: row['primer_apellido'].trim(),
+      segundo_apellido: '',
+      tipo: tipo as 'interno' | 'externo',
+      activo: true,
+    };
+
+    if (tipo === 'externo') {
+      const email = (row['email'] || '').trim();
+      if (!email) return throwError(() => new Error('El email es obligatorio para seleccionadores externos'));
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return throwError(() => new Error('Formato de correo inválido'));
+      }
+      const emailLower = email.toLowerCase();
+      if (this.emailsEnEsteLote.has(emailLower)) {
+        return throwError(() => new Error('Este correo ya está registrado'));
+      }
+
+      const empresaTexto = (row['empresa'] || '').trim().toLowerCase();
+      if (!empresaTexto) return throwError(() => new Error('La empresa es obligatoria para seleccionadores externos'));
+      const empresa = this.empresas.find(e => e.nombre.trim().toLowerCase() === empresaTexto);
+      if (!empresa) return throwError(() => new Error(`La empresa "${row['empresa']}" no existe`));
+
+      if (row['telefono'] && !/^[0-9+\s-]{6,15}$/.test(row['telefono'].trim())) {
+        return throwError(() => new Error('Formato de teléfono inválido'));
+      }
+
+      let salario: number | undefined;
+      if (row['salario']) {
+        salario = Number(row['salario'].replace(',', '.'));
+        if (!Number.isFinite(salario) || salario <= 0) {
+          return throwError(() => new Error('El salario debe ser un número mayor que 0'));
+        }
+      }
+
+      let fee: number | undefined;
+      if (row['fee']) {
+        fee = Number(row['fee'].replace(',', '.'));
+        if (!Number.isFinite(fee) || fee < 0 || fee > 100) {
+          return throwError(() => new Error('El fee debe ser un número entre 0 y 100'));
+        }
+      }
+
+      data.email = email;
+      data.telefono = row['telefono'] || '';
+      data.id_empresa = empresa.id;
+      data.fecha_ini = row['fecha_ini'] || undefined;
+      data.salario = salario;
+      data.fee = fee;
+    }
+
+    return this.api.create(data).pipe(
+      map(() => {
+        if (data.email) this.emailsEnEsteLote.add(data.email.toLowerCase());
+        return {};
+      }),
+      catchError(err => {
+        const msg = (err?.error?.message || err?.message || '').toLowerCase();
+        if (msg.includes('duplicate') || msg.includes('unique')) {
+          return throwError(() => new Error('Este correo ya está registrado'));
+        }
+        return throwError(() => new Error(err?.error?.message || err?.message || 'No se pudo crear el seleccionador'));
+      })
+    );
+  };
 }

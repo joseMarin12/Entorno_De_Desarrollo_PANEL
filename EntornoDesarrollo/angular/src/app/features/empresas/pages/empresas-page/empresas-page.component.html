@@ -18,10 +18,11 @@
 
   <app-stats-row [total]="statsTotal()" [activos]="statsActivos()" [inactivos]="statsInactivos()" />
 
-  <app-toolbar 
-    (searchChange)="onSearchChange($event)" 
-    (filterChange)="onFilterChange($event)" 
-    (tipoFilterChange)="onTypeFilterChange($event)" 
+  <app-toolbar
+    (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
+    (tipoFilterChange)="onTypeFilterChange($event)"
+    (dataChanged)="onCsvImported()"
   />
 
   <app-table
