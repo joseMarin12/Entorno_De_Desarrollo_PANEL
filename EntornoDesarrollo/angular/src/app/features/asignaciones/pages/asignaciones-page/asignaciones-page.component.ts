@@ -12,6 +12,7 @@ import { SharedFilterComponent } from '../../../../shared/shared-filter/shared-f
 import { CsvColumnDef, CsvImportRowOutcome } from '../../../../shared/csv-import/csv-import.component';
 import { AsignacionesTableComponent } from '../../components/asignaciones-table/asignaciones-table.component';
 import { ModalAsignacionComponent } from '../../components/modal-asignacion/modal-asignacion.component';
+import { AsignacionesModalDetailComponent } from '../../components/modal-detail/asignaciones-modal-detail.component';
 import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 import { FormsModule } from '@angular/forms';
 
@@ -26,6 +27,7 @@ import { FormsModule } from '@angular/forms';
     SharedFilterComponent,
     AsignacionesTableComponent,
     ModalAsignacionComponent,
+    AsignacionesModalDetailComponent,
     ConfirmationModalComponent,
   ],
   templateUrl: './asignaciones-page.component.html',
@@ -45,6 +47,7 @@ export class AsignacionesPageComponent implements OnInit {
   // ── Estado modales ────────────────────────────────
   showForm = false;
   showBaja = false;
+  showDetail = false;
   selectedId: number | null = null;
 
   // ── Carga masiva CSV ──────────────────────────────
@@ -156,6 +159,11 @@ export class AsignacionesPageComponent implements OnInit {
   onEditClick(id: number): void {
     this.selectedId = id;
     this.showForm = true;
+  }
+
+  onDetailClick(id: number): void {
+    this.selectedId = id;
+    this.showDetail = true;
   }
 
   onSaveForm(data: any): void {

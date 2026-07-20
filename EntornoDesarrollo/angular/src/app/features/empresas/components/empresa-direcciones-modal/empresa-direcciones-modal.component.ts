@@ -50,6 +50,26 @@ interface NuevaDireccionForm {
       color: #dc2626;
       border-color: #dc2626;
     }
+    .repeat-delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #fcd4d0;
+      border-radius: 6px;
+      background: #fef2f2;
+      color: #dc2626;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .repeat-delete-btn:hover {
+      background: #fee2e2;
+      border-color: #dc2626;
+    }
     .btn-add-row {
       width: 100%;
       padding: 10px;

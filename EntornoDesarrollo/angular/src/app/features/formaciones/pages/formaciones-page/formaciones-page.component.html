@@ -34,7 +34,8 @@
   <!-- Tabla -->
   <app-formaciones-table [formaciones]="svc.formaciones()" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"
     [totalFiltered]="svc.totalFiltered()" (editClick)="onEditClick($event)" (bajaClick)="onBajaClick($event)"
-    (participantesClick)="onParticipantesClick($event)" (pageChange)="onPageChange($event)" />
+    (participantesClick)="onParticipantesClick($event)" (detailClick)="onDetailClick($event)"
+    (pageChange)="onPageChange($event)" />
 
 </div>
 
@@ -52,4 +53,9 @@
 
 @if (showParticipantes && selectedformacion()) {
 <app-modal-participantes [formacion]="selectedformacion()!" (close)="showParticipantes = false; selectedId.set(null)" />
+}
+
+@if (showDetail && selectedformacion()) {
+<app-formaciones-modal-detail [formacion]="selectedformacion()!" [responsableNombre]="selectedResponsableNombre()"
+  (close)="showDetail = false; selectedId.set(null)" />
 }

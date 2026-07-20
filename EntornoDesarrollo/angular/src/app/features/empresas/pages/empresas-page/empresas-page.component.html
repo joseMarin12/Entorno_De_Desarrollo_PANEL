@@ -34,12 +34,17 @@
     [entityLabel]="'empresas'"
     (actionClick)="onTableAction($event)"
     (pageChange)="onPageChange($event)"
+    (rowDblClick)="onDetailClick($event)"
   />
 
 </div>
 
 @if (showAdd) {
   <app-modal-empresas (saveAdd)="onSaveAdd($any($event))" (close)="showAdd = false" />
+}
+
+@if (showDetail && selectedEmpresa) {
+  <app-empresas-modal-detail [empresa]="selectedEmpresa" (close)="showDetail = false; selectedId = null" />
 }
 
 @if (showEdit && selectedEmpresa) {

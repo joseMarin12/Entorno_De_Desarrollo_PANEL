@@ -137,6 +137,8 @@ export class TableComponent {
   pageChange = output<number>();
   /** Emits { type, id } when an action button is clicked */
   actionClick = output<{ type: string; id: number }>();
+  /** Emits the row id on double-click, unless the double-click landed on a button (icon-with-info / actions). */
+  rowDblClick = output<number>();
 
   totalPages = computed(() => Math.max(1, Math.ceil(this.totalFiltered() / this.pageSize())));
 
@@ -215,6 +217,12 @@ export class TableComponent {
 
   emitAction(type: string, id: number): void {
     this.actionClick.emit({ type, id });
+  }
+
+  onRowDblClick(row: any, event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (target.closest('button')) return; // no interferir con acciones/iconos de la fila
+    this.rowDblClick.emit(row.id);
   }
 }
 

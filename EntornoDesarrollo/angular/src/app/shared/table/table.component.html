@@ -19,7 +19,7 @@
         </tr>
       } @else {
         @for (row of rows(); track row.id) {
-          <tr>
+          <tr class="clickable-row" (dblclick)="onRowDblClick(row, $event)">
             @for (col of columns(); track col.header) {
               <td>
                 @switch (col.type) {

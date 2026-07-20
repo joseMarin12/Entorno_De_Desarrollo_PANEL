@@ -13,6 +13,7 @@ import { CsvColumnDef, CsvImportRowOutcome } from '../../../../shared/csv-import
 import { FormacionesTableComponent } from '../../components/formaciones-table/formaciones-table.component';
 import { ModalFormacionComponent } from '../../components/modal-formacion/modal-formacion.component';
 import { ModalParticipantesComponent } from '../../components/modal-participantes/modal-participantes.component';
+import { FormacionesModalDetailComponent } from '../../components/modal-detail/formaciones-modal-detail.component';
 import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 
 @Component({
@@ -26,6 +27,7 @@ import { ConfirmationModalComponent, ConfirmMode } from '../../../../shared/conf
     FormacionesTableComponent,
     ModalFormacionComponent,
     ModalParticipantesComponent,
+    FormacionesModalDetailComponent,
     ConfirmationModalComponent,
   ],
   templateUrl: './formaciones-page.component.html',
@@ -46,13 +48,14 @@ export class FormacionesPageComponent implements OnInit {
   showForm = false;
   showBaja = false;
   showParticipantes = false;
+  showDetail = false;
   readonly selectedId = signal<number | null>(null);
 
   // ── Carga masiva CSV ──────────────────────────────
   private areas: { id: number; nombre: string }[] = [];
   private modalidades: { id: number; nombre: string }[] = [];
   private ejecuciones: { id: number; nombre: string }[] = [];
-  private responsables: { id: number; name: string }[] = [];
+  responsables: { id: number; name: string }[] = [];
 
   readonly csvColumns: CsvColumnDef[] = [
     { key: 'curso', label: 'curso', required: true },
@@ -152,6 +155,13 @@ export class FormacionesPageComponent implements OnInit {
     return id != null ? (this.svc.getById(id) ?? null) : null;
   });
 
+  readonly selectedResponsableNombre = computed<string>(() => {
+    const formacion = this.selectedformacion();
+    const idResponsable = formacion?.id_responsable;
+    if (idResponsable == null) return '';
+    return this.responsables.find(r => r.id === Number(idResponsable))?.name ?? '';
+  });
+
   // ── Handlers ──────────────────────────────────────────────────────────────
   onSearchChange(text: string): void {
     this.searchQuery = text;
@@ -178,6 +188,11 @@ export class FormacionesPageComponent implements OnInit {
   onEditClick(id: number): void {
     this.selectedId.set(id);
     this.showForm = true;
+  }
+
+  onDetailClick(id: number): void {
+    this.selectedId.set(id);
+    this.showDetail = true;
   }
 
   onSaveForm(data: any): void {

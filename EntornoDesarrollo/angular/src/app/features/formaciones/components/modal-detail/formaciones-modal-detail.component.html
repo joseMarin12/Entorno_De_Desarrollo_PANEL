@@ -1,0 +1,109 @@
+<div class="modal-overlay open" (click)="close.emit()">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 620px; max-height: 90vh; overflow-y: auto;">
+
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">{{ formacion.curso }}</div>
+        <div class="modal-subtitle">{{ formacion.denominacion || 'Detalle de la formación' }}</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+        <span class="badge" [class.badge-active]="formacion.activo" [class.badge-inactive]="!formacion.activo">
+          {{ statusLabel | uppercase }}
+        </span>
+        @if (formacion.estado_nombre) {
+          <span class="badge badge-active">{{ formacion.estado_nombre }}</span>
+        }
+      </div>
+
+      <div class="external-badge-info">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-label">Área</div>
+            <div class="detail-value">{{ formacion.area_nombre || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Modalidad</div>
+            <div class="detail-value">{{ formacion.modalidad_nombre || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Ejecución</div>
+            <div class="detail-value">{{ formacion.ejecucion_nombre || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Responsable</div>
+            <div class="detail-value">{{ responsableNombre || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Fecha prevista</div>
+            <div class="detail-value">{{ formatDate(formacion.fecha_prevista) }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Fecha de inicio</div>
+            <div class="detail-value">{{ formatDate(formacion.fecha_inicio) }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Fecha de fin</div>
+            <div class="detail-value">{{ formatDate(formacion.fecha_fin) }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Horario</div>
+            <div class="detail-value">{{ formacion.horario || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Duración (horas)</div>
+            <div class="detail-value">{{ formacion.duracion ?? '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Jornada</div>
+            <div class="detail-value">{{ formacion.dentro_fuera_jornada || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Año</div>
+            <div class="detail-value">{{ formacion.anio || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Eficacia</div>
+            <div class="detail-value">{{ formacion.eficacia || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Coste (€)</div>
+            <div class="detail-value">{{ formacion.coste ?? '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Bonificación (€)</div>
+            <div class="detail-value">{{ formacion.bonificacion ?? '—' }}</div>
+          </div>
+          <div class="detail-item" style="margin-bottom: 0;">
+            <div class="detail-label">Total (€)</div>
+            <div class="detail-value">{{ formacion.total ?? '—' }}</div>
+          </div>
+          <div class="detail-item" style="margin-bottom: 0;">
+            <div class="detail-label">Recursos</div>
+            <div class="detail-value">{{ formacion.recursos || '—' }}</div>
+          </div>
+        </div>
+      </div>
+
+      @if (formacion.motivo) {
+        <div class="detail-section-title">Motivo</div>
+        <div class="detail-value">{{ formacion.motivo }}</div>
+      }
+
+      @if (formacion.observaciones) {
+        <div class="detail-section-title">Observaciones</div>
+        <div class="detail-value">{{ formacion.observaciones }}</div>
+      }
+
+    </div>
+
+    <div class="modal-footer" style="background: #fafbff; border-top: 1px solid var(--border);">
+      <button class="btn btn-primary" (click)="close.emit()">Cerrar</button>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,50 @@
+<div class="modal-overlay open" (click)="close.emit()">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 540px;">
+
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Detalle del Comercial</div>
+        <div class="modal-subtitle">Información completa en modo lectura</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <div style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 30px;">
+        <div class="avatar-large" [style.background]="color">
+          {{ initials }}
+        </div>
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px;">
+            {{ fullName }}
+          </h2>
+          <div style="display: flex; gap: 8px;">
+            <span class="badge" [class.badge-active]="comercial.activo" [class.badge-inactive]="!comercial.activo">
+              {{ statusLabel | uppercase }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="external-badge-info">
+        <div class="detail-grid">
+          <div class="detail-item" style="margin-bottom: 0;">
+            <div class="detail-label">Teléfono</div>
+            <div class="detail-value">{{ comercial.telefono || '—' }}</div>
+          </div>
+          <div class="detail-item" style="margin-bottom: 0;">
+            <div class="detail-label">Email</div>
+            <div class="detail-value">{{ comercial.email || '—' }}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer" style="background: #fafbff; border-top: 1px solid var(--border);">
+      <button class="btn btn-primary" (click)="close.emit()">Cerrar</button>
+    </div>
+
+  </div>
+</div>
