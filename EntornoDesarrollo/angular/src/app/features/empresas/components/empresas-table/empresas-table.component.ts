@@ -54,7 +54,10 @@ export class EmpresasTableComponent {
   }
 
   goToContactos(id: number): void {
-    this.router.navigate(['/empresas', id, 'contactos']);
+    const empresa = this.empresa(id);
+    this.router.navigate(['/empresas', id, 'contactos'], {
+      state: { nombreEmpresa: this.fullName(empresa!) }
+    });
   } 
 
   colorFor(id: number): string {

@@ -1,0 +1,34 @@
+import { Component, EventEmitter, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+export type ContactoFilterType = '' | 'activo' | 'baja';
+
+@Component({
+  selector: 'app-contactos-toolbar',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
+    <div class="toolbar" style="width:100%; gap:10px;">
+      <div class="search-wrap" style="flex:1; max-width:360px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input" type="text" placeholder="Buscar por nombre…"
+          [(ngModel)]="searchValue" (ngModelChange)="searchChange.emit($event)" />
+      </div>
+      <select class="form-select" style="max-width:180px; padding:9px 12px; margin:0 16px;"
+        [(ngModel)]="filterValue" (ngModelChange)="filterChange.emit($event)">
+        <option value="">Estado: Todos</option>
+        <option value="activo">Activo</option>
+        <option value="baja">Inactivo</option>
+      </select>
+    </div>
+  `
+})
+export class ContactosToolbarComponent {
+  @Output() searchChange = new EventEmitter<string>();
+  @Output() filterChange = new EventEmitter<ContactoFilterType>();
+  searchValue = '';
+  filterValue: ContactoFilterType = '';
+}

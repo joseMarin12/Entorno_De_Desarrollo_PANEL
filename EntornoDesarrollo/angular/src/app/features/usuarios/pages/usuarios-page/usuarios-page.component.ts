@@ -39,6 +39,7 @@ export class UsuariosPageComponent implements OnInit {
 
     // ── Estado ────────────────────────────────────────
     currentPage = 1;
+    isInitialLoad = true
     readonly PAGE_SIZE = 10;
 
     // ── Estado modales ────────────────────────────────
@@ -66,7 +67,7 @@ export class UsuariosPageComponent implements OnInit {
         this.loadPage();
     }
 
-    // ── Lógica de carga ───────────────────────────────
+// ── Lógica de carga ───────────────────────────────
     private loadPage(): void {
         let status: boolean | '' = '';
         if (this.activeFilter === 'activos') {
@@ -74,16 +75,27 @@ export class UsuariosPageComponent implements OnInit {
         } else if (this.activeFilter === 'inactivos') {
             status = false;
         }
+        
         const filters = {
             searchText: this.searchQuery,
             status,
         };
-        this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters).subscribe();
+        
+        // CORRECTION ICI : On passe l'objet de configuration à l'intérieur du subscribe()
+        this.svc.loadAll(this.currentPage, this.PAGE_SIZE, filters, this.isInitialLoad).subscribe({
+            next: () => {
+                this.isInitialLoad = false;
+            },
+            error: (err) => {
+                console.error('Error al filtrar usuarios:', err);
+            }
+        });
     }
 
 
     // ── Eventos Toolbar ───────────────────────────────
     onSearch(query: string): void {
+        console.log('Texte reçu par la page parent :', query);
         this.searchQuery = query;
         this.currentPage = 1;
         this.loadPage();

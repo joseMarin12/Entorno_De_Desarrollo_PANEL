@@ -15,7 +15,7 @@ import { UsuariosService } from '../../../../services/usuarios.service';
           </svg>
         </div>
         <div>
-          <div class="stat-num">{{ svc.total() }}</div>
+          <div class="stat-num">{{ svc.totalGlobal() }}</div>
           <div class="stat-label">Total usuarios</div>
         </div>
       </div>

@@ -39,12 +39,15 @@ export class FormacionesService extends BaseCrud<Formacion> {
                         this._formaciones.set(list);
                         const first = list[0] as any;
                         this.totalFiltered.set(Number(first.total_records) || list.length);
-                        this.total.set(Number(first.total_global) || 0);
+                        this.total.set(Number(first.total_records) || list.length);
                         this.totalActivos.set(Number(first.total_activos) || 0);
                         this.totalInactivos.set(Number(first.total_inactivos) || 0);
                     } else {
                         this._formaciones.set([]);
                         this.totalFiltered.set(0);
+                        this.total.set(0);
+                        this.totalActivos.set(0);
+                        this.totalInactivos.set(0);
                     }
                     this.loading.set(false);
                 },

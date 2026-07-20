@@ -17,8 +17,9 @@ export class UsuariosService extends BaseCrud<Usuario> {
 
   readonly usuarios = this._usuarios.asReadonly();
   readonly total    = this.totalRecords.asReadonly();
-  readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
-  readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
+  readonly totalGlobal = signal<number>(0);
+  readonly activos     = signal<number>(0);
+  readonly inactivos   = signal<number>(0);
 
   private _roles = signal<Role[]>([]);
   readonly roles = this._roles.asReadonly();
@@ -37,7 +38,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
     });
   }
 
-  loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {
+loadAll(page = 1, limit = 10, filters: any = {}, isInitialLoad = false): Observable<Usuario[]> {
     this.loading.set(true);
     this.error.set(null);
    
@@ -46,19 +47,40 @@ export class UsuariosService extends BaseCrud<Usuario> {
       page,
       limit,
       filters,
-     
     }).pipe(
-      map(rawData => ({
-        mapped: rawData.map((item: any) => this.mapSingleFromBackend(item)),
-        rawData
-      })),
+      // MODIFICATION ICI : Ajout d'une sécurité "|| []" pour éviter le crash du .map()
+      map((rawData: any) => {
+        const dataArray = Array.isArray(rawData) ? rawData : [];
+        return {
+          mapped: dataArray.map((item: any) => this.mapSingleFromBackend(item)),
+          rawData: dataArray
+        };
+      }),
       tap(({ mapped, rawData }) => {
-        if (rawData.length > 0) {
-          const firstRow = rawData[0] as any;
-          const total = Number(firstRow.total_count || mapped.length);
-          this.totalRecords.set(total);
+        // Extraction sécurisée de la première ligne
+        const fleet = rawData as any[];
+        const firstRow = fleet && fleet.length > 0 ? (fleet[0].json || fleet[0]) : null;
+        
+        if (firstRow) {
+          const totalFiltrado = Number(firstRow.total_count || mapped.length);
+          this.totalRecords.set(totalFiltrado);
+
+          // Lecture des statistiques globales envoyées par n8n
+          const statsTotal     = Number(firstRow.stats_total ?? 0);
+          const statsActivos   = Number(firstRow.stats_activos ?? 0);
+          const statsInactivos = Number(firstRow.stats_inactivos ?? 0);
+
+          this.totalGlobal.set(statsTotal);
+          this.activos.set(statsActivos);
+          this.inactivos.set(statsInactivos);
+          
         } else {
           this.totalRecords.set(0);
+          if (isInitialLoad) {
+            this.totalGlobal.set(0);
+            this.activos.set(0);
+            this.inactivos.set(0);
+          }
         }
         this._usuarios.set(mapped);
       }),

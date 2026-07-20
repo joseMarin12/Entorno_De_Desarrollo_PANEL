@@ -5,7 +5,7 @@ import { ComercialesPageComponent } from './features/comerciales/pages/comercial
 import { SeleccionadoresPageComponent } from './features/seleccionadores/pages/seleccionadores-page/seleccionadores-page.component';
 import { EmpresasPageComponent } from './features/empresas/pages/empresas-page/empresas-page.component';
 import { EmpresasDireccionesPageComponent } from './features/direcciones_empresas/pages/direcciones-empresas-page/empresas-direcciones-page.component';
-import { EmpresasContactosPageComponent } from './features/empresas/pages/empresas-contactos-page/empresas-contactos-page.component';
+import { ContactosEmpresasPageComponent } from './features/contactos_empresas/pages/contactos-empresas-page/contactos-empresas-page.component';
 import { UsuariosPageComponent } from './features/usuarios/pages/usuarios-page/usuarios-page.component';
 import { FormacionesPageComponent } from './features/formaciones/pages/formaciones-page/formaciones-page.component';
 import { autenticadorGuard } from './guards/autenticador.guard';
@@ -29,7 +29,7 @@ export const routes: Routes = [
       { path: 'comerciales', component: ComercialesPageComponent },
       { path: 'seleccionadores', component: SeleccionadoresPageComponent },
       { path: 'empresas/:id/direcciones', component: EmpresasDireccionesPageComponent },
-      { path: 'empresas/:id/contactos', component: EmpresasContactosPageComponent },
+      { path: 'empresas/:id/contactos', component: ContactosEmpresasPageComponent },
       { path: 'empresas', component: EmpresasPageComponent },
       { path: 'usuarios', component: UsuariosPageComponent },
       { path: 'formaciones', component: FormacionesPageComponent },

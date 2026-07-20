@@ -1,0 +1,243 @@
+{
+  "name": "Contactos",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gestion-contactos",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-contactos-001",
+      "name": "Contactos Management API",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-1024, 384],
+      "webhookId": "contactos-gestion-uuid-0001"
+    },
+    {
+      "parameters": {
+        "jsCode": "const jwt = require('jsonwebtoken');\nconst JWT_SECRET = 'passEncriptada';\nconst body = $json.body;\nconst headers = $json.headers || {};\nconst authHeader = headers['authorization'] || headers['Authorization'] || '';\nconst bodyToken = body?.token || '';\nconst rawToken = authHeader || bodyToken;\nconst token = rawToken.replace('Bearer ', '').trim();\nif (!token) {\n  return [{ json: { _authError: true, status: 401, message: 'Token no proporcionado' } }];\n}\ntry {\n  const decoded = jwt.verify(token, JWT_SECRET);\n  return [{ json: { ...$json, _auth: { id: decoded.id, email: decoded.email, role: decoded.role } } }];\n} catch (err) {\n  return [{ json: { _authError: true, status: 401, message: 'Token inválido o expirado - ' + err.message } }];\n}"
+      },
+      "id": "jwt-verify-contactos",
+      "name": "JWT Verify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-832, 384]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [{ "id": "auth-check-contactos", "leftValue": "={{ $json._authError }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "auth-error-contactos",
+      "name": "Auth Error?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-672, 384]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: $json.message }) }}",
+        "options": { "responseCode": 401 }
+      },
+      "id": "respond-401-contactos",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [-432, 64]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "getContactos", "operator": { "type": "string", "operation": "equals" }, "id": "rule-get-contactos" }], "combinator": "and" },
+              "renameOutput": true, "outputKey": "Get Contactos"
+            },
+            {
+              "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "createContacto", "operator": { "type": "string", "operation": "equals" }, "id": "rule-create-contacto" }], "combinator": "and" },
+              "renameOutput": true, "outputKey": "Create Contacto"
+            },
+            {
+              "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "updateContacto", "operator": { "type": "string", "operation": "equals" }, "id": "rule-update-contacto" }], "combinator": "and" },
+              "renameOutput": true, "outputKey": "Update Contacto"
+            },
+            {
+              "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 }, "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "toggleContactoStatus", "operator": { "type": "string", "operation": "equals" }, "id": "rule-toggle-contacto" }], "combinator": "and" },
+              "renameOutput": true, "outputKey": "Toggle Contacto Status"
+            }
+          ]
+        },
+        "options": { "fallbackOutput": "extra", "renameFallbackOutput": "Invalid Action" }
+      },
+      "id": "route-by-action-contactos",
+      "name": "Route by Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [-416, 384]
+    },
+    {
+      "parameters": {
+        "jsCode": "const filters = $input.item.json.body.filters || {};\nconst idEmpresa = $input.item.json.body.idEmpresa;\nconst page = $input.item.json.body.page || 1;\nconst limit = $input.item.json.body.limit || 10;\nconst offset = (page - 1) * limit;\nconst conditions = [];\nconst params = [idEmpresa];\nlet paramIndex = 2;\n\nlet query = `SELECT c.id, c.nombre, c.primer_apellido, c.cargo, c.email, c.telefono, c.id_empresa, c.activo, c.created_at,\n  COUNT(*) OVER() AS total_count,\n  COUNT(*) FILTER (WHERE c.activo = true) OVER() AS total_activos,\n  COUNT(*) FILTER (WHERE c.activo = false) OVER() AS total_inactivos\nFROM contacto_empresa c\nWHERE c.id_empresa = $1`;\n\nif (filters.searchText && filters.searchText.trim() !== '') {\n  conditions.push(`(c.nombre ILIKE $${paramIndex} OR c.primer_apellido ILIKE $${paramIndex})`);\n  params.push(`%${filters.searchText}%`);\n  paramIndex++;\n}\n\nif (filters.status && filters.status.trim() !== '') {\n  if (filters.status === 'activo') conditions.push(`c.activo = true`);\n  else if (filters.status === 'baja') conditions.push(`c.activo = false`);\n}\n\nif (conditions.length > 0) query += ' AND ' + conditions.join(' AND ');\nquery += ' ORDER BY c.created_at ASC';\nquery += ` LIMIT ${limit} OFFSET ${offset}`;\n\nreturn [{ json: { query, params } }];"
+      },
+      "id": "build-get-contactos-query",
+      "name": "Build Get Contactos Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-176, 48]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": { "queryReplacement": "={{ $json.params }}" }
+      },
+      "id": "get-contactos-db",
+      "name": "Get Contactos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [0, 48],
+      "credentials": { "postgres": { "id": "7v6Z8GCo9JeoSxsQ", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body;\nconst d = body.contactoData;\nconst fields = ['nombre', 'primer_apellido', 'cargo', 'email', 'telefono', 'id_empresa', 'activo'];\nconst params = [d.nombre, d.primer_apellido, d.cargo, d.email, d.telefono, d.id_empresa, d.activo];\nconst placeholders = params.map((_, i) => `$${i + 1}`).join(', ');\nreturn [{ json: {\n  query: `INSERT INTO contacto_empresa (${fields.join(', ')}) VALUES (${placeholders}) RETURNING id, nombre, primer_apellido, cargo, email, telefono, id_empresa, activo, created_at`,\n  params\n} }];"
+      },
+      "id": "build-create-contacto-query",
+      "name": "Build Create Contacto Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-176, 208]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": { "queryReplacement": "={{ $json.params }}" }
+      },
+      "id": "create-contacto-db",
+      "name": "Create Contacto",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [0, 208],
+      "credentials": { "postgres": { "id": "7v6Z8GCo9JeoSxsQ", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE contacto_empresa SET nombre=$1, primer_apellido=$2, cargo=$3, email=$4, telefono=$5, updated_at=NOW() WHERE id=$6 RETURNING id;",
+        "options": { "queryReplacement": "={{ $json.body.contactoData.nombre }},={{ $json.body.contactoData.primer_apellido }},={{ $json.body.contactoData.cargo }},={{ $json.body.contactoData.email }},={{ $json.body.contactoData.telefono }},={{ $json.body.contactoId }}" }
+      },
+      "id": "update-contacto-db",
+      "name": "Update Contacto",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [0, 336],
+      "credentials": { "postgres": { "id": "7v6Z8GCo9JeoSxsQ", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE contacto_empresa SET activo = NOT activo, updated_at = NOW() WHERE id = $1 RETURNING id;",
+        "options": { "queryReplacement": "={{ $json.body.contactoId }}" }
+      },
+      "id": "toggle-contacto-db",
+      "name": "Toggle Contacto Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [0, 464],
+      "credentials": { "postgres": { "id": "7v6Z8GCo9JeoSxsQ", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const id = $input.item.json.id;\nreturn [{ json: {\n  query: `SELECT id, nombre, primer_apellido, cargo, email, telefono, id_empresa, activo, created_at FROM contacto_empresa WHERE id = $1`,\n  params: [id]\n} }];"
+      },
+      "id": "build-get-created-contacto",
+      "name": "Build Get Created Contacto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [224, 336]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": { "queryReplacement": "={{ $json.params }}" }
+      },
+      "id": "get-created-contacto-db",
+      "name": "Get Created Contacto",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [384, 336],
+      "credentials": { "postgres": { "id": "7v6Z8GCo9JeoSxsQ", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"data\": $input.all().map(i => ({\n  id: i.json.id,\n  nombre: i.json.nombre,\n  primer_apellido: i.json.primer_apellido,\n  cargo: i.json.cargo,\n  email: i.json.email,\n  telefono: i.json.telefono,\n  id_empresa: i.json.id_empresa,\n  activo: i.json.activo\n})),\n\"total\": $input.first().json.total_count,\n\"totalActivos\": $input.first().json.total_activos,\n\"totalInactivos\": $input.first().json.total_inactivos\n} }}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-success-contactos",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [800, 336]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [{ "id": "1", "name": "success", "value": false, "type": "boolean" }, { "id": "2", "name": "error", "value": "Acción inválida. Acciones: getContactos, createContacto, updateContacto, toggleContactoStatus", "type": "string" }] },
+        "options": {}
+      },
+      "id": "invalid-action-contactos",
+      "name": "Invalid Action Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-176, 976]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": { "responseCode": 400 }
+      },
+      "id": "respond-error-contactos",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [800, 976]
+    }
+  ],
+  "connections": {
+    "Contactos Management API": { "main": [[{ "node": "JWT Verify", "type": "main", "index": 0 }]] },
+    "JWT Verify": { "main": [[{ "node": "Auth Error?", "type": "main", "index": 0 }]] },
+    "Auth Error?": { "main": [[{ "node": "Respond 401", "type": "main", "index": 0 }], [{ "node": "Route by Action", "type": "main", "index": 0 }]] },
+    "Route by Action": { "main": [
+      [{ "node": "Build Get Contactos Query", "type": "main", "index": 0 }],
+      [{ "node": "Build Create Contacto Query", "type": "main", "index": 0 }],
+      [{ "node": "Update Contacto", "type": "main", "index": 0 }],
+      [{ "node": "Toggle Contacto Status", "type": "main", "index": 0 }],
+      [{ "node": "Invalid Action Response", "type": "main", "index": 0 }]
+    ]},
+    "Build Get Contactos Query": { "main": [[{ "node": "Get Contactos", "type": "main", "index": 0 }]] },
+    "Get Contactos": { "main": [[{ "node": "Respond Success", "type": "main", "index": 0 }]] },
+    "Build Create Contacto Query": { "main": [[{ "node": "Create Contacto", "type": "main", "index": 0 }]] },
+    "Create Contacto": { "main": [[{ "node": "Build Get Created Contacto", "type": "main", "index": 0 }]] },
+    "Update Contacto": { "main": [[{ "node": "Build Get Created Contacto", "type": "main", "index": 0 }]] },
+    "Toggle Contacto Status": { "main": [[{ "node": "Build Get Created Contacto", "type": "main", "index": 0 }]] },
+    "Build Get Created Contacto": { "main": [[{ "node": "Get Created Contacto", "type": "main", "index": 0 }]] },
+    "Get Created Contacto": { "main": [[{ "node": "Respond Success", "type": "main", "index": 0 }]] },
+    "Invalid Action Response": { "main": [[{ "node": "Respond Error", "type": "main", "index": 0 }]] }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1", "binaryMode": "separate" },
+  "versionId": "contactos-workflow-v1",
+  "meta": { "templateCredsSetupCompleted": true },
+  "id": "contactos-workflow-001",
+  "tags": []
+}

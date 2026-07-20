@@ -1,0 +1,75 @@
+<div class="modal-overlay open">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">{{ title }}</div>
+        <div class="modal-subtitle">{{ subtitle }}</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Nombre <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['nombre']" type="text" placeholder="Ej: Juan" [(ngModel)]="form.nombre">
+          @if (errors['nombre']) { <span class="form-hint error-msg">{{ errors['nombre'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Apellido <span class="req">*</span></label>
+          <input class="form-input" [class.error]="errors['primer_apellido']" type="text" placeholder="Ej: García" [(ngModel)]="form.primer_apellido">
+          @if (errors['primer_apellido']) { <span class="form-hint error-msg">{{ errors['primer_apellido'] }}</span> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cargo</label>
+          <input class="form-input" type="text" placeholder="Ej: Director Comercial" [(ngModel)]="form.cargo">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" placeholder="Ej: juan@empresa.com" [(ngModel)]="form.email">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input class="form-input" type="text" placeholder="Ej: 600 000 000" [(ngModel)]="form.telefono">
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Estado {{ isEdit ? '' : 'inicial' }}</label>
+          <div class="toggle-wrap" (click)="form.activo = !form.activo">
+            <div class="toggle" [class.on]="form.activo"></div>
+            <div>
+              <div class="toggle-label">{{ form.activo ? 'Activo' : 'Inactivo' }}</div>
+              <div class="toggle-sub">{{ form.activo ? 'El contacto está activo' : 'El contacto está dado de baja' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="close.emit()">Cancelar</button>
+      <button class="btn btn-primary" (click)="submit()">
+        @if (isEdit) {
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Guardar cambios
+        } @else {
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Añadir contacto
+        }
+      </button>
+    </div>
+  </div>
+</div>
