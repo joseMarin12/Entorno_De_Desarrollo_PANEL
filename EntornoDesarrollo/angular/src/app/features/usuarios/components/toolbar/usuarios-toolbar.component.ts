@@ -22,7 +22,8 @@ export type UsuariosFilterType = 'todos' | 'activos' | 'inactivos';
           class="search-input"
           type="text"
           placeholder="Buscar por nombre, email…"
-          autocomplete="off"
+          name="campo_busqueda_usuarios_sin_autorrelleno"
+          autocomplete="new-password"
           [(ngModel)]="searchValue"
           (ngModelChange)="searchChange.emit($event)"
         />
