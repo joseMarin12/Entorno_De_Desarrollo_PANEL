@@ -45,9 +45,6 @@ export class FormacionesService extends BaseCrud<Formacion> {
                     } else {
                         this._formaciones.set([]);
                         this.totalFiltered.set(0);
-                        this.total.set(0);
-                        this.totalActivos.set(0);
-                        this.totalInactivos.set(0);
                     }
                     this.loading.set(false);
                 },
