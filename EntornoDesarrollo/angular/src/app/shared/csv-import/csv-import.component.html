@@ -113,10 +113,23 @@
             <div class="csv-summary-ok">✓ {{ successCount() }} de {{ totalRows() }} filas importadas correctamente</div>
 
             @if (notes().length) {
-              <div class="csv-notes-title">Contraseñas temporales asignadas:</div>
+              <div class="csv-notes-warning">
+                ⚠️ Apunta o copia estas contraseñas ahora: una vez cierres esta ventana no podrás volver a verlas ni recuperarlas después (se guardan cifradas).
+              </div>
+              <div class="csv-notes-title-row">
+                <div class="csv-notes-title">Contraseñas temporales asignadas:</div>
+                <button type="button" class="csv-copy-all-btn" (click)="copyAllNotes($event)">
+                  {{ copiedRow() === -1 ? '✓ Copiado' : 'Copiar todas' }}
+                </button>
+              </div>
               <ul class="csv-note-list">
                 @for (n of notes(); track n.row) {
-                  <li><strong>{{ n.label }}</strong>: {{ n.note }}</li>
+                  <li class="csv-note-item">
+                    <span><strong>{{ n.label }}</strong>: {{ n.note }}</span>
+                    <button type="button" class="csv-copy-btn" (click)="copyNote(n, $event)">
+                      {{ copiedRow() === n.row ? '✓ Copiada' : 'Copiar' }}
+                    </button>
+                  </li>
                 }
               </ul>
             }
@@ -143,6 +156,21 @@
       @if (state() === 'done') {
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" (click)="close()">Cerrar</button>
+        </div>
+      }
+
+      @if (showCloseConfirm()) {
+        <div class="csv-confirm-overlay" (click)="cancelCloseConfirm($event)" (keydown.enter)="cancelCloseConfirm($event)">
+          <div class="csv-confirm-box" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
+            <div class="csv-confirm-title">¿Cerrar sin copiar las contraseñas?</div>
+            <div class="csv-confirm-text">
+              Estas contraseñas temporales no quedan guardadas en ningún sitio visible: se cifran al entrar en la base de datos. Si cierras esta ventana sin copiarlas, no podrás verlas ni recuperarlas después, ni tú ni nadie.
+            </div>
+            <div class="csv-confirm-actions">
+              <button type="button" class="btn btn-outline" (click)="cancelCloseConfirm($event)">Volver y copiarlas</button>
+              <button type="button" class="btn csv-confirm-danger-btn" (click)="confirmCloseAnyway($event)">Cerrar de todas formas</button>
+            </div>
+          </div>
         </div>
       }
     </div>

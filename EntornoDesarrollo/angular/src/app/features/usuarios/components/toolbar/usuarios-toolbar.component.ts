@@ -95,7 +95,7 @@ export class UsuariosToolbarComponent {
     return this.usuariosSvc.add(data).pipe(
       map(() => {
         this.emailsEnEsteLote.add(emailLower);
-        return providedPassword ? {} : { note: `Contraseña temporal asignada: ${password}` };
+        return providedPassword ? {} : { note: `Contraseña temporal asignada: ${password}`, secret: password };
       }),
       catchError(err => {
         const msg = (err?.message || '').toLowerCase();

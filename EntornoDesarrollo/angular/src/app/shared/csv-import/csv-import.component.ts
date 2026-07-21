@@ -12,6 +12,8 @@ export interface CsvColumnDef {
 
 export interface CsvImportRowOutcome {
   note?: string;
+  /** Valor exacto a copiar al portapapeles (p. ej. la contraseña temporal sin el texto explicativo del note). */
+  secret?: string;
 }
 
 interface CsvRowError {
@@ -24,6 +26,7 @@ interface CsvRowNote {
   row: number;
   label: string;
   note: string;
+  secret?: string;
 }
 
 type CsvImportState = 'idle' | 'loaded' | 'processing' | 'done';
@@ -58,6 +61,8 @@ export class CsvImportComponent {
   notes = signal<CsvRowNote[]>([]);
 
   showInfo = signal(false);
+  showCloseConfirm = signal(false);
+  copiedRow = signal<number | null>(null);
 
   private pendingFile: File | null = null;
 
@@ -81,8 +86,43 @@ export class CsvImportComponent {
 
   close(): void {
     if (this.state() === 'processing') return;
+    if (this.state() === 'done' && this.notes().length > 0 && !this.showCloseConfirm()) {
+      this.showCloseConfirm.set(true);
+      return;
+    }
+    this.showCloseConfirm.set(false);
     this.showModal.set(false);
     this.reset();
+  }
+
+  cancelCloseConfirm(event: Event): void {
+    event.stopPropagation();
+    this.showCloseConfirm.set(false);
+  }
+
+  confirmCloseAnyway(event: Event): void {
+    event.stopPropagation();
+    this.showModal.set(false);
+    this.reset();
+  }
+
+  async copyNote(row: CsvRowNote, event: Event): Promise<void> {
+    event.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(row.secret ?? row.note);
+      this.copiedRow.set(row.row);
+      setTimeout(() => this.copiedRow.set(null), 1500);
+    } catch { /* portapapeles no disponible */ }
+  }
+
+  async copyAllNotes(event: Event): Promise<void> {
+    event.stopPropagation();
+    const text = this.notes().map(n => `${n.label}: ${n.secret ?? n.note}`).join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      this.copiedRow.set(-1);
+      setTimeout(() => this.copiedRow.set(null), 1500);
+    } catch { /* portapapeles no disponible */ }
   }
 
   private reset(): void {
@@ -95,6 +135,8 @@ export class CsvImportComponent {
     this.successCount.set(0);
     this.errors.set([]);
     this.notes.set([]);
+    this.showCloseConfirm.set(false);
+    this.copiedRow.set(null);
     this.pendingFile = null;
   }
 
@@ -187,7 +229,7 @@ export class CsvImportComponent {
         const outcome = await firstValueFrom(this.importRow(row));
         this.successCount.update(n => n + 1);
         if (outcome?.note) {
-          this.notes.update(list => [...list, { row: rowNumber, label, note: outcome.note! }]);
+          this.notes.update(list => [...list, { row: rowNumber, label, note: outcome.note!, secret: outcome.secret }]);
         }
       } catch (e: any) {
         const message = e?.message || 'No se pudo importar la fila';
