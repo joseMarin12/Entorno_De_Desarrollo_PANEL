@@ -92,17 +92,17 @@ export class TrabToolbarComponent {
   tipoValue:   TrabFilterTipoType = '';
 
   readonly csvColumns: CsvColumnDef[] = [
-    { key: 'nombre', label: 'nombre', required: true },
-    { key: 'primer_apellido', label: 'primer_apellido', required: true },
-    { key: 'dni_nif_pasaporte', label: 'dni_nif_pasaporte', required: true },
-    { key: 'email', label: 'email', required: true },
-    { key: 'telefono', label: 'telefono', required: true },
-    { key: 'pais', label: 'pais', required: false },
-    { key: 'provincia', label: 'provincia', required: false },
-    { key: 'localidad', label: 'localidad', required: false },
-    { key: 'seleccionador', label: 'seleccionador', required: false },
-    { key: 'freelance', label: 'freelance (si/no)', required: false },
-    { key: 'salario', label: 'salario', required: false },
+    { key: 'nombre', label: 'nombre', required: true, hint: 'Nombre de pila' },
+    { key: 'primer_apellido', label: 'primer_apellido', required: true, hint: 'Primer apellido' },
+    { key: 'dni_nif_pasaporte', label: 'dni_nif_pasaporte', required: true, hint: 'No puede repetirse uno ya registrado' },
+    { key: 'email', label: 'email', required: true, hint: 'No puede repetirse uno ya registrado' },
+    { key: 'telefono', label: 'telefono', required: true, hint: 'Solo números, espacios y el símbolo +' },
+    { key: 'pais', label: 'pais', required: false, hint: 'Se crea automáticamente si no existe (opcional)' },
+    { key: 'provincia', label: 'provincia', required: false, hint: 'Requiere indicar también el país (opcional)' },
+    { key: 'localidad', label: 'localidad', required: false, hint: 'Requiere indicar también la provincia (opcional)' },
+    { key: 'seleccionador', label: 'seleccionador', required: false, hint: 'Nombre y primer apellido de un seleccionador ya existente (opcional)' },
+    { key: 'freelance', label: 'freelance (si/no)', required: false, hint: '"si" o "no"; por defecto no (opcional)' },
+    { key: 'salario', label: 'salario', required: false, hint: 'Número, sin símbolo de moneda (opcional)' },
   ];
 
   csvRowLabel = (row: Record<string, string>): string =>

@@ -2,6 +2,116 @@
   margin-left: auto;
 }
 
+.csv-import-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.csv-info-btn {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: none;
+  background: #dc2626;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  font-style: italic;
+  font-family: Georgia, 'Times New Roman', serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+}
+
+.csv-info-btn:hover {
+  background: #b91c1c;
+  box-shadow: 0 2px 10px rgba(220, 38, 38, 0.55);
+}
+
+.csv-info-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  width: 320px;
+  max-height: 360px;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+  padding: 14px 16px;
+}
+
+.csv-info-popover-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.csv-info-popover-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.csv-info-popover-list li {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.csv-info-popover-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.csv-info-popover-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.csv-info-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.csv-info-tag--required {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.csv-info-tag--optional {
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+.csv-info-popover-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
 .csv-dropzone {
   border: 2px dashed var(--border);
   border-radius: 12px;

@@ -55,11 +55,11 @@ export class UsuariosToolbarComponent {
   activeFilter = signal<UsuariosFilterType>('todos');
 
   readonly csvColumns: CsvColumnDef[] = [
-    { key: 'nombre', label: 'nombre', required: true },
-    { key: 'apellido', label: 'apellido', required: true },
-    { key: 'email', label: 'email', required: true },
-    { key: 'rol', label: 'rol', required: true },
-    { key: 'password', label: 'password', required: false },
+    { key: 'nombre', label: 'nombre', required: true, hint: 'Nombre de pila del usuario' },
+    { key: 'apellido', label: 'apellido', required: true, hint: 'Primer apellido' },
+    { key: 'email', label: 'email', required: true, hint: 'No puede repetirse un email ya registrado' },
+    { key: 'rol', label: 'rol', required: true, hint: 'Administrador o Usuario' },
+    { key: 'password', label: 'password', required: false, hint: 'Si se deja vacío, se genera una contraseña temporal automáticamente' },
   ];
 
   csvRowLabel = (row: Record<string, string>): string =>

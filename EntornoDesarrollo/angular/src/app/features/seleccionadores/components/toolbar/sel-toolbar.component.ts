@@ -92,15 +92,15 @@ export class SelToolbarComponent {
   tipoValue:   SelFilterTipoType = '';
 
   readonly csvColumns: CsvColumnDef[] = [
-    { key: 'nombre', label: 'nombre', required: true },
-    { key: 'primer_apellido', label: 'primer_apellido', required: true },
-    { key: 'tipo', label: 'tipo (interno/externo)', required: true },
-    { key: 'email', label: 'email (obligatorio si tipo=externo)', required: false },
-    { key: 'telefono', label: 'telefono', required: false },
-    { key: 'empresa', label: 'empresa (obligatorio si tipo=externo)', required: false },
-    { key: 'fecha_ini', label: 'fecha_ini (AAAA-MM-DD)', required: false },
-    { key: 'salario', label: 'salario', required: false },
-    { key: 'fee', label: 'fee (0-100)', required: false },
+    { key: 'nombre', label: 'nombre', required: true, hint: 'Nombre de pila' },
+    { key: 'primer_apellido', label: 'primer_apellido', required: true, hint: 'Primer apellido' },
+    { key: 'tipo', label: 'tipo (interno/externo)', required: true, hint: 'Debe ser exactamente "interno" o "externo"' },
+    { key: 'email', label: 'email (obligatorio si tipo=externo)', required: false, hint: 'Obligatorio solo si tipo=externo' },
+    { key: 'telefono', label: 'telefono', required: false, hint: 'Solo números, espacios y el símbolo + (opcional)' },
+    { key: 'empresa', label: 'empresa (obligatorio si tipo=externo)', required: false, hint: 'Nombre de una empresa ya existente; obligatorio solo si tipo=externo' },
+    { key: 'fecha_ini', label: 'fecha_ini (AAAA-MM-DD)', required: false, hint: 'Formato AAAA-MM-DD (opcional)' },
+    { key: 'salario', label: 'salario', required: false, hint: 'Número mayor que 0 (opcional)' },
+    { key: 'fee', label: 'fee (0-100)', required: false, hint: 'Porcentaje entre 0 y 100 (opcional)' },
   ];
 
   csvRowLabel = (row: Record<string, string>): string =>

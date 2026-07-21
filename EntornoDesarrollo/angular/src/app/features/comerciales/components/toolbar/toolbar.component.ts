@@ -67,11 +67,11 @@ export class ToolbarComponent {
   activeFilter = signal<FilterType>('todos');
 
   readonly csvColumns: CsvColumnDef[] = [
-    { key: 'nombre', label: 'nombre', required: true },
-    { key: 'primer_apellido', label: 'primer_apellido', required: true },
-    { key: 'telefono', label: 'telefono', required: true },
-    { key: 'email', label: 'email', required: true },
-    { key: 'segundo_apellido', label: 'segundo_apellido', required: false },
+    { key: 'nombre', label: 'nombre', required: true, hint: 'Nombre de pila' },
+    { key: 'primer_apellido', label: 'primer_apellido', required: true, hint: 'Primer apellido' },
+    { key: 'telefono', label: 'telefono', required: true, hint: 'Solo números, espacios y el símbolo +' },
+    { key: 'email', label: 'email', required: true, hint: 'No puede repetirse uno ya registrado' },
+    { key: 'segundo_apellido', label: 'segundo_apellido', required: false, hint: 'Opcional' },
   ];
 
   csvRowLabel = (row: Record<string, string>): string =>

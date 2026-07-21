@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, firstValueFrom } from 'rxjs';
 
@@ -6,6 +6,8 @@ export interface CsvColumnDef {
   key: string;
   label: string;
   required?: boolean;
+  /** Explicación breve de qué valor va en esta columna (formato, valores válidos...), mostrada en el icono de ayuda. */
+  hint?: string;
 }
 
 export interface CsvImportRowOutcome {
@@ -55,10 +57,22 @@ export class CsvImportComponent {
   errors = signal<CsvRowError[]>([]);
   notes = signal<CsvRowNote[]>([]);
 
+  showInfo = signal(false);
+
   private pendingFile: File | null = null;
 
   get columnsHint(): string {
     return this.columns.map(c => c.label).join(', ');
+  }
+
+  toggleInfo(event: Event): void {
+    event.stopPropagation();
+    this.showInfo.update(v => !v);
+  }
+
+  @HostListener('document:click')
+  closeInfo(): void {
+    this.showInfo.set(false);
   }
 
   open(): void {

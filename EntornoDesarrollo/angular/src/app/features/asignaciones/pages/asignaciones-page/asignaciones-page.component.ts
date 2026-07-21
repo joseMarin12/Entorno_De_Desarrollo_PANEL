@@ -56,12 +56,12 @@ export class AsignacionesPageComponent implements OnInit {
   private comercialesLookup: { id: number; nombre_completo: string }[] = [];
 
   readonly csvColumns: CsvColumnDef[] = [
-    { key: 'empresa', label: 'empresa', required: true },
-    { key: 'trabajador', label: 'trabajador', required: true },
-    { key: 'comercial', label: 'comercial', required: true },
-    { key: 'fecha_ini', label: 'fecha_ini (AAAA-MM-DD)', required: true },
-    { key: 'tarifa', label: 'tarifa', required: true },
-    { key: 'fecha_fin', label: 'fecha_fin (AAAA-MM-DD)', required: false },
+    { key: 'empresa', label: 'empresa', required: true, hint: 'Nombre de una empresa ya existente' },
+    { key: 'trabajador', label: 'trabajador', required: true, hint: 'Nombre completo de un trabajador ya existente' },
+    { key: 'comercial', label: 'comercial', required: true, hint: 'Nombre completo de un comercial ya existente' },
+    { key: 'fecha_ini', label: 'fecha_ini (AAAA-MM-DD)', required: true, hint: 'Formato AAAA-MM-DD' },
+    { key: 'tarifa', label: 'tarifa', required: true, hint: 'Número, sin símbolo de moneda' },
+    { key: 'fecha_fin', label: 'fecha_fin (AAAA-MM-DD)', required: false, hint: 'Formato AAAA-MM-DD (opcional)' },
   ];
 
   csvRowLabel = (row: Record<string, string>): string =>

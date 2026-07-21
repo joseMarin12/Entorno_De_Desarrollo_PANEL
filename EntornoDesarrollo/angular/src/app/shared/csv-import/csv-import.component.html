@@ -1,11 +1,42 @@
-<button type="button" class="btn btn-primary" (click)="open()">
-  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="17 8 12 3 7 8" />
-    <line x1="12" y1="3" x2="12" y2="15" />
-  </svg>
-  Carga masiva CSV
-</button>
+<div class="csv-import-wrap">
+  @if (columns.length) {
+    <button type="button" class="csv-info-btn" title="Ver columnas del CSV" (click)="toggleInfo($event)">i</button>
+  }
+
+  <button type="button" class="btn btn-primary" (click)="open()">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+    Carga masiva CSV
+  </button>
+
+  @if (columns.length) {
+    @if (showInfo()) {
+      <div class="csv-info-popover" (click)="$event.stopPropagation()">
+        <div class="csv-info-popover-title">Columnas del CSV</div>
+        <ul class="csv-info-popover-list">
+          @for (col of columns; track col.key) {
+            <li>
+              <div class="csv-info-popover-row">
+                <strong>{{ col.label }}</strong>
+                @if (col.required) {
+                  <span class="csv-info-tag csv-info-tag--required">obligatoria</span>
+                } @else {
+                  <span class="csv-info-tag csv-info-tag--optional">opcional</span>
+                }
+              </div>
+              @if (col.hint) {
+                <div class="csv-info-popover-hint">{{ col.hint }}</div>
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  }
+</div>
 
 @if (showModal()) {
   <div class="modal-overlay open" (click)="close()" (keydown.enter)="close()">

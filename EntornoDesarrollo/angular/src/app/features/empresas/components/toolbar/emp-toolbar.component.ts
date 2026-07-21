@@ -40,11 +40,11 @@ export class EmpToolbarComponent {
   tipoFilterValue: EmpFilterTipoType = '';
 
   readonly csvColumns: CsvColumnDef[] = [
-    { key: 'nombre', label: 'nombre', required: true },
-    { key: 'razonsocial', label: 'razonsocial', required: true },
-    { key: 'cif', label: 'cif', required: true },
-    { key: 'tipo', label: 'tipo', required: true },
-    { key: 'comercial', label: 'comercial', required: false },
+    { key: 'nombre', label: 'nombre', required: true, hint: 'Nombre comercial de la empresa' },
+    { key: 'razonsocial', label: 'razonsocial', required: true, hint: 'Razón social completa' },
+    { key: 'cif', label: 'cif', required: true, hint: 'Una letra mayúscula + 8 dígitos, ej. B12345678' },
+    { key: 'tipo', label: 'tipo', required: true, hint: 'Tecnológica, Consultoría, Logística o Marketing' },
+    { key: 'comercial', label: 'comercial', required: false, hint: 'Nombre completo de un comercial ya existente (opcional)' },
   ];
 
   csvRowLabel = (row: Record<string, string>): string => row['nombre'] || row['cif'];

@@ -58,17 +58,17 @@ export class FormacionesPageComponent implements OnInit {
   responsables: { id: number; name: string }[] = [];
 
   readonly csvColumns: CsvColumnDef[] = [
-    { key: 'curso', label: 'curso', required: true },
-    { key: 'denominacion', label: 'denominacion', required: true },
-    { key: 'area', label: 'area', required: true },
-    { key: 'modalidad', label: 'modalidad', required: true },
-    { key: 'ejecucion', label: 'ejecucion', required: true },
-    { key: 'responsable', label: 'responsable', required: true },
-    { key: 'fecha_prevista', label: 'fecha_prevista (AAAA-MM-DD)', required: true },
-    { key: 'fecha_inicio', label: 'fecha_inicio (AAAA-MM-DD)', required: true },
-    { key: 'fecha_fin', label: 'fecha_fin (AAAA-MM-DD)', required: true },
-    { key: 'horario', label: 'horario', required: false },
-    { key: 'recursos', label: 'recursos', required: false },
+    { key: 'curso', label: 'curso', required: true, hint: 'Nombre del curso' },
+    { key: 'denominacion', label: 'denominacion', required: true, hint: 'Descripción o título de la formación' },
+    { key: 'area', label: 'area', required: true, hint: 'Técnica, Habilidades blandas, Seguridad, Idiomas, Gestión y liderazgo u Otros' },
+    { key: 'modalidad', label: 'modalidad', required: true, hint: 'Presencial, Online, Semipresencial o A distancia' },
+    { key: 'ejecucion', label: 'ejecucion', required: true, hint: 'Interna, Externa o Mixta' },
+    { key: 'responsable', label: 'responsable', required: true, hint: 'Nombre de un usuario ya existente' },
+    { key: 'fecha_prevista', label: 'fecha_prevista (AAAA-MM-DD)', required: true, hint: 'Formato AAAA-MM-DD, ej. 2026-09-01' },
+    { key: 'fecha_inicio', label: 'fecha_inicio (AAAA-MM-DD)', required: true, hint: 'Formato AAAA-MM-DD' },
+    { key: 'fecha_fin', label: 'fecha_fin (AAAA-MM-DD)', required: true, hint: 'Formato AAAA-MM-DD' },
+    { key: 'horario', label: 'horario', required: false, hint: 'Ej. 09:00-13:00 (opcional)' },
+    { key: 'recursos', label: 'recursos', required: false, hint: 'Materiales o licencias necesarias (opcional)' },
   ];
 
   csvRowLabel = (row: Record<string, string>): string => row['curso'];
