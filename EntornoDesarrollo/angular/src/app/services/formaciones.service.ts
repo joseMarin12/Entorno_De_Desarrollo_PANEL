@@ -45,6 +45,9 @@ export class FormacionesService extends BaseCrud<Formacion> {
                     } else {
                         this._formaciones.set([]);
                         this.totalFiltered.set(0);
+                        this.total.set(0);
+                        this.totalActivos.set(0);
+                        this.totalInactivos.set(0);
                     }
                     this.loading.set(false);
                 },
@@ -81,7 +84,17 @@ export class FormacionesService extends BaseCrud<Formacion> {
         this.error.set(null);
         return this._toggleStatus({ action: 'toggleFormacionStatus', formacionId: id }).pipe(
             tap({
-                next: updated => { this._formaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c)); this.loading.set(false); },
+                next: updated => {
+                    this._formaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c));
+                    if (updated.activo) {
+                        this.totalActivos.update(v => v + 1);
+                        this.totalInactivos.update(v => v - 1);
+                    } else {
+                        this.totalActivos.update(v => v - 1);
+                        this.totalInactivos.update(v => v + 1);
+                    }
+                    this.loading.set(false);
+                },
                 error: e => { this.error.set(e?.message ?? 'Error al cambiar estado'); this.loading.set(false); },
             })
         );
