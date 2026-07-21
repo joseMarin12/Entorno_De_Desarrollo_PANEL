@@ -27,6 +27,7 @@
     <app-toolbar
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
+      (dataChanged)="onCsvImported()"
     />
 
     <!-- Tabla -->
@@ -39,6 +40,7 @@
       entityLabel="comerciales"
       (pageChange)="onPageChange($event)"
       (actionClick)="onTableAction($event)"
+      (rowDblClick)="onDetailClick($event)"
     />
 
 </div>
@@ -48,6 +50,14 @@
     [existingEmails]="existingEmails"
     (save)="onSaveAdd($event)"
     (close)="showAdd = false"
+  />
+}
+
+@if (showDetail && selectedComercial) {
+  <app-comerciales-modal-detail
+    [comercial]="selectedComercial"
+    [color]="colorFor(selectedComercial.id!)"
+    (close)="showDetail = false; selectedId.set(null)"
   />
 }
 

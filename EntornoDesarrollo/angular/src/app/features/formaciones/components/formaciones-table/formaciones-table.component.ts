@@ -17,7 +17,8 @@ import { FormacionesService } from '../../../../services/formaciones.service';
       [totalFiltered]="totalFiltered"
       entityLabel="formaciones"
       (pageChange)="pageChange.emit($event)"
-      (actionClick)="onAction($event)">
+      (actionClick)="onAction($event)"
+      (rowDblClick)="detailClick.emit($event)">
     </app-table>
   `,
 })
@@ -30,6 +31,7 @@ export class FormacionesTableComponent {
   @Output() editClick = new EventEmitter<number>();
   @Output() bajaClick = new EventEmitter<number>();
   @Output() participantesClick = new EventEmitter<number>();
+  @Output() detailClick = new EventEmitter<number>();
   @Output() pageChange = new EventEmitter<number>();
 
   svc = inject(FormacionesService);

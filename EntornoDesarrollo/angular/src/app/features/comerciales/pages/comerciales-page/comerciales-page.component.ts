@@ -11,6 +11,7 @@ import { ToolbarComponent, FilterType } from '../../components/toolbar/toolbar.c
 import { TableComponent, ColumnDef } from '../../../../shared/table/table.component';
 import { ModalAddComponent } from '../../components/modal-add/modal-add.component';
 import { ModalEditComponent } from '../../components/modal-edit/modal-edit.component';
+import { ComercialesModalDetailComponent } from '../../components/modal-detail/comerciales-modal-detail.component';
 import { ConfirmMode, ConfirmationModalComponent } from '../../../../shared/confirmation-modal/confirmation-modal.component';
 
 @Component({
@@ -24,6 +25,7 @@ import { ConfirmMode, ConfirmationModalComponent } from '../../../../shared/conf
     TableComponent,
     ModalAddComponent,
     ModalEditComponent,
+    ComercialesModalDetailComponent,
     ConfirmationModalComponent,
   ],
   templateUrl: './comerciales-page.component.html',
@@ -85,6 +87,7 @@ export class ComercialesPageComponent implements OnInit {
   showAdd  = false;
   showEdit = false;
   showBaja = false;
+  showDetail = false;
   selectedId = signal<number | null>(null);
 
   // ── Ciclo de vida ─────────────────────────────────────────
@@ -134,6 +137,11 @@ export class ComercialesPageComponent implements OnInit {
   }
 
   // ── Handlers de filtro y paginación ──────────────────────
+  onCsvImported(): void {
+    this.currentPage.set(1);
+    this.loadPage();
+  }
+
   onSearchChange(q: string): void {
     this.searchQuery.set(q);
     this.currentPage.set(1);
@@ -167,6 +175,11 @@ export class ComercialesPageComponent implements OnInit {
   onEditClick(id: number): void {
     this.selectedId.set(id);
     this.showEdit   = true;
+  }
+
+  onDetailClick(id: number): void {
+    this.selectedId.set(id);
+    this.showDetail = true;
   }
 
   onBajaClick(id: number): void {

@@ -15,6 +15,7 @@ import { EmpresasModalComponent } from "../../components/empresas-modal/empresas
 import { GuardarEmpresaPayload, NuevaDireccionPayload, NuevoContactoPayload } from "../../components/empresas-modal/empresas-modal.component";
 import { EmpresaDireccionesModalComponent } from "../../components/empresa-direcciones-modal/empresa-direcciones-modal.component";
 import { EmpresaContactosModalComponent } from "../../components/empresa-contactos-modal/empresa-contactos-modal.component";
+import { EmpresasModalDetailComponent } from "../../components/empresas-modal-detail/empresas-modal-detail.component";
 import { EMPRESAS_COLUMNS } from './empresas-table.config';
 
 @Component({
@@ -29,6 +30,7 @@ import { EMPRESAS_COLUMNS } from './empresas-table.config';
     EmpresasModalComponent,
     EmpresaDireccionesModalComponent,
     EmpresaContactosModalComponent,
+    EmpresasModalDetailComponent,
     ConfirmationModalComponent
   ],
   schemas: [NO_ERRORS_SCHEMA],
@@ -69,6 +71,7 @@ export class EmpresasPageComponent implements OnInit {
   showAdd  = false;
   showEdit = false;
   showBaja = false;
+  showDetail = false;
   showDirecciones = false;
   showContactos = false;
   selectedId: number | null = null;
@@ -92,6 +95,10 @@ export class EmpresasPageComponent implements OnInit {
 
   /** Los contadores de direcciones/contactos de la tabla pueden haber cambiado dentro del modal. */
   onRelacionesClosed(): void {
+    this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
+  }
+
+  onCsvImported(): void {
     this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
   }
 
@@ -189,6 +196,11 @@ export class EmpresasPageComponent implements OnInit {
   onEditClick(id: number): void {
     this.selectedId = id;
     this.showEdit = true;
+  }
+
+  onDetailClick(id: number): void {
+    this.selectedId = id;
+    this.showDetail = true;
   }
 
   onSaveEdit(payload: GuardarEmpresaPayload<Empresa>): void {

@@ -95,6 +95,10 @@ export class UsuariosPageComponent implements OnInit {
         this.loadPage();
     }
 
+    onCsvImported(): void {
+        this.loadPage();
+    }
+
     // ── Acciones Tabla ────────────────────────────────
     onPageChange(page: number): void {
         this.currentPage = page;

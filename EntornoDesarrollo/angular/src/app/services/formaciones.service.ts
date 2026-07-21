@@ -81,10 +81,37 @@ export class FormacionesService extends BaseCrud<Formacion> {
         this.error.set(null);
         return this._toggleStatus({ action: 'toggleFormacionStatus', formacionId: id }).pipe(
             tap({
-                next: updated => { this._formaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c)); this.loading.set(false); },
+                next: updated => {
+                    this._formaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c));
+                    if (updated.activo) {
+                        this.totalActivos.update(v => v + 1);
+                        this.totalInactivos.update(v => v - 1);
+                    } else {
+                        this.totalActivos.update(v => v - 1);
+                        this.totalInactivos.update(v => v + 1);
+                    }
+                    this.loading.set(false);
+                },
                 error: e => { this.error.set(e?.message ?? 'Error al cambiar estado'); this.loading.set(false); },
             })
         );
+    }
+
+    // ── Lookups ──────────────────────────────────────────────────────────────
+    getAreas(): Observable<{ id: number; nombre: string }[]> {
+        return this._findAll({ action: 'getArea' }) as unknown as Observable<{ id: number; nombre: string }[]>;
+    }
+
+    getModalidades(): Observable<{ id: number; nombre: string }[]> {
+        return this._findAll({ action: 'getModalidad' }) as unknown as Observable<{ id: number; nombre: string }[]>;
+    }
+
+    getEjecuciones(): Observable<{ id: number; nombre: string }[]> {
+        return this._findAll({ action: 'getEjecucion' }) as unknown as Observable<{ id: number; nombre: string }[]>;
+    }
+
+    getResponsables(): Observable<{ id: number; name: string }[]> {
+        return this._findAll({ action: 'getResponsable' }) as unknown as Observable<{ id: number; name: string }[]>;
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

@@ -1,3 +1,11 @@
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:hover {
+  background: var(--bg);
+}
+
 /* relation-chip */
 .chip {
   display: inline-block;

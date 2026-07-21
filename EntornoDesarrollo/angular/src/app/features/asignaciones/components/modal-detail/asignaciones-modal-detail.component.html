@@ -1,0 +1,56 @@
+<div class="modal-overlay open" (click)="close.emit()">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 540px;">
+
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Detalle de la Asignación</div>
+        <div class="modal-subtitle">Información completa en modo lectura</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+        <span class="badge" [class.badge-active]="asignacion.activo !== false" [class.badge-inactive]="asignacion.activo === false">
+          {{ statusLabel | uppercase }}
+        </span>
+      </div>
+
+      <div class="external-badge-info">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-label">Empresa</div>
+            <div class="detail-value">{{ asignacion.empresa_nombre || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Trabajador</div>
+            <div class="detail-value">{{ asignacion.trabajador_nombre || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Comercial</div>
+            <div class="detail-value">{{ asignacion.comercial_nombre || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Tarifa</div>
+            <div class="detail-value">{{ tarifaFormateada }}</div>
+          </div>
+          <div class="detail-item" style="margin-bottom: 0;">
+            <div class="detail-label">Fecha de inicio</div>
+            <div class="detail-value">{{ asignacion.fecha_ini || '—' }}</div>
+          </div>
+          <div class="detail-item" style="margin-bottom: 0;">
+            <div class="detail-label">Fecha de fin</div>
+            <div class="detail-value">{{ asignacion.fecha_fin || '—' }}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer" style="background: #fafbff; border-top: 1px solid var(--border);">
+      <button class="btn btn-primary" (click)="close.emit()">Cerrar</button>
+    </div>
+
+  </div>
+</div>

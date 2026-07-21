@@ -30,6 +30,7 @@
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
       (tipoFilterChange)="onTypeFilterChange($event)"
+      (dataChanged)="onCsvImported()"
     />
   </div>
 
@@ -43,6 +44,7 @@
     [entityLabel]="'trabajadores'"
     (actionClick)="onTableAction($event)"
     (pageChange)="onPageChange($event)"
+    (rowDblClick)="onDetailClick($event)"
   />
 
 </div>
