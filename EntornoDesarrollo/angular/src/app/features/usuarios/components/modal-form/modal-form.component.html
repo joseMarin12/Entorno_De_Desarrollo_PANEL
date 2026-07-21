@@ -22,7 +22,7 @@
 
         <div class="form-group">
           <label class="form-label">Primer apellido <span class="req">*</span></label>
-          <input class="form-input" [class.error]="errors['apellido1']" type="text" placeholder="Ej: García" [(ngModel)]="form.apellido1">
+          <input class="form-input" [class.error]="errors['apellido1']" type="text" placeholder="Ej: García" autocomplete="off" [(ngModel)]="form.apellido1">
           @if (errors['apellido1']) { <span class="form-hint error-msg">{{ errors['apellido1'] }}</span> }
         </div>
 
