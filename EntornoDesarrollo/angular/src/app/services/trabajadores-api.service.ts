@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Trabajador, TrabajadorFormData } from '../models/trabajador.model';
 import { BaseCrud } from './base.service';
-import { environment } from '../../environments/environment'; // Asegúrate de importar el environment
+import { environment } from '../../environments/environment';
 
 export interface TrabajadorStats {
   total: number;
@@ -20,9 +20,9 @@ export interface TrabajadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
-  // FIX: apuntar al prefijo /api del proxy de Laravel
-  public override readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
 
+  // 🟢 CORREGIDO: Inclusión del prefijo /api/ y el modificador public override
+  public override readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
     return this.http.post<{ data: any[] }>(this.API_URL, {
@@ -42,11 +42,9 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
         freelances: first.stats_freelances ?? 0
       };
 
-
       if (raw.length === 1 && first.id == null) {
         return { data: [], totalFiltered: 0, stats };
       }
-
 
       const data: Trabajador[] = raw.map(item => {
         const { total_filtered, stats_total, stats_activos, stats_inactivos, stats_freelances, ...cleanItem } = item;
@@ -56,7 +54,6 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
       return { data, totalFiltered: first.total_filtered ?? raw.length, stats };
     }));
   }
-
 
   create(data: TrabajadorFormData): Observable<Trabajador> {
     const { documentos, ...rest } = data;
@@ -73,11 +70,9 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
     return this._update({ action: 'updateTrabajador', trabajadorId: id, trabajadorData });
   }
 
-
   toggleStatus(id: number): Observable<Trabajador> {
     return this._toggleStatus({ action: 'toggleTrabajadorStatus', trabajadorId: id });
   }
-
 
   getAsignacionesByTrabajador(trabajadorId: number): Observable<any[]> {
     return this.http.post<{data: any[]}>(this.API_URL, { action: 'getAsignacionesByTrabajador', trabajadorId })
@@ -89,7 +84,12 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
       .pipe(map(res => res.data ?? []));
   }
 
-  // geografía: crea si no existe
+  // 🟢 CONSERVADO: Necesario para cargar el desplegable de seleccionadores en formularios
+  getSeleccionadoresLookup(): Observable<{ id: number; nombre: string; tipo: string }[]> {
+    return this._findAll({ action: 'getSeleccionadoresLookup' }) as unknown as Observable<{ id: number; nombre: string; tipo: string }[]>;
+  }
+
+  // ── Geografía: Crea registros automáticamente si no existen ───────────────
   resolverPais(nombre: string): Observable<number> {
     return this.http.post<{ data: { id: number }[] }>(this.API_URL, { action: 'resolverPais', nombre })
       .pipe(map(res => res.data?.[0]?.id));
