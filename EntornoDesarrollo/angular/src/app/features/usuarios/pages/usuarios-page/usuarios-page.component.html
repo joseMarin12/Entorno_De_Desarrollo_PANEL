@@ -20,7 +20,7 @@
     <app-usuarios-toolbar
       (searchChange)="onSearch($event)"
       (filterChange)="onFilterChange($event)"
-      (importCsvClick)="showImportModal = true"
+      (dataChanged)="onCsvImported()"
     />
 
     <app-usuarios-table
@@ -64,8 +64,8 @@
   />
 }
 
-<app-import-csv-modal 
-  [isOpen]="showImportModal" 
+<app-import-csv-modal
+  [isOpen]="showImportModal"
   endpointUrl="http://localhost:8000/api/usuarios/importar-csv"
   (close)="showImportModal = false"
   (importSuccess)="onCsvImportado($event)">

@@ -17,7 +17,8 @@ import { TableComponent, ColumnDef } from '../../../../shared/table/table.compon
       [totalFiltered]="totalFiltered"
       entityLabel="asignaciones"
       (pageChange)="pageChange.emit($event)"
-      (actionClick)="onAction($event)">
+      (actionClick)="onAction($event)"
+      (rowDblClick)="detailClick.emit($event)">
     </app-table>
   `,
 })
@@ -29,6 +30,7 @@ export class AsignacionesTableComponent {
 
   @Output() editClick = new EventEmitter<number>();
   @Output() bajaClick = new EventEmitter<number>();
+  @Output() detailClick = new EventEmitter<number>();
   @Output() pageChange = new EventEmitter<number>();
 
   svc = inject(AsignacionesService);

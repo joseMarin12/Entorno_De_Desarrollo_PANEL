@@ -15,7 +15,8 @@
       </button>
     </div>
 
-  <app-sel-stats-row 
+  <!-- Estadísticas -->
+  <app-sel-stats-row
     [total]="statsTotal()"
     [activos]="statsActivos()"
     [inactivos]="statsInactivos()"
@@ -27,7 +28,7 @@
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
       (tipoFilterChange)="onTypeFilterChange($event)"
-      (importCsvClick)="showImportModal = true"
+      (dataChanged)="onCsvImported()"
     />
   </div>
 
@@ -40,6 +41,7 @@
     [entityLabel]="'seleccionadores'"
     (actionClick)="onTableAction($event)"
     (pageChange)="onPageChange($event)"
+    (rowDblClick)="onDetailClick($event)"
   />
 
 </div>
@@ -70,8 +72,8 @@
   />
 }
 
-<app-import-csv-modal 
-  [isOpen]="showImportModal" 
+<app-import-csv-modal
+  [isOpen]="showImportModal"
   endpointUrl="http://localhost:8000/api/seleccionadores/importar-csv"
   (close)="showImportModal = false"
   (importSuccess)="onCsvImportado($event)">

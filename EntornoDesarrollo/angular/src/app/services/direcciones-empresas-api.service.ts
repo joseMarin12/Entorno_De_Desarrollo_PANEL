@@ -48,4 +48,8 @@ export class DireccionesEmpresasApiService extends BaseCrud<DireccionEmpresa> {
     toggleStatus(id: number): Observable<DireccionEmpresa> {
         return this._toggleStatus({ action: 'toggleDireccionStatus', direccionId: id });
     }
-}    
+
+    delete(id: number): Observable<DireccionEmpresa> {
+        return this._delete({ action: 'deleteDireccion', direccionId: id });
+    }
+}

@@ -50,20 +50,17 @@ export class UsuariosPageComponent implements OnInit {
     showBaja = false;
     showDetail = false;
     selectedId = signal<number | null>(null);
-    
-    // NUEVA VARIABLE PARA EL MODAL DE CSV
-    showImportModal = false; 
 
     // ── Filtros ───────────────────────────────────────
     searchQuery = '';
     activeFilter: UsuariosFilterType = 'todos';
 
     // ── Datos calculados ──────────────────────────────
-    selectedUsuario = computed(() => 
+    selectedUsuario = computed(() =>
         this.selectedId() ? this.svc.getById(this.selectedId()!) : null
     );
 
-    emailUsuarios = computed(() => 
+    emailUsuarios = computed(() =>
         this.svc.usuarios().map(u => (u.email || '').toLowerCase())
     );
 
@@ -102,12 +99,8 @@ export class UsuariosPageComponent implements OnInit {
         this.loadPage();
     }
 
-    // ── Evento Éxito CSV ──────────────────────────────
-    onCsvImportado(respuesta: any): void {
-        // Mostramos un toast y recargamos la tabla automáticamente
-        this.toast.show('success', `✓ ${respuesta.message || 'CSV importado correctamente'}`);
-        this.currentPage = 1;
-        this.loadPage(); 
+    onCsvImported(): void {
+        this.loadPage();
     }
 
     // ── Acciones Tabla ────────────────────────────────
@@ -130,8 +123,8 @@ export class UsuariosPageComponent implements OnInit {
                     this.toast.show('info', `✎ Usuario <strong>${data.nombre} ${data.apellido1}</strong> actualizado`);
                 },
                 error: (err: any) => {
-                    const msg = err?.message?.toLowerCase().includes('duplicate') || err?.message?.toLowerCase().includes('ya existe') 
-                        ? '✗ El email ya está registrado.' 
+                    const msg = err?.message?.toLowerCase().includes('duplicate') || err?.message?.toLowerCase().includes('ya existe')
+                        ? '✗ El email ya está registrado.'
                         : '✗ No se pudo guardar los cambios. Inténtalo de nuevo.';
                     this.toast.show('error', msg);
                 }
@@ -143,8 +136,8 @@ export class UsuariosPageComponent implements OnInit {
                     this.toast.show('success', `✓ Usuario <strong>${data.nombre} ${data.apellido1}</strong> añadido correctamente`);
                 },
                 error: (err: any) => {
-                    const msg = err?.message?.toLowerCase().includes('duplicate') || err?.message?.toLowerCase().includes('ya existe') 
-                        ? '✗ El email ya está registrado.' 
+                    const msg = err?.message?.toLowerCase().includes('duplicate') || err?.message?.toLowerCase().includes('ya existe')
+                        ? '✗ El email ya está registrado.'
                         : '✗ No se pudo añadir el usuario. Inténtalo de nuevo.';
                     this.toast.show('error', msg);
                 }

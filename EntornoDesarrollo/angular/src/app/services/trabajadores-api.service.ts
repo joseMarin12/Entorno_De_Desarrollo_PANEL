@@ -89,6 +89,10 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
       .pipe(map(res => res.data ?? []));
   }
 
+  getSeleccionadoresLookup(): Observable<{ id: number; nombre: string; tipo: string }[]> {
+    return this._findAll({ action: 'getSeleccionadoresLookup' }) as unknown as Observable<{ id: number; nombre: string; tipo: string }[]>;
+  }
+
   // geografía: crea si no existe
   resolverPais(nombre: string): Observable<number> {
     return this.http.post<{ data: { id: number }[] }>(this.API_URL, { action: 'resolverPais', nombre })

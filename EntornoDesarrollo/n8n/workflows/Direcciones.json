@@ -128,6 +128,30 @@
                 },
                 "conditions": [
                   {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "deleteDireccion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "5e6a2b0a-1c7c-4b0a-9d3e-2f4a5b6c7d8e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Delete Direccion"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
                     "id": "f08df66f-cda8-4483-8d0b-498a37768aa8",
                     "leftValue": "={{ $json.body.action }}",
                     "rightValue": "getPaises",
@@ -303,14 +327,14 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.item.json.body;\n\nconst fields = ['direccion', 'codigo_postal', 'id_empresa', 'id_localidad', 'activo'];\nconst values = [body.direccionData.direccion, body.direccionData.codigoPostal, body.direccionData.id_empresa, body.direccionData.id_localidad, body.direccionData.activo];\n\nconst placeholders = values.map((_, i) => `$${i + 1}`).join(', ');\n\nreturn [{\n  json: {\n    query: `INSERT INTO direccion_empresa (${fields.join(', ')})\n            VALUES (${placeholders})\n            RETURNING id, direccion, codigo_postal, id_empresa, id_localidad, activo, created_at`,\n    params: values.join(',')\n  }\n}];"
+        "jsCode": "const body = $input.item.json.body;\n\nconst fields = ['direccion', 'codigo_postal', 'id_empresa', 'id_localidad', 'activo'];\nconst values = [body.direccionData.direccion, body.direccionData.codigoPostal, body.direccionData.id_empresa, body.direccionData.id_localidad, body.direccionData.activo];\n\nconst placeholders = values.map((_, i) => `$${i + 1}`).join(', ');\n\nreturn [{\n  json: {\n    query: `INSERT INTO direccion_empresa (${fields.join(', ')})\n            VALUES (${placeholders})\n            RETURNING id, direccion, codigo_postal, id_empresa, id_localidad, activo, created_at`,\n    params: values\n  }\n}];"
       },
       "id": "915c1cdf-4502-4add-bad2-171ad7a7172c",
       "name": "Build Create Direcciones Query",
@@ -339,7 +363,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -375,7 +399,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -385,7 +409,7 @@
         "operation": "executeQuery",
         "query": "UPDATE direccion_empresa SET direccion = $1, codigo_postal = $2, id_empresa = $3, id_localidad = $4, activo = $5, updated_at = NOW() WHERE id = $6 RETURNING id;",
         "options": {
-          "queryReplacement": "={{ $json.body.direccionData.direccion }},{{ $json.body.direccionData.codigoPostal }},{{ $json.body.direccionData.id_empresa }},{{ $json.body.direccionData.id_localidad }},{{ $json.body.direccionData.activo }},{{ $json.body.direccionId }}"
+          "queryReplacement": "={{ [$json.body.direccionData.direccion, $json.body.direccionData.codigoPostal, $json.body.direccionData.id_empresa, $json.body.direccionData.id_localidad, $json.body.direccionData.activo, $json.body.direccionId] }}"
         }
       },
       "id": "1a4c90fb-257b-4092-ac8c-5752d1f33833",
@@ -398,7 +422,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -421,7 +445,30 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM direccion_empresa WHERE id = $1 RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ $json.body.direccionId }}"
+        }
+      },
+      "id": "8f3d2c1b-4a5e-4b6f-9c7d-1e2f3a4b5c6d",
+      "name": "Delete Direccion",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        528
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -442,7 +489,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -450,10 +497,8 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, provincia from provincia where id_pais = $1;",
-        "options": {
-          "queryReplacement": "={{ $json.body.idPais }}"
-        }
+        "query": "SELECT id, id_pais, provincia FROM provincia ORDER BY provincia ASC;",
+        "options": {}
       },
       "id": "47286b22-cdd7-489b-a528-747f2500a63d",
       "name": "Get Provincias",
@@ -465,7 +510,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -473,10 +518,8 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, localidad from localidad where id_provincia = $1;",
-        "options": {
-          "queryReplacement": "={{ $json.body.idProvincia }}"
-        }
+        "query": "SELECT id, id_provincia, localidad FROM localidad ORDER BY localidad ASC;",
+        "options": {}
       },
       "id": "d71b2bb8-15ee-4afb-b5ed-537dc91d9dc6",
       "name": "Get Localidades",
@@ -488,7 +531,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "KezwkIj6LgJHArvL",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -596,6 +639,13 @@
         [
           {
             "node": "Toggle Direccion Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete Direccion",
             "type": "main",
             "index": 0
           }
@@ -729,6 +779,17 @@
         ]
       ]
     },
+    "Delete Direccion": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Get Paises": {
       "main": [
         [
@@ -792,7 +853,7 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",

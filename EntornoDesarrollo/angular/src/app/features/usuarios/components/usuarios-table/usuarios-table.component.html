@@ -6,5 +6,6 @@
   [totalFiltered]="totalFiltered"
   entityLabel="usuarios"
   (pageChange)="pageChange.emit($event)"
-  (actionClick)="onAction($event)">
+  (actionClick)="onAction($event)"
+  (rowDblClick)="detailClick.emit($event)">
 </app-table>

@@ -1,0 +1,119 @@
+<div class="modal-overlay open">
+  <div class="modal" style="max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Direcciones</div>
+        <div class="modal-subtitle">{{ nombreEmpresa || 'Empresa' }}</div>
+      </div>
+      <button class="modal-close" (click)="close.emit()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      @if (!loadingDirecciones && direcciones.length === 0 && !showNewDireccion) {
+        <div class="empty-hint">Esta empresa todavía no tiene direcciones registradas.</div>
+      }
+
+      @for (d of direcciones; track d.id) {
+        <div class="repeat-card">
+          <button type="button" class="repeat-delete-btn" title="Eliminar dirección" (click)="deleteDireccion(d.id!)">
+            Eliminar
+          </button>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Dirección</label>
+              <input class="form-input" type="text" [value]="d.direccion" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Código Postal</label>
+              <input class="form-input" type="text" [value]="d.codigoPostal" disabled>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Localidad</label>
+              <input class="form-input" type="text" [value]="direccionUbicacion(d)" disabled>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (showNewDireccion) {
+        <div class="repeat-card">
+          <button type="button" class="repeat-remove-btn" title="Cancelar" (click)="cancelNewDireccion()">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Dirección</label>
+              <input class="form-input" type="text" placeholder="Ej: Calle Principal 123" [(ngModel)]="newDireccion.direccion">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Código Postal</label>
+              <input class="form-input" type="text" placeholder="Ej: 28001" [(ngModel)]="newDireccion.codigoPostal">
+            </div>
+            <div class="form-group">
+              <app-lookup-select
+                [apiUrl]="direccionesApiUrl"
+                action="getPaises"
+                label="País"
+                labelField="pais"
+                placeholder="Selecciona un país..."
+                [searchable]="true"
+                [(ngModel)]="newDireccion.id_pais"
+                (ngModelChange)="onDireccionPaisChange()"
+              />
+            </div>
+            <div class="form-group">
+              <app-lookup-select
+                [apiUrl]="direccionesApiUrl"
+                action="getProvincias"
+                label="Provincia"
+                labelField="provincia"
+                filterField="id_pais"
+                [filterValue]="newDireccion.id_pais"
+                placeholder="Selecciona una provincia..."
+                [searchable]="true"
+                [(ngModel)]="newDireccion.id_provincia"
+                (ngModelChange)="onDireccionProvinciaChange()"
+              />
+            </div>
+            <div class="form-group full">
+              <app-lookup-select
+                [apiUrl]="direccionesApiUrl"
+                action="getLocalidades"
+                label="Localidad"
+                labelField="localidad"
+                filterField="id_provincia"
+                [filterValue]="newDireccion.id_provincia"
+                placeholder="Selecciona una localidad..."
+                [searchable]="true"
+                [(ngModel)]="newDireccion.id_localidad"
+              />
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 10px 0 0; border-top: none;">
+            <button class="btn btn-outline" (click)="cancelNewDireccion()">Cancelar</button>
+            <button class="btn btn-primary" [disabled]="savingDireccion" (click)="saveNewDireccion()">
+              {{ savingDireccion ? 'Guardando...' : 'Guardar dirección' }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <button type="button" class="btn-add-row" (click)="openNewDireccion()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Añadir dirección
+        </button>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="close.emit()">Cerrar</button>
+    </div>
+  </div>
+</div>

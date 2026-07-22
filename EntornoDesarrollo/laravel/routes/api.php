@@ -7,41 +7,46 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\FormacionController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\DireccionesEmpresaController;
-use App\Http\Controllers\AsignacionController;
-use App\Http\Controllers\TrabajadorController;
-use App\Http\Controllers\AutenticadorController;
-use App\Http\Controllers\DocumentoController; 
-use App\Http\Middleware\VerifyApiToken;
+use App\Http\Controllers\ContactoEmpresaController;
+use Illuminate\Support\Facades\Route;
 
-// =========================================================================
-// RUTA DE AUTENTICACIÓN (LOGIN)
-// =========================================================================
-// URL final en Angular: ${environment.apiUrl}/api/login
+/*
+|--------------------------------------------------------------------------
+| API Routes - Auth
+|--------------------------------------------------------------------------
+*/
 Route::post('/login', [AutenticadorController::class, 'login']);
 
-// =========================================================================
-// RUTAS LIBRES (Módulos de n8n / Gestión pública)
-// =========================================================================
-// SELECCIONADORES
-Route::post('/seleccionadores', [SeleccionadorController::class, 'proxy']);
-Route::post('/gestion-seleccionadores', [SeleccionadorController::class, 'proxy']);
+/*
+|--------------------------------------------------------------------------
+| API Routes - Protegidas con verify.token
+|--------------------------------------------------------------------------
+*/
+Route::middleware('verify.token')->group(function () {
 
-// USUARIOS
-Route::post('/usuarios', [UsuariosController::class, 'proxy']);
-Route::post('/gestion-usuarios', [UsuariosController::class, 'proxy']);
-
-// =========================================================================
-// RUTAS PROTEGIDAS (Verificación por Token Middleware)
-// =========================================================================
-Route::middleware([VerifyApiToken::class])->group(function () {
-    
+    /*
+    |--------------------------------------------------------------------------
+    | API Routes - Comerciales
+    |--------------------------------------------------------------------------
+    | Laravel actúa como proxy: recibe la petición de Angular y la reenvía
+    | al webhook de n8n que gestiona el CRUD contra PostgreSQL.
+    |
+    | Endpoint único:
+    |   POST /api/comerciales
+    |   Body: { action: string, ...datos }
+    |
+    | Acciones soportadas (las maneja n8n):
+    |   - getComerciales
+    |   - createComercial
+    |   - updateComercial
+    |   - toggleComercialStatus
+    */
     Route::post('/comerciales', [ComercialController::class, 'proxy']);
     Route::post('/formaciones', [FormacionController::class, 'proxy']);
     Route::post('/empresas', [EmpresaController::class, 'proxy']);
     Route::post('/direcciones-empresas', [DireccionesEmpresaController::class, 'proxy']);
-    Route::post('/asignaciones', [AsignacionController::class, 'proxy']);
+    Route::post('/contactos-empresas', [ContactoEmpresaController::class, 'proxy']);
+    Route::post('/asignaciones', [\App\Http\Controllers\AsignacionController::class, 'proxy']);
     Route::post('/trabajadores', [TrabajadorController::class, 'proxy']);
-    
-    // Gestión de Documentos y Firmas
-    Route::post('/documentos', [DocumentoController::class, 'proxy']);
+
 });

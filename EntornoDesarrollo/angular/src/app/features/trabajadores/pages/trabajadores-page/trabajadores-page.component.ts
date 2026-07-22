@@ -72,8 +72,6 @@ export class TrabajadoresPageComponent implements OnInit, OnDestroy {
   showConfirm = false;
   showDetail = false;
   showFirma = false;
-  showImportModal = false;
-  
   selectedFirma = signal<any | null>(null);
   confirmMode = ConfirmMode.DESACTIVAR;
   selectedId = signal<number | null>(null);
@@ -100,16 +98,20 @@ export class TrabajadoresPageComponent implements OnInit, OnDestroy {
     this.docsApi.getTiposDoc().subscribe({ next: (data) => this.tiposDoc.set(data) });
   }
 
-  onCsvImportado(respuesta: any): void {
-    this.toast.show('success', `✓ ${respuesta.message || 'CSV importado correctamente'}`);
-    this.currentPage.set(1);
-    this.loadPage();
+  private getById(id: number): Trabajador | undefined {
+    return this._trabajadores().find(t => t.id === id);
   }
 
-  // --- El resto de métodos existentes (getById, onSearchChange, etc) permanecen igual ---
-  private getById(id: number): Trabajador | undefined { return this._trabajadores().find(t => t.id === id); }
-  readonly existingEmails = computed(() => this._trabajadores().map(t => t.email?.toLowerCase()).filter(Boolean) as string[]);
-  readonly existingDnis = computed(() => this._trabajadores().map(t => t.dni_nif_pasaporte?.trim()).filter(Boolean) as string[]);
+  // Listas para validación UI de unicidad
+  readonly existingEmails = computed(() => {
+    return this._trabajadores().map(t => t.email?.toLowerCase()).filter(Boolean) as string[];
+  });
+  readonly existingDnis = computed(() => {
+    return this._trabajadores().map(t => t.dni_nif_pasaporte?.trim()).filter(Boolean) as string[];
+  });
+
+  onCsvImported(): void { this.currentPage.set(1); this.loadPage(); }
+
   onSearchChange(q: string): void { this.searchQuery.set(q); this.currentPage.set(1); this.loadPage(); }
   onFilterChange(f: TrabFilterType): void { this.activeFilter.set(f); this.currentPage.set(1); this.loadPage(); }
   onTypeFilterChange(t: TrabFilterTipoType): void { this.typeFilter.set(t); this.currentPage.set(1); this.loadPage(); }

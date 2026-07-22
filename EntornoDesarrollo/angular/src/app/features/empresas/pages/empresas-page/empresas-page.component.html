@@ -18,11 +18,10 @@
 
   <app-stats-row [total]="statsTotal()" [activos]="statsActivos()" [inactivos]="statsInactivos()" />
 
-  <app-toolbar 
-    (searchChange)="onSearchChange($event)" 
-    (filterChange)="onFilterChange($event)" 
-    (tipoFilterChange)="onTypeFilterChange($event)" 
-    (importCsvClick)="showImportModal = true"
+  <app-toolbar
+    (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
+    (tipoFilterChange)="onTypeFilterChange($event)"
   />
 
   <app-table
@@ -34,29 +33,50 @@
     [entityLabel]="'empresas'"
     (actionClick)="onTableAction($event)"
     (pageChange)="onPageChange($event)"
+    (rowDblClick)="onDetailClick($event)"
   />
 
 </div>
 
 @if (showAdd) {
-  <app-empresas-modal (save)="onSaveAdd($any($event))" (close)="showAdd = false" />
+  <app-modal-empresas (saveAdd)="onSaveAdd($any($event))" (close)="showAdd = false" />
+}
+
+@if (showDetail && selectedEmpresa) {
+  <app-empresas-modal-detail [empresa]="selectedEmpresa" (close)="showDetail = false; selectedId = null" />
 }
 
 @if (showEdit && selectedEmpresa) {
-  <app-empresas-modal [empresa]="selectedEmpresa" [existingCIFs]="existingCIFsForEdit" (save)="onSaveEdit($any($event))" (close)="showEdit = false; selectedId = null" />
+  <app-modal-empresas [empresa]="selectedEmpresa" [existingCIFs]="existingCIFsForEdit" (saveEdit)="onSaveEdit($any($event))" (close)="showEdit = false; selectedId = null" />
 }
 
-@if (showBaja && selectedEmpresa) {
-  <app-confirmation-modal 
-    [name]="fullName(selectedEmpresa)"
-    [mode]="selectedEmpresa.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR" 
-    (confirm)="onConfirmBaja()"
-    (closed)="showBaja = false; selectedId = null" 
+@if (showDirecciones && relacionesEmpresa) {
+  <app-empresa-direcciones-modal
+    [idEmpresa]="relacionesEmpresaId!"
+    [nombreEmpresa]="fullName(relacionesEmpresa)"
+    (close)="showDirecciones = false; relacionesEmpresaId = null; onRelacionesClosed()"
   />
 }
 
-<app-import-csv-modal 
-  [isOpen]="showImportModal" 
+@if (showContactos && relacionesEmpresa) {
+  <app-empresa-contactos-modal
+    [idEmpresa]="relacionesEmpresaId!"
+    [nombreEmpresa]="fullName(relacionesEmpresa)"
+    (close)="showContactos = false; relacionesEmpresaId = null; onRelacionesClosed()"
+  />
+}
+
+@if (showBaja && selectedEmpresa) {
+  <app-confirmation-modal
+    [name]="fullName(selectedEmpresa)"
+    [mode]="selectedEmpresa.activo ? ConfirmMode.DESACTIVAR : ConfirmMode.ACTIVAR"
+    (confirm)="onConfirmBaja()"
+    (closed)="showBaja = false; selectedId = null"
+  />
+}
+
+<app-import-csv-modal
+  [isOpen]="showImportModal"
   endpointUrl="http://localhost:8000/api/empresas/importar-csv"
   (close)="showImportModal = false"
   (importSuccess)="onCsvImportado($event)">

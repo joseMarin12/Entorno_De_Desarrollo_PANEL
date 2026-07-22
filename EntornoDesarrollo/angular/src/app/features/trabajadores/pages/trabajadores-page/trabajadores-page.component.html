@@ -1,20 +1,23 @@
 <app-topbar pageTitle="Trabajadores" />
 
 <div class="page-content">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Trabajadores</div>
-      <div class="page-subtitle">Gestiona tu equipo de trabajadores en plantilla y freelances</div>
-    </div>
-    <button class="btn btn-primary" (click)="openAdd()">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-      </svg>
-      Nuevo Trabajador
-    </button>
-  </div>
 
-  <app-trab-stats-row 
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">Trabajadores</div>
+        <div class="page-subtitle">Gestiona tu equipo de trabajadores en plantilla y freelances</div>
+      </div>
+      <button class="btn btn-primary" (click)="openAdd()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Trabajador
+      </button>
+    </div>
+
+
+  <app-trab-stats-row
     [total]="statsTotal()"
     [activos]="statsActivos()"
     [inactivos]="statsInactivos()"
@@ -26,7 +29,7 @@
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
       (tipoFilterChange)="onTypeFilterChange($event)"
-      (importCsvClick)="showImportModal = true"
+      (dataChanged)="onCsvImported()"
     />
   </div>
 
@@ -39,6 +42,7 @@
     [entityLabel]="'trabajadores'"
     (actionClick)="onTableAction($event)"
     (pageChange)="onPageChange($event)"
+    (rowDblClick)="onDetailClick($event)"
   />
 </div>
 
@@ -96,8 +100,8 @@
     (closed)="showConfirm = false" />
 }
 
-<app-import-csv-modal 
-  [isOpen]="showImportModal" 
+<app-import-csv-modal
+  [isOpen]="showImportModal"
   endpointUrl="http://localhost:8000/api/trabajadores/importar-csv"
   (close)="showImportModal = false"
   (importSuccess)="onCsvImportado($event)">

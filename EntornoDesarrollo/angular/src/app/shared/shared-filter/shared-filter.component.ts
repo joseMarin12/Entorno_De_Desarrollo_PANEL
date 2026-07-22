@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { CsvImportComponent, CsvColumnDef, CsvImportRowOutcome } from '../csv-import/csv-import.component';
 
 export type FilterType = 'todos' | 'activos' | 'baja';
 
@@ -11,7 +13,7 @@ export interface SearchEvent {
 @Component({
   selector: 'app-shared-filter',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CsvImportComponent],
   template: `
     <div class="toolbar">
       <div class="search-wrap">
@@ -44,14 +46,27 @@ export interface SearchEvent {
           (click)="setFilter('baja')"
         >Dados de baja</button>
       </div>
+
+      <app-csv-import
+        [columns]="csvColumns"
+        [importRow]="csvImportRow"
+        [rowLabel]="csvRowLabel"
+        (imported)="dataChanged.emit()"
+      />
     </div>
   `
 })
 export class SharedFilterComponent {
   @Input() placeholder = 'Buscar por nombre, email…';
 
+  /** Configuración de la carga masiva CSV: la define la página que usa este toolbar (cada módulo tiene sus propios campos). */
+  @Input() csvColumns: CsvColumnDef[] = [];
+  @Input() csvImportRow: ((row: Record<string, string>) => Observable<CsvImportRowOutcome | void>) | null = null;
+  @Input() csvRowLabel: (row: Record<string, string>) => string = () => '';
+
   @Output() searchChange = new EventEmitter<string>();
   @Output() filterChange = new EventEmitter<FilterType>();
+  @Output() dataChanged = new EventEmitter<void>();
 
   searchText = '';
   activeFilter = signal<FilterType>('todos');

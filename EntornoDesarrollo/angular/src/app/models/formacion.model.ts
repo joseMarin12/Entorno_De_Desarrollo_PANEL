@@ -25,4 +25,10 @@ export interface Formacion {
   activo?: boolean;
   created_at?: string;
   updated_at?: string;
+
+  // ── Etiquetas resueltas por el backend (solo lectura, para tablas/detalle) ──
+  estado_nombre?: string;
+  area_nombre?: string;
+  modalidad_nombre?: string;
+  ejecucion_nombre?: string;
 }

@@ -33,7 +33,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "GXJnc5iMJ8MfZ3XO",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -56,7 +56,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "GXJnc5iMJ8MfZ3XO",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -79,7 +79,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "GXJnc5iMJ8MfZ3XO",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -100,7 +100,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "GXJnc5iMJ8MfZ3XO",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -123,7 +123,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "GXJnc5iMJ8MfZ3XO",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -510,5 +510,7 @@
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "04ef1316631ad25151bd9872e1ab2ae90a1247075d8a98db4baa86e84aca6b57"
-  }
+  },
+  "name": "Seleccionadores",
+  "id": "e39edbe8ded23e09"
 }

@@ -94,6 +94,19 @@ export class AsignacionesService extends BaseCrud<Asignacion> {
         );
     }
 
+    // ── Lookups ──────────────────────────────────────────────────────────────
+    getEmpresasLookup(): Observable<{ id: number; nombre_empresa: string }[]> {
+        return this._findAll({ action: 'getEmpresas' }) as unknown as Observable<{ id: number; nombre_empresa: string }[]>;
+    }
+
+    getTrabajadoresLookup(): Observable<{ id: number; nombre_completo: string }[]> {
+        return this._findAll({ action: 'getTrabajadores' }) as unknown as Observable<{ id: number; nombre_completo: string }[]>;
+    }
+
+    getComercialesLookup(): Observable<{ id: number; nombre_completo: string }[]> {
+        return this._findAll({ action: 'getComerciales' }) as unknown as Observable<{ id: number; nombre_completo: string }[]>;
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
     getById(id: number): Asignacion | undefined {
         return this._asignaciones().find(c => c.id === id);

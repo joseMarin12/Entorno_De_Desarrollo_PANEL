@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, map, catchError, throwError } from 'rxjs';
 import { Usuario, Role } from '../models/usuarios.model';
@@ -15,12 +15,16 @@ export class UsuariosService extends BaseCrud<Usuario> {
   readonly error    = signal<string | null>(null);
   readonly totalRecords = signal(0);
 
+  // Totales globales (fijos, no cambian al filtrar/paginar) — vienen del backend.
+  private readonly _statsTotal = signal(0);
+  private readonly _statsActivos = signal(0);
+  private readonly _statsInactivos = signal(0);
+
   readonly usuarios = this._usuarios.asReadonly();
   readonly total    = this.totalRecords.asReadonly();
-  
-  // Computados adaptados para leer limpiamente la propiedad enabled del modelo
-  readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
-  readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
+  readonly activos  = this._statsActivos.asReadonly();
+  readonly inactivos = this._statsInactivos.asReadonly();
+  readonly statsTotal = this._statsTotal.asReadonly();
 
   private _roles = signal<Role[]>([]);
   readonly roles = this._roles.asReadonly();
@@ -42,7 +46,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
   loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {
     this.loading.set(true);
     this.error.set(null);
-    
+
     return this._findAll({
       action: 'getUser',
       page,
@@ -65,6 +69,9 @@ export class UsuariosService extends BaseCrud<Usuario> {
           // Alineado con las estadísticas globales calculadas en el CTE de n8n
           const total = Number(firstRow.total_filtered || firstRow.stats_total || mapped.length);
           this.totalRecords.set(total);
+          this._statsTotal.set(Number(firstRow.stats_total ?? total));
+          this._statsActivos.set(Number(firstRow.stats_activos ?? 0));
+          this._statsInactivos.set(Number(firstRow.stats_inactivos ?? 0));
         } else {
           this.totalRecords.set(0);
         }
@@ -199,7 +206,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
   private applyRobustMerge(backendRes: any, localData: Usuario): Usuario {
     const mapped = this.mapSingleFromBackend(backendRes);
     const isReal = backendRes && (backendRes.id || backendRes.nombre || backendRes.name || backendRes.email);
-    
+
     if (isReal) {
       const cleanedMapped: any = {};
       const raw = (backendRes.json && typeof backendRes.json === 'object') ? backendRes.json : backendRes;
@@ -213,7 +220,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
       if (raw.roleid || raw.role_id || raw.ID_ROL || raw.id_rol) cleanedMapped.roleid = mapped.roleid;
 
       const merged = { ...localData, ...cleanedMapped };
-      
+
       if (!cleanedMapped.password && localData.password) {
         merged.password = localData.password;
       }
@@ -223,8 +230,8 @@ export class UsuariosService extends BaseCrud<Usuario> {
   }
 
   private mapSingleFromBackend(item: any): Usuario {
-    const d = (item && item.json && typeof item.json === 'object' && !Array.isArray(item.json)) 
-              ? item.json 
+    const d = (item && item.json && typeof item.json === 'object' && !Array.isArray(item.json))
+              ? item.json
               : item;
 
     if (!d || typeof d !== 'object') return {} as Usuario;

@@ -1,17 +1,23 @@
 {
+  "updatedAt": "2026-06-10T15:04:47.451Z",
+  "createdAt": "2026-06-10T15:04:36.717Z",
+  "id": "gu8iXqepsV97YLNE",
   "name": "Formaciones",
+  "description": null,
+  "active": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
         "jsCode": "const firstItem = $input.first() || {};\n\nconst errorObj = firstItem.error || {};\nconst cause = errorObj.cause || {};\n\nconst jsonObj = firstItem.json || {};\n\nconst nestedError = jsonObj.error || {};\nconst nestedCause = nestedError.cause || {};\n\nconst pgCode = String(\n  cause.code ||\n  errorObj.code ||\n  nestedCause.code ||\n  nestedError.code ||\n  jsonObj.code ||\n  ''\n);\n\nconst rawMessage = String(\n  jsonObj.message ||\n  cause.message ||\n  errorObj.message ||\n  errorObj.description ||\n  nestedCause.message ||\n  nestedError.message ||\n  nestedError.description ||\n  'Error desconocido'\n);\n\nlet status = 500;\nlet errorType = 'Internal Server Error';\nlet message = rawMessage;\nlet code = 'DB_ERROR';\n\n// Unique constraint violation\nif (\n  pgCode === '23505' ||\n  rawMessage.includes('unique constraint')\n) {\n  status = 409;\n  errorType = 'Conflict';\n  code = 'DUPLICATE_ENTRY';\n\n  if (rawMessage.toLowerCase().includes('email')) {\n    message = 'El correo electrónico ya se encuentra registrado.';\n    code = 'EMAIL_ALREADY_EXISTS';\n  } else {\n    const match = rawMessage.match(\n      /unique constraint \\\"(.+?)\\\"/i\n    );\n\n    message = match\n      ? `Ya existe un registro que viola la restricción: ${match[1]}.`\n      : 'Ya existe un registro con esos datos.';\n  }\n}\n\n// NOT NULL violation\nelse if (\n  pgCode === '23502' ||\n  rawMessage.includes('not-null constraint') ||\n  rawMessage.includes('violates not-null')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'MISSING_REQUIRED_FIELD';\n\n  const match = rawMessage.match(/column \\\"(.+?)\\\"/);\n\n  const field = match\n    ? match[1]\n    : 'desconocido';\n\n  message = `El campo \"${field}\" es obligatorio y no puede estar vacío.`;\n}\n\n// Foreign key violation\nelse if (\n  pgCode === '23503' ||\n  rawMessage.includes('foreign key constraint')\n) {\n  status = 409;\n  errorType = 'Conflict';\n  code = 'FOREIGN_KEY_VIOLATION';\n\n  message =\n    'El registro referenciado no existe o ha sido eliminado.';\n}\n\n// Check constraint violation\nelse if (\n  pgCode === '23514' ||\n  rawMessage.includes('check constraint')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'CHECK_VIOLATION';\n\n  message =\n    'Los datos enviados no cumplen las restricciones requeridas.';\n}\n\n// Invalid date format\nelse if (\n  rawMessage.includes('invalid input syntax for type date')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'INVALID_DATE_FORMAT';\n\n  message =\n    'El formato de fecha introducido no es válido o está vacío.';\n}\n\n// Generic invalid input\nelse if (\n  rawMessage.includes('invalid input syntax')\n) {\n  status = 422;\n  errorType = 'Unprocessable Entity';\n  code = 'INVALID_INPUT_FORMAT';\n\n  message =\n    'Uno de los campos introducidos tiene un formato incorrecto (ej: texto en lugar de número).';\n}\n\nreturn [\n  {\n    json: {\n      status,\n      error: errorType,\n      message,\n      code,\n    },\n  },\n];"
       },
-      "id": "088550bc-9347-4215-9728-9ef6c44f0a52",
+      "id": "77267174-a2ed-42c7-9cd3-6179520eb4df",
       "name": "Handle DB Error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1456,
-        864
+        480,
+        1280
       ]
     },
     {
@@ -26,10 +32,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -352,
-        576
+        -1328,
+        992
       ],
-      "id": "d804d0d4-f10f-4e08-a6d8-f4b0f4e936c7",
+      "id": "59909a7c-efd2-4499-8be3-4cf355861114",
       "name": "API Gestión Formaciones1",
       "webhookId": "formaciones-gestion-uuid-0001"
     },
@@ -311,10 +317,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        416,
-        432
+        -560,
+        848
       ],
-      "id": "c621900c-9991-4bc7-bddb-9c67f04ee521",
+      "id": "496297fa-1b9f-4f51-adc4-f2d87dea54b8",
       "name": "Route by Action1"
     },
     {
@@ -324,10 +330,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        880,
-        -400
+        -96,
+        16
       ],
-      "id": "63fdd2aa-633c-464b-b3d4-20f39e2741ad",
+      "id": "307f961e-bb92-46b6-925d-df41d8c9aaed",
       "name": "Build Get Formaciones Query1"
     },
     {
@@ -341,14 +347,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1072,
-        -400
+        96,
+        16
       ],
-      "id": "07f0ce20-a0b3-45fb-a98a-226a0a5dbac4",
+      "id": "bb304f97-41e2-4b2f-a641-ec8dbda03ee7",
       "name": "Get Formaciones1",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -358,20 +364,20 @@
         "operation": "executeQuery",
         "query": "INSERT INTO formacion (\n  id_estado, curso, denominacion, motivo, id_area,\n  recursos, id_responsable, id_modalidad, duracion, dentro_fuera_jornada,\n  observaciones, fecha_prevista, fecha_inicio, fecha_fin, horario,\n  id_ejecucion, eficacia, anio, coste, bonificacion, total, activo\n) VALUES (\n  $1, $2, $3, $4, $5,\n  $6, $7, $8, $9, $10,\n  $11, $12, $13, $14, $15,\n  $16, $17, $18, $19, $20, $21, true\n) RETURNING *;",
         "options": {
-          "queryReplacement": "={{ $json.body.formacionData.id_estado }},={{ $json.body.formacionData.curso }},={{ $json.body.formacionData.denominacion }},={{ $json.body.formacionData.motivo }},={{ $json.body.formacionData.id_area }},={{ $json.body.formacionData.recursos }},={{ $json.body.formacionData.id_responsable }},={{ $json.body.formacionData.id_modalidad }},={{ $json.body.formacionData.duracion }},={{ $json.body.formacionData.dentro_fuera_jornada }},={{ $json.body.formacionData.observaciones }},={{ $json.body.formacionData.fecha_prevista }},={{ $json.body.formacionData.fecha_inicio }},={{ $json.body.formacionData.fecha_fin }},={{ $json.body.formacionData.horario }},={{ $json.body.formacionData.id_ejecucion }},={{ $json.body.formacionData.eficacia }},={{ $json.body.formacionData.anio }},={{ $json.body.formacionData.coste }},={{ $json.body.formacionData.bonificacion }},={{ $json.body.formacionData.total }}"
+          "queryReplacement": "={{ [$json.body.formacionData.id_estado ?? null, $json.body.formacionData.curso ?? null, $json.body.formacionData.denominacion ?? null, $json.body.formacionData.motivo ?? null, $json.body.formacionData.id_area ?? null, $json.body.formacionData.recursos ?? null, $json.body.formacionData.id_responsable ?? null, $json.body.formacionData.id_modalidad ?? null, $json.body.formacionData.duracion ?? null, $json.body.formacionData.dentro_fuera_jornada ?? null, $json.body.formacionData.observaciones ?? null, $json.body.formacionData.fecha_prevista ?? null, $json.body.formacionData.fecha_inicio ?? null, $json.body.formacionData.fecha_fin ?? null, $json.body.formacionData.horario ?? null, $json.body.formacionData.id_ejecucion ?? null, $json.body.formacionData.eficacia ?? null, $json.body.formacionData.anio ?? null, $json.body.formacionData.coste ?? null, $json.body.formacionData.bonificacion ?? null, $json.body.formacionData.total ?? null] }}"
         }
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1072,
-        -224
+        96,
+        192
       ],
-      "id": "4afc947e-c68d-466c-9225-afc8c3eaaf34",
+      "id": "a68fe872-fe8c-4073-b7e1-fcc8938a8e33",
       "name": "Insert Formacion1",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       },
@@ -388,14 +394,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1072,
-        -32
+        96,
+        384
       ],
-      "id": "e7b8db89-6d73-4d0c-b572-e3379c3174d5",
+      "id": "e5f2e353-e402-486d-951f-78be3d765cd3",
       "name": "Update Formacion1",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       },
@@ -412,14 +418,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1072,
-        160
+        96,
+        576
       ],
-      "id": "14d4f213-e984-4879-9106-25e8bf346f15",
+      "id": "f8fa2713-723c-4f31-810d-6173d87ffed0",
       "name": "Toggle Formacion Status1",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       },
@@ -432,10 +438,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        960,
-        336
+        -16,
+        752
       ],
-      "id": "4dbacedc-b1e2-4791-ac49-81815a630310",
+      "id": "e28fc297-ad2d-4e90-834a-0179f0231ff0",
       "name": "Build Get Trabajadores Query1"
     },
     {
@@ -449,14 +455,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1184,
-        336
+        208,
+        752
       ],
-      "id": "d1d18da9-0fcf-4656-b6e9-500393e5f424",
+      "id": "06496eb1-d644-4540-a11f-88fed3ad298a",
       "name": "Get Trabajadores1",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       }
@@ -472,14 +478,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1072,
-        480
+        96,
+        896
       ],
-      "id": "7fff64d6-61e3-461f-bbd1-2433512c76d0",
+      "id": "d7f99475-9f7e-4d4a-9adf-c395cc43becc",
       "name": "Add Trabajador1",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       },
@@ -496,14 +502,14 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1072,
-        640
+        96,
+        1056
       ],
-      "id": "b1ade61b-aa13-4c26-a869-1e5207c7b35e",
+      "id": "86be600e-697d-4ad2-9508-38cceac632e1",
       "name": "Remove Trabajador1",
       "credentials": {
         "postgres": {
-          "id": "PEj0EcRRiVkwps7h",
+          "id": "AUTOPOSTGRESCRED01",
           "name": "Postgres account"
         }
       },
@@ -532,10 +538,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        896,
-        1424
+        -80,
+        1840
       ],
-      "id": "52505541-f5cc-4d8c-9f42-417af6f3da43",
+      "id": "a1f801f3-c8a6-4c79-9aec-0111cb4b7f36",
       "name": "Invalid Action Response1"
     },
     {
@@ -549,10 +555,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1696,
-        576
+        720,
+        992
       ],
-      "id": "53e7c0bb-91b0-4889-b498-715669b28e33",
+      "id": "ed5dfef6-f4b4-4c17-91c1-08b553d06039",
       "name": "Respond Success1"
     },
     {
@@ -566,10 +572,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1712,
-        864
+        736,
+        1280
       ],
-      "id": "75d761f7-908a-4d9c-8337-e6ac6569f5d3",
+      "id": "4e1b7be3-21a0-4f4c-8b8b-f12431505d84",
       "name": "Respond Error1"
     },
     {
@@ -581,15 +587,15 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1072,
-        784
+        96,
+        1200
       ],
-      "id": "46fd9615-c1c7-4a9e-8226-90cf3c32ea70",
+      "id": "2695bb87-4c7d-45e5-b345-42c0faec5126",
       "name": "Execute a SQL query4",
       "credentials": {
         "postgres": {
-          "id": "ko5fFqsOIauxDSEd",
-          "name": "Postgres account 2"
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
         }
       }
     },
@@ -602,15 +608,15 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1072,
-        944
+        96,
+        1360
       ],
-      "id": "373d9caa-baa2-4410-9db8-42793ce18730",
+      "id": "8c6c098d-0f32-4850-b30a-720c9a570f67",
       "name": "Execute a SQL query5",
       "credentials": {
         "postgres": {
-          "id": "ko5fFqsOIauxDSEd",
-          "name": "Postgres account 2"
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
         }
       }
     },
@@ -623,15 +629,15 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1072,
-        1104
+        96,
+        1520
       ],
-      "id": "12a9851e-3dae-4d63-a195-29e80c4748a4",
+      "id": "b761f19c-acf2-4cb0-9493-a697468708e5",
       "name": "Execute a SQL query6",
       "credentials": {
         "postgres": {
-          "id": "ko5fFqsOIauxDSEd",
-          "name": "Postgres account 2"
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
         }
       }
     },
@@ -644,15 +650,15 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1072,
-        1264
+        96,
+        1680
       ],
-      "id": "08546d8c-9e25-4366-9d6c-57d18bdb4aa5",
+      "id": "82b577b9-3824-470c-b608-96aebb1a5cee",
       "name": "Execute a SQL query7",
       "credentials": {
         "postgres": {
-          "id": "ko5fFqsOIauxDSEd",
-          "name": "Postgres account 2"
+          "id": "AUTOPOSTGRESCRED01",
+          "name": "Postgres account"
         }
       }
     },
@@ -663,10 +669,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -64,
-        576
+        -1040,
+        992
       ],
-      "id": "a88624a9-ef4a-4958-a4ba-0de0a241a22a",
+      "id": "2506e8e8-c9c8-4795-9644-e59f52028e3a",
       "name": "JWT Verify"
     },
     {
@@ -696,10 +702,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        96,
-        576
+        -880,
+        992
       ],
-      "id": "a98d862b-9db5-4e8b-b3fc-ce04ec5580e5",
+      "id": "23270d51-c926-4f24-91bb-e05cd3247fb6",
       "name": "Auth Error?"
     },
     {
@@ -713,14 +719,13 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        272,
-        272
+        -704,
+        688
       ],
-      "id": "729a22c5-af25-417c-8229-758fad532958",
+      "id": "e7e7692a-db93-4cfc-95b9-720a2850b1ad",
       "name": "Respond 401"
     }
   ],
-  "pinData": {},
   "connections": {
     "Handle DB Error": {
       "main": [
@@ -1051,16 +1056,45 @@
       ]
     }
   },
-  "active": true,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate"
+    "binaryMode": "separate",
+    "availableInMCP": false
   },
-  "versionId": "e098ac95-7c1c-4a53-a0c8-e56d31cab4d0",
+  "staticData": null,
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "68406e238b7dc5bdce60068f923199f237e1a3d96b618bf2b35e1281a86e782f"
+    "templateCredsSetupCompleted": true
   },
-  "id": "R5yHppLWfre3MYim",
-  "tags": []
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "983b14a3-ca3e-477a-9712-f9e6c24a67ac",
+  "activeVersionId": "983b14a3-ca3e-477a-9712-f9e6c24a67ac",
+  "versionCounter": 3,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-06-10T15:04:36.717Z",
+      "createdAt": "2026-06-10T15:04:36.717Z",
+      "role": "workflow:owner",
+      "workflowId": "gu8iXqepsV97YLNE",
+      "projectId": "1jsMnEE0b9kf1UbY",
+      "project": {
+        "updatedAt": "2026-06-09T15:17:52.663Z",
+        "createdAt": "2026-06-09T15:08:07.727Z",
+        "id": "1jsMnEE0b9kf1UbY",
+        "name": "Tomás Vázquez Blanco <tomas.vazquez@sgtech.tech>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "2b7f1a40-07c5-4722-9fa9-880fa5bfcdfd"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version 983b14a3",
+    "description": ""
+  }
 }

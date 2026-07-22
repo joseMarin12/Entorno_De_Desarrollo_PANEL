@@ -110,6 +110,8 @@ export class SeleccionadoresPageComponent implements OnInit {
     return list.filter(s => s && s.id !== editId && s.email).map(s => s.email!.toLowerCase());
   });
 
+  onCsvImported(): void { this.currentPage.set(1); this.loadPage(); }
+
   onSearchChange(q: string): void { this.searchQuery.set(q); this.currentPage.set(1); this.loadPage(); }
   onFilterChange(f: SelFilterType): void { this.activeFilter.set(f); this.currentPage.set(1); this.loadPage(); }
   onTypeFilterChange(t: SelFilterTipoType): void { this.typeFilter.set(t); this.currentPage.set(1); this.loadPage(); }

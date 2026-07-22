@@ -21,16 +21,20 @@
   <app-stats-row [total]="svc.total()" [activas]="svc.totalActivos()" [inactivas]="svc.totalInactivos()" />
 
   <!-- Toolbar: búsqueda + filtros -->
-  <app-shared-filter 
+  <app-shared-filter
     placeholder="Buscar por empresa o trabajador..."
-    (searchChange)="onSearchChange($event)" 
-    (filterChange)="onFilterChange($event)" 
+    [csvColumns]="csvColumns"
+    [csvImportRow]="csvImportRow"
+    [csvRowLabel]="csvRowLabel"
+    (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
+    (dataChanged)="onCsvImported()"
   />
 
   <!-- Tabla -->
   <app-asignaciones-table [asignaciones]="svc.asignaciones()" [currentPage]="currentPage" [pageSize]="PAGE_SIZE"
     [totalFiltered]="svc.totalFiltered()" (editClick)="onEditClick($event)" (bajaClick)="onBajaClick($event)"
-    (pageChange)="onPageChange($event)" />
+    (detailClick)="onDetailClick($event)" (pageChange)="onPageChange($event)" />
 
 </div>
 
@@ -38,6 +42,10 @@
 @if (showForm) {
 <app-modal-asignacion [asignacion]="selectedAsignacion!" (save)="onSaveForm($event)"
   (close)="showForm = false; selectedId = null" />
+}
+
+@if (showDetail && selectedAsignacion) {
+<app-asignaciones-modal-detail [asignacion]="selectedAsignacion!" (close)="showDetail = false; selectedId = null" />
 }
 
 @if (showBaja && selectedAsignacion) {
