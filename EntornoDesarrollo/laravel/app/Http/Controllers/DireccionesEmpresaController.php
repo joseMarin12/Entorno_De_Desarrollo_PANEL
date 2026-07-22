@@ -14,7 +14,7 @@ class DireccionesEmpresaController extends Controller
 
     public function __construct()
     {
-        // 🟢 Carga desde .env o toma como fallback la URL de Hostinger proporcionada
+        // 🟢 Lee la URL del .env o usa el webhook de Hostinger como fallback
         $urlRaw = env(
             'N8N_WEBHOOK_DIRECCIONES_EMPRESA', 
             'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-direcciones'
@@ -30,19 +30,20 @@ class DireccionesEmpresaController extends Controller
         try {
             $payload = $request->all();
 
+            // 🟢 Lista exacta de acciones requeridas por tu servicio de Angular
             $allowedActions = [
                 'getDirecciones', 
                 'getDireccionesEmpresa', 
+                'getPaises', 
+                'getProvincias', 
+                'getLocalidades', 
                 'createDireccion', 
                 'createDireccionEmpresa', 
                 'updateDireccion', 
                 'updateDireccionEmpresa', 
+                'toggleDireccionStatus', 
                 'deleteDireccion',
-                'deleteDireccionEmpresa',
-                'toggleDireccionStatus',
-                'getEmpresas',
-                'getProvincias',
-                'getPoblaciones'
+                'getEmpresas'
             ];
 
             if (!isset($payload['action']) || !in_array($payload['action'], $allowedActions)) {
@@ -51,7 +52,7 @@ class DireccionesEmpresaController extends Controller
                 ], 400);
             }
 
-            // 🔒 Inyección del contexto de seguridad (usuario autenticado)
+            // 🔒 Inyección del contexto del usuario autenticado por Middleware
             $payload['auth_user'] = [
                 'id'    => $request->input('authenticated_user_id'),
                 'email' => $request->input('authenticated_user_email'),
