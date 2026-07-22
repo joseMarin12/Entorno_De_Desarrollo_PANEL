@@ -1,53 +1,101 @@
-import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
-import { Empresa } from '../models/empresa.model';
+import { Injectable, signal } from '@angular/core';
+import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+
 import { BaseCrud } from './base.service';
+import { ContactoEmpresa } from '../models/contacto-empresa.model';
 import { environment } from '../../environments/environment';
-import { TipoEmpresa } from '../models/tipo-empresa.model';
 
 @Injectable({ providedIn: 'root' })
-export class EmpresasApiService extends BaseCrud<Empresa> {
+export class ContactosEmpresasApiService extends BaseCrud<ContactoEmpresa> {
 
-  // 🟢 CORREGIDO: Se incluye public override y el prefijo /api/ para alinearse con routes/api.php en Laravel
-  public override readonly API_URL = `${environment.apiUrl}/api/empresas`;
+    protected override readonly API_URL = `${environment.apiUrl}/api/contactos-empresas`;
 
-  findAll(searchText = '', status = '', tipo = '', page = 1, limit = 10): Observable<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }> {
-    return this.http.post<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }>(this.API_URL, {
-      action: 'getEmpresas',
-      filters: { searchText, status, tipo },
-      page,
-      limit,
-    });
-  }
+    // ── Estado reactivo con Signals ─────────────────────────────────────────
+    private _contactos = signal<ContactoEmpresa[]>([]);
+    readonly loading = signal(false);
+    readonly error = signal<string | null>(null);
 
-  findTipos(): Observable<TipoEmpresa[]> {
-    return this.http.post<{ data: TipoEmpresa[] }>(this.API_URL, { action: 'getTiposEmpresa' })
-      .pipe(
-        // Navegación segura para evitar errores en consola si la API responde null
-        map(res => res?.data ?? [])
-      );
-  }
+    readonly contactos = this._contactos.asReadonly();
+    readonly total = signal(0);
 
-  create(data: Empresa): Observable<Empresa> {
-    return this._create({ action: 'createEmpresa', empresaData: data });
-  }
+    // ── Consultas ────────────────────────────────────────────────────────────
+    findAll(idEmpresa: number, searchText = '', page = 1, limit = 100): Observable<{ data: ContactoEmpresa[], total: number }> {
+        this.loading.set(true);
+        this.error.set(null);
 
-  update(id: number, data: Empresa): Observable<Empresa> {
-    return this._update({ 
-      action: 'updateEmpresa', 
-      empresaId: id, 
-      empresaData: {
-        nombre: data.nombre,
-        razonSocial: data.razonSocial,
-        cif: data.cif,
-        id_tipo_empresa: data.id_tipo_empresa,
-        id_comerciales: data.id_comerciales,
-        activo: data.activo,
-      } 
-    });
-  }
+        return this.http.post<{ data: ContactoEmpresa[], total: number }>(this.API_URL, {
+            action: 'getContactos',
+            idEmpresa,
+            filters: { searchText },
+            page,
+            limit,
+        }).pipe(
+            tap({
+                next: res => {
+                    const list = res?.data ?? [];
+                    this._contactos.set(list);
+                    this.total.set(res?.total ?? list.length);
+                    this.loading.set(false);
+                },
+                error: e => {
+                    this.error.set(e?.message ?? 'Error al cargar contactos de la empresa');
+                    this.loading.set(false);
+                }
+            })
+        );
+    }
 
-  toggleStatus(id: number): Observable<Empresa> {
-    return this._toggleStatus({ action: 'toggleEmpresaStatus', empresaId: id });
-  }
+    // ── Mutaciones CRUD ──────────────────────────────────────────────────────
+    create(data: Omit<ContactoEmpresa, 'id'>): Observable<ContactoEmpresa> {
+        this.loading.set(true);
+        this.error.set(null);
+        return this._create({ action: 'createContacto', contactoData: data }).pipe(
+            tap({
+                next: () => this.loading.set(false),
+                error: e => { this.error.set(e?.message ?? 'Error al crear contacto'); this.loading.set(false); }
+            })
+        );
+    }
+
+    update(id: number, data: Omit<ContactoEmpresa, 'id'>): Observable<ContactoEmpresa> {
+        this.loading.set(true);
+        this.error.set(null);
+        return this._update({ action: 'updateContacto', contactoId: id, contactoData: data }).pipe(
+            tap({
+                next: () => this.loading.set(false),
+                error: e => { this.error.set(e?.message ?? 'Error al actualizar contacto'); this.loading.set(false); }
+            })
+        );
+    }
+
+    delete(id: number): Observable<ContactoEmpresa> {
+        this.loading.set(true);
+        this.error.set(null);
+        return this._delete({ action: 'deleteContacto', contactoId: id }).pipe(
+            tap({
+                next: () => this.loading.set(false),
+                error: e => { this.error.set(e?.message ?? 'Error al eliminar contacto'); this.loading.set(false); }
+            })
+        );
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    getById(id: number): ContactoEmpresa | undefined {
+        return this._contactos().find(c => c.id === id);
+    }
+
+    title(c: ContactoEmpresa): string {
+        return c.nombre_completo || `Contacto #${c.id}`;
+    }
+
+    initials(c: ContactoEmpresa): string {
+        if (!c.nombre_completo) return `C${c.id}`;
+        return c.nombre_completo
+            .split(' ')
+            .map((n: string) => n[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase();
+    }
 }
