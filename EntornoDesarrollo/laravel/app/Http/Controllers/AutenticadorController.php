@@ -11,14 +11,13 @@ class AutenticadorController extends Controller
 
     public function __construct()
     {
-        // URL del webhook de n8n para login
-        $this->n8nUrl = env('N8N_WEBHOOK_LOGIN_URL', 'http://n8n:5678/webhook/login');
+        // Apunta por defecto a Hostinger o lee la variable N8N_WEBHOOK_LOGIN_URL si está en el .env
+        $this->n8nUrl = env('N8N_WEBHOOK_LOGIN_URL', 'https://n8n.srv1128480.hstgr.cloud/webhook/login');
     }
 
     /**
      * Proxy de Login: reenvía email y password a n8n.
-     * n8n verifica credenciales con bcrypt y genera un JWT firmado.
-     * Laravel simplemente reenvía la respuesta (que incluye el token) a Angular.
+     * n8n verifica credenciales y responde el JSON con el token hacia Angular.
      */
     public function login(Request $request)
     {
