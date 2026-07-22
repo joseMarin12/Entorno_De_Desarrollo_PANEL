@@ -14,6 +14,7 @@ class ContactoEmpresaController extends Controller
 
     public function __construct()
     {
+        // 🟢 Lee la URL del .env o usa el webhook de Hostinger como fallback
         $urlRaw = env(
             'N8N_WEBHOOK_CONTACTOS_EMPRESA', 
             'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-contactos'
@@ -22,7 +23,7 @@ class ContactoEmpresaController extends Controller
     }
 
     /**
-     * Proxy seguro para Contactos de Empresa: valida acciones, inyecta auth_user y reenvía a n8n
+     * Proxy seguro para Contactos de Empresa
      */
     public function proxy(Request $request)
     {
@@ -36,9 +37,10 @@ class ContactoEmpresaController extends Controller
                 'createContactoEmpresa', 
                 'updateContacto', 
                 'updateContactoEmpresa', 
+                'deleteContacto',          // 👈 Añadido para eliminar/borrado lógico
                 'toggleContactoStatus', 
                 'toggleContactoEmpresaStatus',
-                'getEmpresas' // Lookup de empresas asociadas
+                'getEmpresas'
             ];
 
             if (!isset($payload['action']) || !in_array($payload['action'], $allowedActions)) {
@@ -47,7 +49,7 @@ class ContactoEmpresaController extends Controller
                 ], 400);
             }
 
-            // 🔒 Inyección de credenciales del usuario autenticado por el Middleware
+            // 🔒 Inyección de credenciales del usuario autenticado
             $payload['auth_user'] = [
                 'id'    => $request->input('authenticated_user_id'),
                 'email' => $request->input('authenticated_user_email'),
@@ -65,7 +67,7 @@ class ContactoEmpresaController extends Controller
                 $headers['Authorization'] = $token;
             }
 
-            // Petición a n8n con timeout preventivo de 30 segundos
+            // Petición a n8n con timeout de 30s
             $response = Http::timeout(30)
                 ->withHeaders($headers)
                 ->post($this->n8nUrl, $payload);
@@ -83,7 +85,7 @@ class ContactoEmpresaController extends Controller
             Log::warning("Fallo de conexión hacia n8n [ContactoEmpresa]: " . $e->getMessage());
 
             return response()->json([
-                'error'   => 'No se pudo establecer comunicación con el servidor n8n.',
+                'error'   => 'No se pudo conectar con el servicio de n8n.',
                 'details' => $e->getMessage()
             ], 502);
 
@@ -94,7 +96,7 @@ class ContactoEmpresaController extends Controller
             ]);
 
             return response()->json([
-                'error'   => 'Error interno en el servidor backend (Laravel Proxy).',
+                'error'   => 'Error interno en el servidor Laravel (Proxy).',
                 'message' => $e->getMessage(),
                 'file'    => $e->getFile(),
                 'line'    => $e->getLine()
