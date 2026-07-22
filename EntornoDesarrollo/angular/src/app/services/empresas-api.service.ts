@@ -7,7 +7,9 @@ import { TipoEmpresa } from '../models/tipo-empresa.model';
 
 @Injectable({ providedIn: 'root' })
 export class EmpresasApiService extends BaseCrud<Empresa> {
-  protected readonly API_URL = `${environment.apiUrl}/empresas`;
+
+  // 🟢 CORREGIDO: Se incluye public override y el prefijo /api/ para alinearse con routes/api.php en Laravel
+  public override readonly API_URL = `${environment.apiUrl}/api/empresas`;
 
   findAll(searchText = '', status = '', tipo = '', page = 1, limit = 10): Observable<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }> {
     return this.http.post<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }>(this.API_URL, {
@@ -20,7 +22,10 @@ export class EmpresasApiService extends BaseCrud<Empresa> {
 
   findTipos(): Observable<TipoEmpresa[]> {
     return this.http.post<{ data: TipoEmpresa[] }>(this.API_URL, { action: 'getTiposEmpresa' })
-      .pipe(map(res => res.data));
+      .pipe(
+        // Navegación segura para evitar errores en consola si la API responde null
+        map(res => res?.data ?? [])
+      );
   }
 
   create(data: Empresa): Observable<Empresa> {
@@ -28,14 +33,18 @@ export class EmpresasApiService extends BaseCrud<Empresa> {
   }
 
   update(id: number, data: Empresa): Observable<Empresa> {
-    return this._update({ action: 'updateEmpresa', empresaId: id, empresaData: {
-      nombre: data.nombre,
-      razonSocial: data.razonSocial,
-      cif: data.cif,
-      id_tipo_empresa: data.id_tipo_empresa,
-      id_comerciales: data.id_comerciales,
-      activo: data.activo,
-    } });
+    return this._update({ 
+      action: 'updateEmpresa', 
+      empresaId: id, 
+      empresaData: {
+        nombre: data.nombre,
+        razonSocial: data.razonSocial,
+        cif: data.cif,
+        id_tipo_empresa: data.id_tipo_empresa,
+        id_comerciales: data.id_comerciales,
+        activo: data.activo,
+      } 
+    });
   }
 
   toggleStatus(id: number): Observable<Empresa> {
