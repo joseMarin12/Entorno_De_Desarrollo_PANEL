@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, map, catchError, throwError } from 'rxjs';
 import { Usuario, Role } from '../models/usuarios.model';
@@ -8,6 +8,7 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class UsuariosService extends BaseCrud<Usuario> {
 
+  // FIX: Apuntar al prefijo /api del proxy de Laravel para producción
   public override readonly API_URL = `${environment.apiUrl}/api/usuarios`;
 
   private _usuarios = signal<Usuario[]>([]);
@@ -15,15 +16,16 @@ export class UsuariosService extends BaseCrud<Usuario> {
   readonly error    = signal<string | null>(null);
   readonly totalRecords = signal(0);
 
-  readonly usuarios   = this._usuarios.asReadonly();
-  readonly total      = this.totalRecords.asReadonly();
-  
-  // 🟢 Alias para compatibilidad con UsuariosStatsRowComponent en la UI
-  readonly statsTotal = this.totalRecords.asReadonly();
+  // Totales globales (fijos, no cambian al filtrar/paginar) — vienen del backend.
+  private readonly _statsTotal = signal(0);
+  private readonly _statsActivos = signal(0);
+  private readonly _statsInactivos = signal(0);
 
-  // Computados adaptados para leer limpiamente la propiedad enabled del modelo
-  readonly activos   = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
-  readonly inactivos = computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
+  readonly usuarios = this._usuarios.asReadonly();
+  readonly total    = this.totalRecords.asReadonly();
+  readonly activos  = this._statsActivos.asReadonly();
+  readonly inactivos = this._statsInactivos.asReadonly();
+  readonly statsTotal = this._statsTotal.asReadonly();
 
   private _roles = signal<Role[]>([]);
   readonly roles = this._roles.asReadonly();
@@ -45,29 +47,25 @@ export class UsuariosService extends BaseCrud<Usuario> {
   loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {
     this.loading.set(true);
     this.error.set(null);
-    
+   
     return this._findAll({
       action: 'getUser',
       page,
       limit,
       filters,
     }).pipe(
-      map(rawData => {
-        // Si el backend responde un array vacío real o con el objeto fantasma filtrado por el WHERE
-        if (!rawData || rawData.length === 0 || rawData[0]?.id === null) {
-          return { mapped: [], rawData: [] };
-        }
-        return {
-          mapped: rawData.map((item: any) => this.mapSingleFromBackend(item)),
-          rawData
-        };
-      }),
+      map(rawData => ({
+        mapped: rawData.map((item: any) => this.mapSingleFromBackend(item)),
+        rawData
+      })),
       tap(({ mapped, rawData }) => {
         if (rawData.length > 0) {
           const firstRow = rawData[0] as any;
-          // Alineado con las estadísticas globales calculadas en n8n
-          const total = Number(firstRow.total_filtered || firstRow.stats_total || mapped.length);
+          const total = Number(firstRow.total_count || mapped.length);
           this.totalRecords.set(total);
+          this._statsTotal.set(Number(firstRow.stats_total ?? total));
+          this._statsActivos.set(Number(firstRow.stats_activos ?? 0));
+          this._statsInactivos.set(Number(firstRow.stats_inactivos ?? 0));
         } else {
           this.totalRecords.set(0);
         }
@@ -86,28 +84,21 @@ export class UsuariosService extends BaseCrud<Usuario> {
   add(data: Omit<Usuario, 'id'>): Observable<Usuario> {
     this.loading.set(true);
     this.error.set(null);
-
-    // Encapsulado en usuarioData para que n8n lo capture directo del Webhook
     const payload = {
       action: 'createUser',
-      usuarioData: {
-        nombre: data.nombre,
-        primer_apellido: data.apellido1,
-        segundo_apellido: (data as any).apellido2 || null,
-        telefono: (data as any).telefono || null,
-        email: data.email,
-        rol: data.roleid ? String(data.roleid) : '1',
-        activo: data.enabled ?? true,
-        id_empresa: (data as any).id_empresa || null
-      },
-      password: data.password || 'password123'
+      name: data.nombre,
+      surname: data.apellido1,
+      email: data.email,
+      enabled: data.enabled ?? true,
+      password: data.password || 'password123',
+      roleid: Number(data.roleid || 1)
     };
 
     return this._create(payload).pipe(
       map(res => this.applyRobustMerge(res, {
         ...data,
         id: (res as any)?.id ? Number((res as any).id) : Date.now(),
-        roleid: Number(payload.usuarioData.rol),
+        roleid: payload.roleid,
         password: payload.password
       })),
       tap(newUser => {
@@ -126,26 +117,20 @@ export class UsuariosService extends BaseCrud<Usuario> {
     this.loading.set(true);
     this.error.set(null);
     const existing = this.getById(id);
-
-    // Encapsulado bajo usuarioData para unificar con el validador de n8n
     const payload: any = {
       action: 'updateUser',
       id,
-      usuarioData: {
-        nombre: data.nombre,
-        primer_apellido: data.apellido1,
-        segundo_apellido: (data as any).apellido2 || null,
-        telefono: (data as any).telefono || null,
-        email: data.email,
-        rol: data.roleid ? String(data.roleid) : '1',
-        activo: data.enabled,
-        id_empresa: (data as any).id_empresa || null
-      }
+      name: data.nombre,
+      surname: data.apellido1,
+      email: data.email,
+      enabled: data.enabled,
+      roleid: Number(data.roleid || 1)
     };
 
-    const targetPassword = data.password?.trim() || existing?.password;
-    if (targetPassword) {
-      payload.password = targetPassword;
+    if (data.password?.trim()) {
+      payload.password = data.password;
+    } else if (existing?.password) {
+      payload.password = existing.password;
     }
 
     return this._update(payload).pipe(
@@ -178,7 +163,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
     const newState = !u.enabled;
 
     const payload = {
-      action: 'Toogle status usuarios', // Mantiene el typo 'Toogle' para coincidir con el Switch de n8n
+      action: 'Toogle status usuarios', // Mantiene el typo para coincidir con el Switch de n8n
       id,
       enabled: newState,
       activo: newState,
