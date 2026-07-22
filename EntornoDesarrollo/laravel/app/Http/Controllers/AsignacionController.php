@@ -14,7 +14,7 @@ class AsignacionController extends Controller
 
     public function __construct()
     {
-        // 🟢 Carga desde .env manteniendo como fallback la URL interna de Docker de deployment
+        // 🟢 Carga dinámicamente desde .env o toma la red interna de Docker como fallback
         $urlRaw = env(
             'N8N_WEBHOOK_ASIGNACIONES', 
             'http://n8n:5678/webhook/asignaciones'
@@ -23,7 +23,7 @@ class AsignacionController extends Controller
     }
 
     /**
-     * Proxy de seguridad para Asignaciones en la rama deployment
+     * Proxy seguro de Asignaciones: valida acciones, inyecta context auth y gestiona timeouts
      */
     public function proxy(Request $request)
     {
@@ -34,7 +34,7 @@ class AsignacionController extends Controller
                 'getAsignaciones', 
                 'createAsignacion', 
                 'updateAsignacion', 
-                'toggleAsignacionStatus', // Para el borrado lógico
+                'toggleAsignacionStatus',
                 'getEmpresas', 
                 'getTrabajadores', 
                 'getComerciales'
@@ -46,15 +46,14 @@ class AsignacionController extends Controller
                 ], 400);
             }
 
-            // 🔒 INYECCIÓN DE SEGURIDAD:
-            // Añadimos datos del usuario autenticado por el middleware VerifyApiToken
+            // 🔒 Inyección de credenciales del usuario autenticado por el Middleware
             $payload['auth_user'] = [
                 'id'    => $request->input('authenticated_user_id'),
                 'email' => $request->input('authenticated_user_email'),
                 'role'  => $request->input('authenticated_user_role')
             ];
 
-            // 1. Preparación de cabeceras y propagación del Token JWT
+            // Reenvío de token JWT e información de headers
             $headers = [
                 'Content-Type' => 'application/json',
                 'Accept'       => 'application/json',
@@ -65,12 +64,11 @@ class AsignacionController extends Controller
                 $headers['Authorization'] = $token;
             }
 
-            // 2. Envío a n8n con tiempo límite de 30 segundos
+            // Petición a n8n con timeout de 30 segundos
             $response = Http::timeout(30)
                 ->withHeaders($headers)
                 ->post($this->n8nUrl, $payload);
 
-            // 3. Normalización de respuesta (JSON o texto plano)
             $responseData = $response->json();
             if (is_null($responseData)) {
                 $responseData = [
@@ -81,21 +79,21 @@ class AsignacionController extends Controller
             return response()->json($responseData, $response->status());
 
         } catch (ConnectionException $e) {
-            Log::warning("Fallo de conexión hacia n8n [Asignaciones - Deployment]: " . $e->getMessage());
+            Log::warning("Error de conexión hacia n8n [Asignaciones]: " . $e->getMessage());
 
             return response()->json([
-                'error'   => 'No se pudo conectar con el servicio interno de n8n.',
+                'error'   => 'No se pudo conectar con el orquestador n8n.',
                 'details' => $e->getMessage()
             ], 502);
 
         } catch (Throwable $e) {
-            Log::error("Error crítico en AsignacionController [Deployment]: " . $e->getMessage(), [
+            Log::error("Error crítico en AsignacionController: " . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
 
             return response()->json([
-                'error'   => 'Excepción controlada en el Proxy de Asignaciones de Laravel.',
+                'error'   => 'Error interno en el servidor Laravel (Proxy).',
                 'message' => $e->getMessage(),
                 'file'    => $e->getFile(),
                 'line'    => $e->getLine()
