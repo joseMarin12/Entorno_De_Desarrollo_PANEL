@@ -14,7 +14,7 @@ class DireccionesEmpresaController extends Controller
 
     public function __construct()
     {
-        // Carga la URL desde .env o toma el webhook de Hostinger como fallback
+        // 🚀 Lee desde .env o toma la URL de producción de Hostinger como fallback
         $urlRaw = env(
             'N8N_WEBHOOK_DIRECCIONES_EMPRESA', 
             'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-direcciones'
@@ -23,36 +23,38 @@ class DireccionesEmpresaController extends Controller
     }
 
     /**
-     * Proxy seguro para Direcciones de Empresa: valida acciones, inyecta auth_user y reenvía a n8n
+     * Proxy genérico: valida, inyecta seguridad y reenvía la acción + datos a n8n
      */
     public function proxy(Request $request)
     {
         try {
             $payload = $request->all();
 
-            // Lista explícita de acciones permitidas
+            // 📋 Lista completa de acciones permitidas desde el servicio de Angular
             $allowedActions = [
-                'getDirecciones', 
-                'getDireccionesEmpresa', 
-                'getPaises', 
-                'getProvincias', 
-                'getLocalidades', 
-                'createDireccion', 
-                'createDireccionEmpresa', 
-                'updateDireccion', 
-                'updateDireccionEmpresa', 
-                'toggleDireccionStatus', 
+                'getDirecciones',
+                'getDireccionesEmpresa',
+                'getPaises',
+                'getProvincias',
+                'getLocalidades',
+                'createDireccion',
+                'createDireccionEmpresa',
+                'updateDireccion',
+                'updateDireccionEmpresa',
+                'toggleDireccionStatus',
                 'deleteDireccion',
                 'getEmpresas'
             ];
 
+            // Validación de la acción entrante
             if (!isset($payload['action']) || !in_array($payload['action'], $allowedActions)) {
                 return response()->json([
-                    'error' => 'Acción no válida: ' . ($payload['action'] ?? 'null')
+                    'error' => 'Acción de dirección no válida: ' . ($payload['action'] ?? 'null')
                 ], 400);
             }
 
-            // Inyección del contexto del usuario autenticado
+            // 🔒 INYECCIÓN DE SEGURIDAD AUDITABLE:
+            // Añadimos al payload los datos del usuario que tu middleware VerifyApiToken ya validó.
             $payload['auth_user'] = [
                 'id'    => $request->input('authenticated_user_id'),
                 'email' => $request->input('authenticated_user_email'),
@@ -70,7 +72,7 @@ class DireccionesEmpresaController extends Controller
                 $headers['Authorization'] = $token;
             }
 
-            // Petición a n8n con timeout de 30 segundos
+            // Envío seguro hacia n8n con timeout preventivo de 30 segundos
             $response = Http::timeout(30)
                 ->withHeaders($headers)
                 ->post($this->n8nUrl, $payload);
@@ -88,7 +90,7 @@ class DireccionesEmpresaController extends Controller
             Log::warning("Fallo de conexión hacia n8n [DireccionesEmpresa]: " . $e->getMessage());
 
             return response()->json([
-                'error'   => 'No se pudo conectar con el servicio de n8n.',
+                'error'   => 'Error de conexión con el webhook de direcciones en n8n.',
                 'details' => $e->getMessage()
             ], 502);
 
