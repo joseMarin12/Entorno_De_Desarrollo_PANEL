@@ -9,7 +9,8 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class AsignacionesService extends BaseCrud<Asignacion> {
 
-    public readonly API_URL = `${environment.apiUrl}/asignaciones`;
+    // 🟢 CORREGIDO: Inclusión de /api/ para coincidir con las rutas de Laravel Proxy
+    public override readonly API_URL = `${environment.apiUrl}/api/asignaciones`;
 
     // ── Estado reactivo ──────────────────────────────────────────────────────
     private _asignaciones = signal<Asignacion[]>([]);
@@ -36,15 +37,14 @@ export class AsignacionesService extends BaseCrud<Asignacion> {
                 next: list => {
                     const rows = (list ?? []) as any[];
                     if (rows.length === 0) {
-                        // Sin datos ni fila-resumen: reseteamos todo (caso extremo, p. ej. error de datos).
+                        // Sin datos ni fila-resumen: reseteamos todo
                         this._asignaciones.set([]);
                         this.totalFiltered.set(0);
                         this.total.set(0);
                         this.totalActivos.set(0);
                         this.totalInactivos.set(0);
                     } else {
-                        // Las estadísticas globales viajan en cada fila, incluida la fila-resumen
-                        // (id null) que devuelve el backend cuando la búsqueda no tiene resultados.
+                        // Las estadísticas globales viajan en la primera fila devuelta por n8n
                         const first = rows[0];
                         this.total.set(Number(first.total_global) || 0);
                         this.totalActivos.set(Number(first.total_activos) || 0);
@@ -93,7 +93,7 @@ export class AsignacionesService extends BaseCrud<Asignacion> {
         );
     }
 
-    // ── Lookups ──────────────────────────────────────────────────────────────
+    // ── Lookups (Conservados para desplegables de formularios) ──────────────
     getEmpresasLookup(): Observable<{ id: number; nombre_empresa: string }[]> {
         return this._findAll({ action: 'getEmpresas' }) as unknown as Observable<{ id: number; nombre_empresa: string }[]>;
     }
