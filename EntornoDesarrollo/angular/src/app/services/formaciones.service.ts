@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
@@ -9,7 +9,8 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class FormacionesService extends BaseCrud<Formacion> {
 
-    public readonly API_URL = `${environment.apiUrl}/formaciones`;
+    // 🟢 CORREGIDO: Se especifica public override y el prefijo /api/ para coincidir con routes/api.php
+    public override readonly API_URL = `${environment.apiUrl}/api/formaciones`;
 
     // ── Estado reactivo ──────────────────────────────────────────────────────
     private _formaciones = signal<Formacion[]>([]);
@@ -20,7 +21,6 @@ export class FormacionesService extends BaseCrud<Formacion> {
     readonly totalActivos = signal(0);
     readonly totalInactivos = signal(0);
     readonly total = signal(0);
-
     readonly totalFiltered = signal(0);
 
     // ── Carga inicial ────────────────────────────────────────────────────────
@@ -35,7 +35,7 @@ export class FormacionesService extends BaseCrud<Formacion> {
         return this._findAll({ action: 'getFormaciones', filters: { searchText, searchField, activo }, page, pageSize }).pipe(
             tap({
                 next: list => {
-                    if (list && list.length > 0 && list[0].id !== undefined && list[0].id !== null) {
+                    if (list && list.length > 0 && list[0]?.id !== undefined && list[0]?.id !== null) {
                         this._formaciones.set(list);
                         const first = list[0] as any;
                         this.totalFiltered.set(Number(first.total_records) || list.length);
@@ -48,7 +48,10 @@ export class FormacionesService extends BaseCrud<Formacion> {
                     }
                     this.loading.set(false);
                 },
-                error: e => { this.error.set(e?.message ?? 'Error al cargar'); this.loading.set(false); },
+                error: e => { 
+                    this.error.set(e?.message ?? 'Error al cargar las formaciones'); 
+                    this.loading.set(false); 
+                },
             })
         );
     }
@@ -59,8 +62,14 @@ export class FormacionesService extends BaseCrud<Formacion> {
         this.error.set(null);
         return this._create({ action: 'createFormacion', formacionData: data }).pipe(
             tap({
-                next: created => { this._formaciones.update(list => [created, ...list]); this.loading.set(false); },
-                error: e => { this.error.set(e?.message ?? 'Error al crear'); this.loading.set(false); },
+                next: created => { 
+                    this._formaciones.update(list => [created, ...list]); 
+                    this.loading.set(false); 
+                },
+                error: e => { 
+                    this.error.set(e?.message ?? 'Error al crear la formación'); 
+                    this.loading.set(false); 
+                },
             })
         );
     }
@@ -70,8 +79,14 @@ export class FormacionesService extends BaseCrud<Formacion> {
         this.error.set(null);
         return this._update({ action: 'updateFormacion', formacionId: id, formacionData: data }).pipe(
             tap({
-                next: updated => { this._formaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c)); this.loading.set(false); },
-                error: e => { this.error.set(e?.message ?? 'Error al actualizar'); this.loading.set(false); },
+                next: updated => { 
+                    this._formaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c)); 
+                    this.loading.set(false); 
+                },
+                error: e => { 
+                    this.error.set(e?.message ?? 'Error al actualizar la formación'); 
+                    this.loading.set(false); 
+                },
             })
         );
     }
@@ -85,19 +100,22 @@ export class FormacionesService extends BaseCrud<Formacion> {
                     this._formaciones.update(list => list.map(c => c.id === id ? { ...c, ...updated } : c));
                     if (updated.activo) {
                         this.totalActivos.update(v => v + 1);
-                        this.totalInactivos.update(v => v - 1);
+                        this.totalInactivos.update(v => Math.max(0, v - 1));
                     } else {
-                        this.totalActivos.update(v => v - 1);
+                        this.totalActivos.update(v => Math.max(0, v - 1));
                         this.totalInactivos.update(v => v + 1);
                     }
                     this.loading.set(false);
                 },
-                error: e => { this.error.set(e?.message ?? 'Error al cambiar estado'); this.loading.set(false); },
+                error: e => { 
+                    this.error.set(e?.message ?? 'Error al cambiar estado'); 
+                    this.loading.set(false); 
+                },
             })
         );
     }
 
-    // ── Lookups ──────────────────────────────────────────────────────────────
+    // ── Lookups (Conservados para poblar selects en los formularios) ────────
     getAreas(): Observable<{ id: number; nombre: string }[]> {
         return this._findAll({ action: 'getArea' }) as unknown as Observable<{ id: number; nombre: string }[]>;
     }
