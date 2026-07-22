@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, map, catchError, throwError } from 'rxjs';
 import { Usuario, Role } from '../models/usuarios.model';
@@ -8,23 +8,19 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class UsuariosService extends BaseCrud<Usuario> {
 
-  public override readonly API_URL = `${environment.apiUrl}/usuarios`;
+  public override readonly API_URL = `${environment.apiUrl}/api/usuarios`;
 
   private _usuarios = signal<Usuario[]>([]);
   readonly loading  = signal(false);
   readonly error    = signal<string | null>(null);
   readonly totalRecords = signal(0);
 
-  // Totales globales (fijos, no cambian al filtrar/paginar) — vienen del backend.
-  private readonly _statsTotal = signal(0);
-  private readonly _statsActivos = signal(0);
-  private readonly _statsInactivos = signal(0);
-
   readonly usuarios = this._usuarios.asReadonly();
   readonly total    = this.totalRecords.asReadonly();
-  readonly activos  = this._statsActivos.asReadonly();
-  readonly inactivos = this._statsInactivos.asReadonly();
-  readonly statsTotal = this._statsTotal.asReadonly();
+  
+  // Computados adaptados para leer limpiamente la propiedad enabled del modelo
+  readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
+  readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
 
   private _roles = signal<Role[]>([]);
   readonly roles = this._roles.asReadonly();
@@ -46,26 +42,29 @@ export class UsuariosService extends BaseCrud<Usuario> {
   loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {
     this.loading.set(true);
     this.error.set(null);
-   
+    
     return this._findAll({
       action: 'getUser',
       page,
       limit,
       filters,
-     
     }).pipe(
-      map(rawData => ({
-        mapped: rawData.map((item: any) => this.mapSingleFromBackend(item)),
-        rawData
-      })),
+      map(rawData => {
+        // Si el backend responde un array vacío real o con el objeto fantasma filtrado por el WHERE
+        if (!rawData || rawData.length === 0 || rawData[0]?.id === null) {
+          return { mapped: [], rawData: [] };
+        }
+        return {
+          mapped: rawData.map((item: any) => this.mapSingleFromBackend(item)),
+          rawData
+        };
+      }),
       tap(({ mapped, rawData }) => {
         if (rawData.length > 0) {
           const firstRow = rawData[0] as any;
-          const total = Number(firstRow.total_count || mapped.length);
+          // Alineado con las estadísticas globales calculadas en el CTE de n8n
+          const total = Number(firstRow.total_filtered || firstRow.stats_total || mapped.length);
           this.totalRecords.set(total);
-          this._statsTotal.set(Number(firstRow.stats_total ?? total));
-          this._statsActivos.set(Number(firstRow.stats_activos ?? 0));
-          this._statsInactivos.set(Number(firstRow.stats_inactivos ?? 0));
         } else {
           this.totalRecords.set(0);
         }
@@ -84,21 +83,28 @@ export class UsuariosService extends BaseCrud<Usuario> {
   add(data: Omit<Usuario, 'id'>): Observable<Usuario> {
     this.loading.set(true);
     this.error.set(null);
+
+    // MODIFICACIÓN CRUCIAL: Encapsulado en usuarioData para que n8n lo capture directo del Webhook
     const payload = {
       action: 'createUser',
-      name: data.nombre,
-      surname: data.apellido1,
-      email: data.email,
-      enabled: data.enabled ?? true,
-      password: data.password || 'password123',
-      roleid: Number(data.roleid || 1)
+      usuarioData: {
+        nombre: data.nombre,
+        primer_apellido: data.apellido1,
+        segundo_apellido: (data as any).apellido2 || null, // Manejo por si extiendes el modelo
+        telefono: (data as any).telefono || null,
+        email: data.email,
+        rol: data.roleid ? String(data.roleid) : '1',
+        activo: data.enabled ?? true,
+        id_empresa: (data as any).id_empresa || null
+      },
+      password: data.password || 'password123' // Se mantiene en la raíz por seguridad o compatibilidad secundaria
     };
 
     return this._create(payload).pipe(
       map(res => this.applyRobustMerge(res, {
         ...data,
         id: (res as any)?.id ? Number((res as any).id) : Date.now(),
-        roleid: payload.roleid,
+        roleid: Number(payload.usuarioData.rol),
         password: payload.password
       })),
       tap(newUser => {
@@ -117,20 +123,26 @@ export class UsuariosService extends BaseCrud<Usuario> {
     this.loading.set(true);
     this.error.set(null);
     const existing = this.getById(id);
+
+    // MODIFICACIÓN CRUCIAL: Encapsulado bajo usuarioData para unificar con el validador lineal de n8n
     const payload: any = {
       action: 'updateUser',
       id,
-      name: data.nombre,
-      surname: data.apellido1,
-      email: data.email,
-      enabled: data.enabled,
-      roleid: Number(data.roleid || 1)
+      usuarioData: {
+        nombre: data.nombre,
+        primer_apellido: data.apellido1,
+        segundo_apellido: (data as any).apellido2 || null,
+        telefono: (data as any).telefono || null,
+        email: data.email,
+        rol: data.roleid ? String(data.roleid) : '1',
+        activo: data.enabled,
+        id_empresa: (data as any).id_empresa || null
+      }
     };
 
-    if (data.password?.trim()) {
-      payload.password = data.password;
-    } else if (existing?.password) {
-      payload.password = existing.password;
+    const targetPassword = data.password?.trim() || existing?.password;
+    if (targetPassword) {
+      payload.password = targetPassword;
     }
 
     return this._update(payload).pipe(
@@ -258,7 +270,6 @@ export class UsuariosService extends BaseCrud<Usuario> {
       id,
       password
     };
-    // Usamos el endpoint de usuarios
     return this.http.post(this.API_URL, payload);
   }
 }
