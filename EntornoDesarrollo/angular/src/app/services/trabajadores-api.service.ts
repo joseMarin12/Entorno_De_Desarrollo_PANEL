@@ -20,8 +20,8 @@ export interface TrabajadorPage {
 
 @Injectable({ providedIn: 'root' })
 export class TrabajadoresApiService extends BaseCrud<Trabajador> {
-
-  // 🟢 CORREGIDO: Inclusión del prefijo /api/ y el modificador public override
+  
+  // Actualizado para apuntar al prefijo /api del proxy de Laravel igual que en producción
   public override readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
 
   findAll(page = 1, limit = 10, searchText = '', status = '', tipo = ''): Observable<TrabajadorPage> {
@@ -84,12 +84,11 @@ export class TrabajadoresApiService extends BaseCrud<Trabajador> {
       .pipe(map(res => res.data ?? []));
   }
 
-  // 🟢 CONSERVADO: Necesario para cargar el desplegable de seleccionadores en formularios
   getSeleccionadoresLookup(): Observable<{ id: number; nombre: string; tipo: string }[]> {
     return this._findAll({ action: 'getSeleccionadoresLookup' }) as unknown as Observable<{ id: number; nombre: string; tipo: string }[]>;
   }
 
-  // ── Geografía: Crea registros automáticamente si no existen ───────────────
+  // Geografía: crea si no existe
   resolverPais(nombre: string): Observable<number> {
     return this.http.post<{ data: { id: number }[] }>(this.API_URL, { action: 'resolverPais', nombre })
       .pipe(map(res => res.data?.[0]?.id));
