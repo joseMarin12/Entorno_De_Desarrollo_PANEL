@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - Deployment
-      - main
 
 env:
   PROJECT_ID: panel-sgtech-20260603
