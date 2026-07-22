@@ -5,67 +5,104 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Exception;
+use Illuminate\Http\Client\ConnectionException;
+use Throwable;
 
-class EmpresaController extends Controller
+class DireccionesEmpresaController extends Controller
 {
     private string $n8nUrl;
 
     public function __construct()
     {
-        // Prioriza la variable de entorno y limpia comillas accidentales
+        // Carga la URL desde .env o toma el webhook de Hostinger como fallback
         $urlRaw = env(
-            'N8N_WEBHOOK_EMPRESAS_URL', 
-            'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-empresas'
+            'N8N_WEBHOOK_DIRECCIONES_EMPRESA', 
+            'https://n8n.srv1128480.hstgr.cloud/webhook/gestion-direcciones'
         );
         $this->n8nUrl = trim(str_replace(['"', "'"], '', $urlRaw));
     }
 
     /**
-     * Proxy de seguridad para Empresas: Reenvía acción + datos + headers a n8n
+     * Proxy seguro para Direcciones de Empresa: valida acciones, inyecta auth_user y reenvía a n8n
      */
     public function proxy(Request $request)
     {
         try {
-            // 1. Cabeceras base para el intercambio de información JSON
+            $payload = $request->all();
+
+            // Lista explícita de acciones permitidas
+            $allowedActions = [
+                'getDirecciones', 
+                'getDireccionesEmpresa', 
+                'getPaises', 
+                'getProvincias', 
+                'getLocalidades', 
+                'createDireccion', 
+                'createDireccionEmpresa', 
+                'updateDireccion', 
+                'updateDireccionEmpresa', 
+                'toggleDireccionStatus', 
+                'deleteDireccion',
+                'getEmpresas'
+            ];
+
+            if (!isset($payload['action']) || !in_array($payload['action'], $allowedActions)) {
+                return response()->json([
+                    'error' => 'Acción no válida: ' . ($payload['action'] ?? 'null')
+                ], 400);
+            }
+
+            // Inyección del contexto del usuario autenticado
+            $payload['auth_user'] = [
+                'id'    => $request->input('authenticated_user_id'),
+                'email' => $request->input('authenticated_user_email'),
+                'role'  => $request->input('authenticated_user_role')
+            ];
+
+            // Reenvío de encabezados y Token JWT
             $headers = [
                 'Content-Type' => 'application/json',
                 'Accept'       => 'application/json',
             ];
 
-            // 2. 🔥 CAPTURAMOS E INYECTAMOS EL TOKEN JWT ENVIADO POR ANGULAR
-            $authHeader = $request->header('Authorization');
-            if ($authHeader) {
-                $headers['Authorization'] = $authHeader;
+            $token = $request->header('Authorization');
+            if ($token) {
+                $headers['Authorization'] = $token;
             }
 
-            // 3. Petición hacia n8n con timeout de seguridad (30 segundos)
+            // Petición a n8n con timeout de 30 segundos
             $response = Http::timeout(30)
                 ->withHeaders($headers)
-                ->post($this->n8nUrl, $request->all());
+                ->post($this->n8nUrl, $payload);
 
-            // 4. Validación de control: si n8n responde con error o cuerpo vacío
-            if ($response->failed() || empty($response->body())) {
-                return response()->json([
-                    'error'   => true,
-                    'message' => 'El orquestador n8n no devolvió una respuesta válida.',
-                    'status'  => $response->status(),
-                    'details' => $response->json() ?? $response->body()
-                ], $response->status() >= 400 ? $response->status() : 500);
+            $responseData = $response->json();
+            if (is_null($responseData)) {
+                $responseData = [
+                    'message' => $response->body() ?: 'Petición procesada exitosamente por n8n'
+                ];
             }
-
-            $responseData = $response->json() ?? [];
 
             return response()->json($responseData, $response->status());
 
-        } catch (Exception $e) {
-            // Log local en Cloud Run para depuración
-            Log::error("Error en EmpresaController Proxy. URL: [{$this->n8nUrl}]. Detalle: " . $e->getMessage());
+        } catch (ConnectionException $e) {
+            Log::warning("Fallo de conexión hacia n8n [DireccionesEmpresa]: " . $e->getMessage());
 
             return response()->json([
-                'error'   => true,
-                'message' => 'Excepción controlada en el Proxy de Laravel (Empresas).',
+                'error'   => 'No se pudo conectar con el servicio de n8n.',
                 'details' => $e->getMessage()
+            ], 502);
+
+        } catch (Throwable $e) {
+            Log::error("Error crítico en DireccionesEmpresaController: " . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
+            return response()->json([
+                'error'   => 'Error interno en el servidor Laravel (Proxy).',
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine()
             ], 500);
         }
     }
