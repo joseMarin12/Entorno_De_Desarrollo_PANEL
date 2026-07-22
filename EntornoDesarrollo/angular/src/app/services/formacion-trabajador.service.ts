@@ -9,7 +9,8 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class FormacionTrabajadorService extends BaseCrud<Trabajador> {
 
-  protected readonly API_URL = `${environment.apiUrl}/formaciones`;
+  // 🟢 CORREGIDO: Inclusión de /api/ y modificador public override para Laravel y BaseCrud
+  public override readonly API_URL = `${environment.apiUrl}/api/formaciones`;
 
   // ── Estado reactivo ──────────────────────────────────────────────────────
   private _trabajadores = signal<Trabajador[]>([]);
@@ -24,14 +25,22 @@ export class FormacionTrabajadorService extends BaseCrud<Trabajador> {
   loadTrabajadores(idFormacion: number, searchText = '', soloDisponibles = false): Observable<Trabajador[]> {
     this.loading.set(true);
     this.error.set(null);
+
     return this._findAll({
       action: 'getTrabajadores',
       id_formacion: idFormacion,
       filters: { searchText, soloDisponibles }
     }).pipe(
       tap({
-        next:  list => { this._trabajadores.set(list); this.loading.set(false); },
-        error: e    => { this.error.set(e?.message ?? 'Error al cargar trabajadores'); this.loading.set(false); },
+        next: list => { 
+          // Asignación segura garantizando que sea un array
+          this._trabajadores.set(list ?? []); 
+          this.loading.set(false); 
+        },
+        error: e => { 
+          this.error.set(e?.message ?? 'Error al cargar trabajadores'); 
+          this.loading.set(false); 
+        },
       })
     );
   }
@@ -40,14 +49,21 @@ export class FormacionTrabajadorService extends BaseCrud<Trabajador> {
   addTrabajador(idFormacion: number, idTrabajador: number): Observable<Trabajador> {
     this.loading.set(true);
     this.error.set(null);
+
     return this._create({
       action: 'addTrabajadorToFormacion',
       id_formacion: idFormacion,
       id_trabajador: idTrabajador
     }).pipe(
       tap({
-        next:  () => { this._trabajadores.update(list => list.map(t => t.id === idTrabajador ? { ...t, asignado: true } : t)); this.loading.set(false); },
-        error: e  => { this.error.set(e?.message ?? 'Error al añadir participante'); this.loading.set(false); },
+        next: () => { 
+          this._trabajadores.update(list => list.map(t => t.id === idTrabajador ? { ...t, asignado: true } : t)); 
+          this.loading.set(false); 
+        },
+        error: e => { 
+          this.error.set(e?.message ?? 'Error al añadir participante'); 
+          this.loading.set(false); 
+        },
       })
     );
   }
@@ -55,14 +71,21 @@ export class FormacionTrabajadorService extends BaseCrud<Trabajador> {
   removeTrabajador(idFormacion: number, idTrabajador: number): Observable<Trabajador> {
     this.loading.set(true);
     this.error.set(null);
+
     return this._update({
       action: 'removeTrabajadorFromFormacion',
       id_formacion: idFormacion,
       id_trabajador: idTrabajador
     }).pipe(
       tap({
-        next:  () => { this._trabajadores.update(list => list.map(t => t.id === idTrabajador ? { ...t, asignado: false } : t)); this.loading.set(false); },
-        error: e  => { this.error.set(e?.message ?? 'Error al quitar participante'); this.loading.set(false); },
+        next: () => { 
+          this._trabajadores.update(list => list.map(t => t.id === idTrabajador ? { ...t, asignado: false } : t)); 
+          this.loading.set(false); 
+        },
+        error: e => { 
+          this.error.set(e?.message ?? 'Error al quitar participante'); 
+          this.loading.set(false); 
+        },
       })
     );
   }
