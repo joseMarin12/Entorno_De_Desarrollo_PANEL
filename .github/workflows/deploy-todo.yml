@@ -1,4 +1,4 @@
-name: Deploy All Services to Cloud Run
+name: Deploy Frontend and Backend to Cloud Run
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
   REGION: us-central1
 
 jobs:
-  # ─── SERVICIO 1: LA INTERFAZ VISUAL (ANGULAR) ───
+  # ─── SERVICIO 1: ANGULAR (FRONTEND) ───
   deploy-angular:
     runs-on: ubuntu-latest
     steps:
@@ -44,7 +44,7 @@ jobs:
           --port 8080 \
           --allow-unauthenticated
 
-  # ─── SERVICIO 2: EL CEREBRO (LARAVEL) ───
+  # ─── SERVICIO 2: LARAVEL (BACKEND) ───
   deploy-laravel:
     runs-on: ubuntu-latest
     steps:
@@ -76,73 +76,4 @@ jobs:
           --platform managed \
           --port 8080 \
           --timeout 600 \
-          --allow-unauthenticated
-
-  # ─── SERVICIO 3: LA BASE DE DATOS (POSTGRES) ───
-  deploy-postgres:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Google Auth
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
-
-    - name: Configure Docker
-      run: gcloud auth configure-docker us-central1-docker.pkg.dev
-
-    - name: Build and Push Postgres
-      run: |
-        IMAGE_URL=us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/panel-db:latest
-        docker build -t $IMAGE_URL -f ./EntornoDesarrollo/postgres/Dockerfile ./EntornoDesarrollo/postgres
-        docker push $IMAGE_URL
-
-    - name: Deploy Postgres to Cloud Run
-      run: |
-        gcloud run deploy panel-db \
-          --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/panel-db:latest \
-          --region ${{ env.REGION }} \
-          --platform managed \
-          --port 5432 \
-          --set-env-vars="POSTGRES_USER=admin,POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }},POSTGRES_DB=panel" \
-          --allow-unauthenticated
-
-  # ─── SERVICIO 4: AUTOMATIZACIONES (N8N INTEGRADO) ───
-  deploy-n8n:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Google Auth
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
-
-    - name: Configure Docker
-      run: gcloud auth configure-docker us-central1-docker.pkg.dev
-
-    - name: Build and Push n8n
-      run: |
-        IMAGE_URL=us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/panel-n8n:latest
-        docker build -t $IMAGE_URL -f ./EntornoDesarrollo/n8n/Dockerfile ./EntornoDesarrollo/n8n
-        docker push $IMAGE_URL
-
-    - name: Deploy n8n to Cloud Run
-      run: |
-        gcloud run deploy panel-n8n \
-          --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/panel-n8n:latest \
-          --region ${{ env.REGION }} \
-          --platform managed \
-          --port 8080 \
-          --timeout 600 \
-          --set-env-vars="DB_TYPE=sqlite,N8N_PORT=8080,N8N_BASIC_AUTH_ACTIVE=true,N8N_BASIC_AUTH_USER=admin,N8N_BASIC_AUTH_PASSWORD=${{ secrets.N8N_PASSWORD }}" \
           --allow-unauthenticated
