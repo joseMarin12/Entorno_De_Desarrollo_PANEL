@@ -15,12 +15,15 @@ export class UsuariosService extends BaseCrud<Usuario> {
   readonly error    = signal<string | null>(null);
   readonly totalRecords = signal(0);
 
-  readonly usuarios = this._usuarios.asReadonly();
-  readonly total    = this.totalRecords.asReadonly();
+  readonly usuarios   = this._usuarios.asReadonly();
+  readonly total      = this.totalRecords.asReadonly();
   
+  // 🟢 Alias para compatibilidad con UsuariosStatsRowComponent en la UI
+  readonly statsTotal = this.totalRecords.asReadonly();
+
   // Computados adaptados para leer limpiamente la propiedad enabled del modelo
-  readonly activos  = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
-  readonly inactivos= computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
+  readonly activos   = computed(() => this._usuarios().filter((u: Usuario) => u.enabled).length);
+  readonly inactivos = computed(() => this._usuarios().filter((u: Usuario) => !u.enabled).length);
 
   private _roles = signal<Role[]>([]);
   readonly roles = this._roles.asReadonly();
@@ -62,7 +65,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
       tap(({ mapped, rawData }) => {
         if (rawData.length > 0) {
           const firstRow = rawData[0] as any;
-          // Alineado con las estadísticas globales calculadas en el CTE de n8n
+          // Alineado con las estadísticas globales calculadas en n8n
           const total = Number(firstRow.total_filtered || firstRow.stats_total || mapped.length);
           this.totalRecords.set(total);
         } else {
@@ -84,20 +87,20 @@ export class UsuariosService extends BaseCrud<Usuario> {
     this.loading.set(true);
     this.error.set(null);
 
-    // MODIFICACIÓN CRUCIAL: Encapsulado en usuarioData para que n8n lo capture directo del Webhook
+    // Encapsulado en usuarioData para que n8n lo capture directo del Webhook
     const payload = {
       action: 'createUser',
       usuarioData: {
         nombre: data.nombre,
         primer_apellido: data.apellido1,
-        segundo_apellido: (data as any).apellido2 || null, // Manejo por si extiendes el modelo
+        segundo_apellido: (data as any).apellido2 || null,
         telefono: (data as any).telefono || null,
         email: data.email,
         rol: data.roleid ? String(data.roleid) : '1',
         activo: data.enabled ?? true,
         id_empresa: (data as any).id_empresa || null
       },
-      password: data.password || 'password123' // Se mantiene en la raíz por seguridad o compatibilidad secundaria
+      password: data.password || 'password123'
     };
 
     return this._create(payload).pipe(
@@ -124,7 +127,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
     this.error.set(null);
     const existing = this.getById(id);
 
-    // MODIFICACIÓN CRUCIAL: Encapsulado bajo usuarioData para unificar con el validador lineal de n8n
+    // Encapsulado bajo usuarioData para unificar con el validador de n8n
     const payload: any = {
       action: 'updateUser',
       id,
