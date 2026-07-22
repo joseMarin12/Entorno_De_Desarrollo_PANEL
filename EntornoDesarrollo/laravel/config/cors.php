@@ -2,21 +2,22 @@
 
 return [
 
-    // CORRECCIÓN 1: Forzamos a Laravel a escuchar 'formaciones' fuera y dentro de api/*
-    'paths' => [
-        'api/*', 
-        'formaciones/*', 
-        'formaciones', 
-        'sanctum/csrf-cookie'
-    ],
+    /*
+    |--------------------------------------------------------------------------
+    | Cross-Origin Resource Sharing (CORS) Configuration
+    |--------------------------------------------------------------------------
+    */
+
+    // 🚀 Usamos '*' para aplicar CORS a TODAS las rutas de Laravel
+    'paths' => ['*'],
 
     'allowed_methods' => ['*'],
 
-    // CORRECCIÓN 2: Añadimos localhost para que te permita hacer pruebas de desarrollo
+    // Mantenemos tus orígenes permitidos explícitos
     'allowed_origins' => [
         'https://panel-frontend-1079064952465.us-central1.run.app',
         'http://localhost:4200',  // Angular Local
-        'http://localhost:8000',  // Laravel Local si aplica
+        'http://localhost:8000',  // Laravel Local
         'http://localhost',
     ],
 
