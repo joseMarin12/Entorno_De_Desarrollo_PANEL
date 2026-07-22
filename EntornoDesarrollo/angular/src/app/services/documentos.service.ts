@@ -6,10 +6,11 @@ import { BaseCrud } from './base.service';
 import { DocFile, FirmaModalData, TipoDocLookup, PosicionFirma } from '../models/firma.model';
 import { environment } from '../../environments/environment';
 
-
 @Injectable({ providedIn: 'root' })
 export class DocumentosService extends BaseCrud<DocFile> {
-  public readonly API_URL = `${environment.apiUrl}/trabajadores`;
+
+  // 🟢 Mantenemos el prefijo /api/ del proxy de Laravel
+  public override readonly API_URL = `${environment.apiUrl}/api/trabajadores`;
 
   getByTrabajador(trabajadorId: number): Observable<DocFile[]> {
     return this._findAll({ action: 'getDocumentosByTrabajador', trabajadorId });
@@ -46,5 +47,4 @@ export class DocumentosService extends BaseCrud<DocFile> {
   cancelarFirma(payload: { firma_id?: number; doc_id?: number }): Observable<DocFile> {
     return this._update({ action: 'cancelarFirma', firmaData: payload });
   }
-
 }
