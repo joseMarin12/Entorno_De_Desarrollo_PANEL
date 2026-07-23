@@ -2,7 +2,7 @@ import { Component, EventEmitter, inject, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Observable, firstValueFrom, map, throwError } from 'rxjs';
+import { Observable, firstValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { TipoEmpresa } from '../../../../models/tipo-empresa.model';
 import { Empresa } from '../../../../models/empresa.model';
 import { EmpresasApiService } from '../../../../services/empresas-api.service';
@@ -34,6 +34,7 @@ export class EmpToolbarComponent {
   private _tipos = signal<TipoEmpresa[]>([]);
   readonly tipos = this._tipos.asReadonly();
   private comerciales: ComercialLookup[] = [];
+  private comercialesCargados = false;
 
   searchValue = '';
   filterValue: EmpFilterType = '';
@@ -50,6 +51,28 @@ export class EmpToolbarComponent {
   csvRowLabel = (row: Record<string, string>): string => row['nombre'] || row['cif'];
 
   importEmpresaRow = (row: Record<string, string>): Observable<CsvImportRowOutcome> => {
+    // Carga diferida: los comerciales solo se piden al importar CSV (no al entrar al modulo).
+    return this.cargarComerciales().pipe(
+      switchMap(() => this.procesarFilaEmpresa(row))
+    );
+  };
+
+  /** Carga la lista de comerciales una sola vez (cacheada). Solo se usa para validar el CSV. */
+  private cargarComerciales(): Observable<void> {
+    if (this.comercialesCargados) {
+      return of(undefined);
+    }
+    return this.http
+      .post<{ data: ComercialLookup[] }>(`${environment.apiUrl}/api/asignaciones`, { action: 'getComerciales' })
+      .pipe(
+        map(res => {
+          this.comerciales = res.data ?? [];
+          this.comercialesCargados = true;
+        })
+      );
+  }
+
+  private procesarFilaEmpresa(row: Record<string, string>): Observable<CsvImportRowOutcome> {
     const tipoTexto = (row['tipo'] || '').trim().toLowerCase();
     const tipo = this._tipos().find(t => t.nombre.trim().toLowerCase() === tipoTexto);
     if (!tipo) {
@@ -84,15 +107,12 @@ export class EmpToolbarComponent {
     } as Empresa;
 
     return this.empresasApi.create(data).pipe(map(() => ({})));
-  };
+  }
 
   async ngOnInit(): Promise<void> {
+    // Solo se cargan los tipos (los usa el filtro por Tipo visible en la lista).
+    // Los comerciales se cargan de forma diferida al importar CSV (ver cargarComerciales()).
     const tipos = await firstValueFrom(this.empresasApi.findTipos());
     this._tipos.set(tipos);
-
-    const comercialesRes = await firstValueFrom(
-      this.http.post<{ data: ComercialLookup[] }>(`${environment.apiUrl}/asignaciones`, { action: 'getComerciales' })
-    );
-    this.comerciales = comercialesRes.data ?? [];
   }
 }
