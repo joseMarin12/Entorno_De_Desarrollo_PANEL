@@ -124,7 +124,7 @@ export class DireccionesEmpresasApiService extends BaseCrud<DireccionEmpresa> {
     // ── Helpers ──────────────────────────────────────────────────────────────
     // 🟢 Tipado explícito (d: DireccionEmpresa) agregado para resolver TS7006
     getById(id: number): DireccionEmpresa | undefined {
-        return this._direcciones().find((d: DireccionEmpresa) => d.id === id);
+       return this._direcciones().find((d: DireccionEmpresa) => d.id === id);
     }
 
     title(d: DireccionEmpresa): string {
