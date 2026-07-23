@@ -18,7 +18,7 @@ export interface LoginResponse {
   user?: User;
   token?: string;
   // 🚀 EL FIX PARA EL COMPILADOR: Agregamos la propiedad al tipado oficial de la API
-  firstLogin?: boolean; 
+  firstLogin?: boolean;
 }
 
 @Injectable({
@@ -27,7 +27,7 @@ export interface LoginResponse {
 export class AutenticadorService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  
+
   // URL centralizada apuntando al Proxy seguro de Laravel en Cloud Run
   private readonly API_URL = `${environment.apiUrl}/api/login`;
 
@@ -42,23 +42,23 @@ export class AutenticadorService {
           // 1. Normalización estricta del rol del usuario
           const rawResponse = response as any;
           response.user.roleid = Number(rawResponse.user.roleid || rawResponse.user.role_id || rawResponse.user.id_rol || rawResponse.user.ID_ROL || 2);
-          
+
           // 2. Guardar la persistencia del usuario en sesión
           this.saveUser(response.user);
-          
+
           // 3. Normalización robusta y extracción del Token JWT
-          const extractedToken = response.token || 
-                                 rawResponse.accessToken || 
-                                 rawResponse.jwt || 
+          const extractedToken = response.token ||
+                                 rawResponse.accessToken ||
+                                 rawResponse.jwt ||
                                  rawResponse.data?.token;
 
           if (extractedToken) {
             sessionStorage.setItem('token', extractedToken);
           } else {
             console.error('⚠️ ALERTA: Login exitoso pero el servidor no adjuntó un Token JWT válido.', response);
-            sessionStorage.removeItem('token'); 
+            sessionStorage.removeItem('token');
           }
-          
+
           // 4. Actualizar el Signal reactivo global
           this.currentUser.set(response.user);
         }
@@ -84,7 +84,7 @@ export class AutenticadorService {
   private getUserFromStorage(): User | null {
     const userJson = sessionStorage.getItem('user');
     if (!userJson) return null;
-    
+
     try {
       const user = JSON.parse(userJson);
       if (user && !user.roleid) {
@@ -108,20 +108,20 @@ export class AutenticadorService {
 
   getDecodedToken(): any {
     const token = this.getToken();
-    if (!token || token === 'usuario_autenticado') return null; 
-    
+    if (!token || token === 'usuario_autenticado') return null;
+
     try {
       const parts = token.split('.');
       if (parts.length !== 3) return null;
 
       const payload = parts[1];
-      
+
       // Reconstrucción del padding Base64Url
       let base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
       while (base64.length % 4) {
         base64 += '=';
       }
-      
+
       // Decodificación nativa segura soportando caracteres UTF-8/Acentos
       return JSON.parse(decodeURIComponent(escape(atob(base64))));
     } catch (e) {
@@ -136,7 +136,8 @@ export class AutenticadorService {
 
   isFirstLogin(): boolean {
     if (this.firstLoginOverridden()) return false;
-    return this.getDecodedToken()?.firstLogin === true;
+    const fl = this.getDecodedToken()?.firstLogin;
+    return fl === true || fl === 'true' || fl === 't' || fl === 1 || fl === '1';
   }
 
   completeFirstLogin(): void {
