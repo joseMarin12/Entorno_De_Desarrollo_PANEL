@@ -9,8 +9,7 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class AsignacionesService extends BaseCrud<Asignacion> {
 
-    // 🟢 CORREGIDO: Inclusión de /api/ para coincidir con las rutas de Laravel Proxy
-    protected override readonly API_URL = `${environment.apiUrl}/api/asignaciones`;
+    public override readonly API_URL = `${environment.apiUrl}/api/asignaciones`;
 
     // ── Estado reactivo ──────────────────────────────────────────────────────
     private _asignaciones = signal<Asignacion[]>([]);

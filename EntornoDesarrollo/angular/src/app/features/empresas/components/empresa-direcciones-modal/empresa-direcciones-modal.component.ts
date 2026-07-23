@@ -103,7 +103,7 @@ export class EmpresaDireccionesModalComponent implements OnInit {
   private readonly direccionesApi = inject(DireccionesEmpresasApiService);
   private readonly toast = inject(ToastService);
 
-  readonly direccionesApiUrl = `${environment.apiUrl}/direcciones-empresas`;
+  readonly direccionesApiUrl = `${environment.apiUrl}/api/direcciones-empresas`;
 
   direcciones: DireccionEmpresa[] = [];
   loadingDirecciones = false;

@@ -25,7 +25,7 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
     @Output() close = new EventEmitter<void>();
 
     private direccionesApi = inject(DireccionesEmpresasApiService);
-    readonly direccionesApiUrl = `${environment.apiUrl}/direcciones-empresas`;
+    readonly direccionesApiUrl = `${environment.apiUrl}/api/direcciones-empresas`;
 
     private _paises = signal<Pais[]>([]);
     private _provincias = signal<Provincia[]>([]);

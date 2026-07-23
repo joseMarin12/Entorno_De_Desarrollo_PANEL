@@ -7,9 +7,9 @@ import { TipoEmpresa } from '../models/tipo-empresa.model';
 
 @Injectable({ providedIn: 'root' })
 export class EmpresasApiService extends BaseCrud<Empresa> {
-  
+
   // Apunta al prefijo /api del proxy de Laravel en producción
-  protected override readonly API_URL = `${environment.apiUrl}/api/empresas`;
+  public override readonly API_URL = `${environment.apiUrl}/api/empresas`;
 
   findAll(searchText = '', status = '', tipo = '', page = 1, limit = 10): Observable<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }> {
     return this.http.post<{ data: Empresa[], total: number, totalActivos: number, totalInactivos: number }>(this.API_URL, {
@@ -33,9 +33,9 @@ export class EmpresasApiService extends BaseCrud<Empresa> {
   }
 
   update(id: number, data: Empresa): Observable<Empresa> {
-    return this._update({ 
-      action: 'updateEmpresa', 
-      empresaId: id, 
+    return this._update({
+      action: 'updateEmpresa',
+      empresaId: id,
       empresaData: {
         nombre: data.nombre,
         razonSocial: data.razonSocial,
@@ -43,7 +43,7 @@ export class EmpresasApiService extends BaseCrud<Empresa> {
         id_tipo_empresa: data.id_tipo_empresa,
         id_comerciales: data.id_comerciales,
         activo: data.activo,
-      } 
+      }
     });
   }
 

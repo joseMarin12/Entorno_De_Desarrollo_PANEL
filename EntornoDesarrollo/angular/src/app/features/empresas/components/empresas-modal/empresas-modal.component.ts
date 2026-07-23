@@ -112,9 +112,9 @@ export class EmpresasModalComponent implements OnInit, OnChanges {
     contactosRows: ContactoFormRow[] = [];
     private rowKeyCounter = 0;
 
-    readonly empresasApiUrl = `${environment.apiUrl}/empresas`;
-    readonly asignacionesApiUrl = `${environment.apiUrl}/asignaciones`;
-    readonly direccionesApiUrl = `${environment.apiUrl}/direcciones-empresas`;
+    readonly empresasApiUrl = `${environment.apiUrl}/api/empresas`;
+    readonly asignacionesApiUrl = `${environment.apiUrl}/api/asignaciones`;
+    readonly direccionesApiUrl = `${environment.apiUrl}/api/direcciones-empresas`;
 
     form = {
         nombre: '',
