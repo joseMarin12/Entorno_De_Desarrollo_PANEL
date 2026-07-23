@@ -1,95 +1,133 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Injectable, signal } from "@angular/core";
+import { map, Observable } from "rxjs";
+import { tap } from "rxjs/operators";
 
-import { BaseCrud } from './base.service';
-import { Empresa } from '../models/empresa.model';
-import { ContactoEmpresa } from '../models/contacto-empresa.model';
-import { environment } from '../../environments/environment';
+import { BaseCrud } from "./base.service";
+import { DireccionEmpresa } from "../models/direccion-empresa.model";
+import { Pais } from "../models/pais.model";
+import { Provincia } from "../models/provincia.model";
+import { Localidad } from "../models/localidad.model";
+import { environment } from "../../environments/environment";
 
 @Injectable({ providedIn: 'root' })
-export class EmpresasApiService extends BaseCrud<Empresa> {
+export class DireccionesEmpresasApiService extends BaseCrud<DireccionEmpresa> {
 
-    protected override readonly API_URL = `${environment.apiUrl}/api/empresas`;
+    protected override readonly API_URL = `${environment.apiUrl}/api/direcciones-empresas`;
 
     // ── Estado reactivo con Signals ─────────────────────────────────────────
-    private _empresas = signal<Empresa[]>([]);
+    private _direcciones = signal<DireccionEmpresa[]>([]);
     readonly loading = signal(false);
     readonly error = signal<string | null>(null);
 
-    readonly empresas = this._empresas.asReadonly();
+    readonly direcciones = this._direcciones.asReadonly();
     readonly total = signal(0);
+    readonly totalActivos = signal(0);
+    readonly totalInactivos = signal(0);
 
     // ── Consultas ────────────────────────────────────────────────────────────
-    findAll(searchText = '', page = 1, limit = 100): Observable<{ data: Empresa[], total: number }> {
+    findAll(
+        searchText = '', 
+        status = '', 
+        pais = '', 
+        page = 1, 
+        limit = 10, 
+        idEmpresa: number
+    ): Observable<{ data: DireccionEmpresa[], total: number, totalActivos: number, totalInactivos: number }> {
         this.loading.set(true);
         this.error.set(null);
 
-        return this.http.post<{ data: Empresa[], total: number }>(this.API_URL, {
-            action: 'getEmpresas',
-            filters: { searchText },
+        return this.http.post<{ data: DireccionEmpresa[], total: number, totalActivos: number, totalInactivos: number }>(this.API_URL, {
+            action: 'getDirecciones',
+            idEmpresa,
+            filters: { searchText, status, pais },
             page,
             limit,
         }).pipe(
             tap({
                 next: res => {
                     const list = res?.data ?? [];
-                    this._empresas.set(list);
+                    this._direcciones.set(list);
                     this.total.set(res?.total ?? list.length);
+                    this.totalActivos.set(res?.totalActivos ?? 0);
+                    this.totalInactivos.set(res?.totalInactivos ?? 0);
                     this.loading.set(false);
                 },
                 error: e => {
-                    this.error.set(e?.message ?? 'Error al cargar las empresas');
+                    this.error.set(e?.message ?? 'Error al cargar las direcciones');
                     this.loading.set(false);
                 }
             })
         );
     }
 
+    // ── Lookups de Ubicación ────────────────────────────────────────────────
+    findPaises(): Observable<Pais[]> {
+        return this.http.post<{ data: Pais[] }>(this.API_URL, { action: 'getPaises' })
+            .pipe(map(res => res.data));
+    }
+
+    findProvincias(idPais: number): Observable<Provincia[]> {
+        return this.http.post<{ data: Provincia[] }>(this.API_URL, { action: 'getProvincias', idPais })
+            .pipe(map(res => res.data));
+    }
+
+    findLocalidades(idProvincia: number): Observable<Localidad[]> {
+        return this.http.post<{ data: Localidad[] }>(this.API_URL, { action: 'getLocalidades', idProvincia })
+            .pipe(map(res => res.data));
+    }
+
     // ── Mutaciones CRUD ──────────────────────────────────────────────────────
-    create(data: Omit<Empresa, 'id'>): Observable<Empresa> {
+    create(data: Omit<DireccionEmpresa, 'id' | 'localidad' | 'provincia' | 'pais'>): Observable<DireccionEmpresa> {
         this.loading.set(true);
         this.error.set(null);
-        return this._create({ action: 'createEmpresa', empresaData: data }).pipe(
+        return this._create({ action: 'createDireccion', direccionData: data }).pipe(
             tap({
                 next: () => this.loading.set(false),
-                error: e => { this.error.set(e?.message ?? 'Error al crear empresa'); this.loading.set(false); }
+                error: e => { this.error.set(e?.message ?? 'Error al crear la dirección'); this.loading.set(false); }
             })
         );
     }
 
-    update(id: number, data: Omit<Empresa, 'id'>): Observable<Empresa> {
+    update(id: number, data: Omit<DireccionEmpresa, 'id' | 'localidad' | 'provincia' | 'pais'>): Observable<DireccionEmpresa> {
         this.loading.set(true);
         this.error.set(null);
-        return this._update({ action: 'updateEmpresa', empresaId: id, empresaData: data }).pipe(
+        return this._update({ action: 'updateDireccion', direccionId: id, direccionData: data }).pipe(
             tap({
                 next: () => this.loading.set(false),
-                error: e => { this.error.set(e?.message ?? 'Error al actualizar empresa'); this.loading.set(false); }
+                error: e => { this.error.set(e?.message ?? 'Error al actualizar la dirección'); this.loading.set(false); }
             })
         );
     }
 
-    delete(id: number): Observable<Empresa> {
+    toggleStatus(id: number): Observable<DireccionEmpresa> {
         this.loading.set(true);
         this.error.set(null);
-        return this._delete({ action: 'deleteEmpresa', empresaId: id }).pipe(
+        return this._toggleStatus({ action: 'toggleDireccionStatus', direccionId: id }).pipe(
             tap({
                 next: () => this.loading.set(false),
-                error: e => { this.error.set(e?.message ?? 'Error al eliminar empresa'); this.loading.set(false); }
+                error: e => { this.error.set(e?.message ?? 'Error al cambiar estado'); this.loading.set(false); }
+            })
+        );
+    }
+
+    delete(id: number): Observable<DireccionEmpresa> {
+        this.loading.set(true);
+        this.error.set(null);
+        return this._delete({ action: 'deleteDireccion', direccionId: id }).pipe(
+            tap({
+                next: () => this.loading.set(false),
+                error: e => { this.error.set(e?.message ?? 'Error al eliminar la dirección'); this.loading.set(false); }
             })
         );
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
-    getById(id: number): Empresa | undefined {
-        return this._empresas().find(e => e.id === id);
+    // 🟢 Tipado explícito (d: DireccionEmpresa) agregado para resolver TS7006
+    getById(id: number): DireccionEmpresa | undefined {
+        return this._direcciones().find((d: DireccionEmpresa) => d.id === id);
     }
 
-    /**
-     * Retorna el nombre legible de un contacto asociado a la empresa.
-     * Línea 94 corregida con fallback seguro para la build de Angular en producción.
-     */
-    getContactoNombre(c: ContactoEmpresa): string {
-        return c.nombre_completo || `${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() || `Contacto #${c.id}`;
+    title(d: DireccionEmpresa): string {
+        return d.direccion || `Dirección #${d.id}`;
     }
 }
