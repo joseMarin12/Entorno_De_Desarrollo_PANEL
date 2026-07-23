@@ -10,7 +10,7 @@ import { environment } from '../../environments/environment';
 export class AsignacionesService extends BaseCrud<Asignacion> {
 
     // 🟢 CORREGIDO: Inclusión de /api/ para coincidir con las rutas de Laravel Proxy
-    public override readonly API_URL = `${environment.apiUrl}/api/asignaciones`;
+    protected override readonly API_URL = `${environment.apiUrl}/api/asignaciones`;
 
     // ── Estado reactivo ──────────────────────────────────────────────────────
     private _asignaciones = signal<Asignacion[]>([]);
