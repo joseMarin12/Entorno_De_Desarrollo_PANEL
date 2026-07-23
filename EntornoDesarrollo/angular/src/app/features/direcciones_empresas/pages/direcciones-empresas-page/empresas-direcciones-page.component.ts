@@ -53,7 +53,7 @@ export class EmpresasDireccionesPageComponent implements OnInit {
   currentPage = signal(1);
   totalFiltered = signal<number>(0);
   readonly PAGE_SIZE = 10;
-  
+
   tableColumns = tableColumns;
 
   nombreEmpresa = '';
@@ -88,7 +88,7 @@ export class EmpresasDireccionesPageComponent implements OnInit {
         || d.direccion.toLowerCase().includes(q)
       return matchFilter && matchSearch && matchPais;
     });
-  }  
+  }
 
   get empresaId(): number | null {
     return this.route.snapshot.paramMap.get('id') ? Number(this.route.snapshot.paramMap.get('id')) : null;
@@ -107,7 +107,7 @@ export class EmpresasDireccionesPageComponent implements OnInit {
   private loadAll(searchText = '', status = '', pais = '', empresaId = this.empresaId): void {
     this.api.findAll(searchText, status, pais, this.currentPage(), this.PAGE_SIZE, empresaId!).subscribe({
       next: (res) => { 
-        this._direcciones.set(res.data ?? []);
+        this._direcciones.set((res.data ?? []).filter((d: any) => d.id !== null && d.id !== undefined));
         this._total.set(res.total ?? 0);
         this._totalActivos.set(res.totalActivos ?? 0);
         this._totalInactivos.set(res.totalInactivos ?? 0);
@@ -139,7 +139,7 @@ export class EmpresasDireccionesPageComponent implements OnInit {
     this.currentPage.set(1);
     this.loadAll(q, this.activeFilter, this.typeFilter);
   }
-  
+
   onFilterChange(f: DirFilterType): void {
     this.activeFilter = f;
     this.currentPage.set(1);
@@ -171,7 +171,7 @@ export class EmpresasDireccionesPageComponent implements OnInit {
     this.selectedId = id;
     this.showEdit = true;
   }
-  
+
   onSaveEdit(data: DireccionEmpresa): void {
     this.api.update(data.id!, data).subscribe({
       next: (updated) => {

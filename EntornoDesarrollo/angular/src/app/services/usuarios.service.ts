@@ -47,7 +47,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
   loadAll(page = 1, limit = 10, filters: any = {}): Observable<Usuario[]> {
     this.loading.set(true);
     this.error.set(null);
-   
+
     return this._findAll({
       action: 'getUser',
       page,
@@ -59,19 +59,25 @@ export class UsuariosService extends BaseCrud<Usuario> {
         rawData
       })),
       tap(({ mapped, rawData }) => {
+        const firstRow = (rawData[0] ?? {}) as any;
+        const esFantasma = rawData.length === 1 && (firstRow.id === null || firstRow.id === undefined);
+        const lista = esFantasma ? [] : mapped;
+
         if (rawData.length > 0) {
-          const firstRow = rawData[0] as any;
-          const total = Number(firstRow.total_count || mapped.length);
-          this.totalRecords.set(total);
-          this._statsTotal.set(Number(firstRow.stats_total ?? total));
+          this._statsTotal.set(Number(firstRow.stats_total ?? 0));
           this._statsActivos.set(Number(firstRow.stats_activos ?? 0));
           this._statsInactivos.set(Number(firstRow.stats_inactivos ?? 0));
+          this.totalRecords.set(esFantasma ? 0 : Number(firstRow.total_count ?? firstRow.total_filtered ?? lista.length));
         } else {
           this.totalRecords.set(0);
         }
-        this._usuarios.set(mapped);
+        this._usuarios.set(lista);
       }),
-      map(({ mapped }) => mapped),
+      map(({ mapped, rawData }) => {
+        const firstRow = (rawData[0] ?? {}) as any;
+        const esFantasma = rawData.length === 1 && (firstRow.id === null || firstRow.id === undefined);
+        return esFantasma ? [] : mapped;
+      }),
       catchError(e => {
         const msg = e?.message ?? 'Error al cargar los usuarios';
         this.error.set(msg);
@@ -187,7 +193,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
   private applyRobustMerge(backendRes: any, localData: Usuario): Usuario {
     const mapped = this.mapSingleFromBackend(backendRes);
     const isReal = backendRes && (backendRes.id || backendRes.nombre || backendRes.name || backendRes.email);
-    
+
     if (isReal) {
       const cleanedMapped: any = {};
       const raw = (backendRes.json && typeof backendRes.json === 'object') ? backendRes.json : backendRes;
@@ -201,7 +207,7 @@ export class UsuariosService extends BaseCrud<Usuario> {
       if (raw.roleid || raw.role_id || raw.ID_ROL || raw.id_rol) cleanedMapped.roleid = mapped.roleid;
 
       const merged = { ...localData, ...cleanedMapped };
-      
+
       if (!cleanedMapped.password && localData.password) {
         merged.password = localData.password;
       }
@@ -211,8 +217,8 @@ export class UsuariosService extends BaseCrud<Usuario> {
   }
 
   private mapSingleFromBackend(item: any): Usuario {
-    const d = (item && item.json && typeof item.json === 'object' && !Array.isArray(item.json)) 
-              ? item.json 
+    const d = (item && item.json && typeof item.json === 'object' && !Array.isArray(item.json))
+              ? item.json
               : item;
 
     if (!d || typeof d !== 'object') return {} as Usuario;

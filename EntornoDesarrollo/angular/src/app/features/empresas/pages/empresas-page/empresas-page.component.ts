@@ -43,7 +43,7 @@ export class EmpresasPageComponent implements OnInit {
   private readonly contactosApi = inject(ContactosEmpresasApiService);
 
   ConfirmMode = ConfirmMode;
-  tableColumns = EMPRESAS_COLUMNS; 
+  tableColumns = EMPRESAS_COLUMNS;
 
   private readonly _empresas = signal<Empresa[]>([]);
   readonly empresas = this._empresas.asReadonly();
@@ -105,11 +105,11 @@ export class EmpresasPageComponent implements OnInit {
   private loadAll(searchText = '', status = '', tipo = ''): void {
     this.api.findAll(searchText, status, tipo, this.currentPage(), this.PAGE_SIZE).subscribe({
       next: (res: any) => { 
-        this._empresas.set(res.data ?? []);
-        
+        this._empresas.set((res.data ?? []).filter((e: any) => e.id !== null && e.id !== undefined));
+
         // El total filtrado maneja las páginas de la tabla
         this._total.set(res.totalFiltered ?? res.total ?? 0);
-        
+
         // Las estadísticas superiores leen los contadores fijos (evita el baile)
         this._statsTotal.set(res.stats_total ?? res.total ?? 0);
         this._statsActivos.set(res.stats_activos ?? res.totalActivos ?? 0);
@@ -123,7 +123,7 @@ export class EmpresasPageComponent implements OnInit {
   get getExistingCIFs(): string[] {
     return this.empresas().map(e => e.cif.trim().toUpperCase());
   }
-  
+
   get existingCIFsForEdit(): string[] {
     if (!this.selectedId) return [];
     return this.empresas()
@@ -158,7 +158,7 @@ export class EmpresasPageComponent implements OnInit {
     this.currentPage.set(1);
     this.loadAll(q, this.activeFilter, this.typeFilter);
   }
-  
+
   onFilterChange(f: EmpFilterType): void {
     this.activeFilter = f;
     this.currentPage.set(1);
@@ -170,7 +170,7 @@ export class EmpresasPageComponent implements OnInit {
     this.currentPage.set(1);
     this.loadAll(this.searchQuery, this.activeFilter, t);
   }
-  
+
   onPageChange(page:number): void {
     this.currentPage.set(page);
     this.loadAll(this.searchQuery, this.activeFilter, this.typeFilter);
