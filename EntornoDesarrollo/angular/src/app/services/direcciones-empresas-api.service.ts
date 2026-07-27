@@ -13,11 +13,11 @@ export class DireccionesEmpresasApiService extends BaseCrud<DireccionEmpresa> {
     protected override readonly API_URL = `${environment.apiUrl}/api/direcciones-empresas`;
 
     findAll(
-        searchText = '', 
-        status = '', 
-        pais = '', 
-        page = 1, 
-        limit = 10, 
+        searchText = '',
+        status = '',
+        pais = '',
+        page = 1,
+        limit = 10,
         idEmpresa: number
     ): Observable<{ data: DireccionEmpresa[], total: number, totalActivos: number, totalInactivos: number }> {
         return this.http.post<{ data: DireccionEmpresa[], total: number, totalActivos: number, totalInactivos: number }>(this.API_URL, {
@@ -42,6 +42,22 @@ export class DireccionesEmpresasApiService extends BaseCrud<DireccionEmpresa> {
     findLocalidades(idProvincia: number): Observable<Localidad[]> {
         return this.http.post<{ data: Localidad[] }>(this.API_URL, { action: 'getLocalidades', idProvincia })
             .pipe(map(res => res.data));
+    }
+
+    
+    resolverPais(nombre: string): Observable<number> {
+        return this.http.post<{ data: { id: number }[] }>(this.API_URL, { action: 'resolverPais', nombre })
+            .pipe(map(res => res.data?.[0]?.id));
+    }
+
+    resolverProvincia(nombre: string, idPais: number): Observable<number> {
+        return this.http.post<{ data: { id: number }[] }>(this.API_URL, { action: 'resolverProvincia', nombre, id_pais: idPais })
+            .pipe(map(res => res.data?.[0]?.id));
+    }
+
+    resolverLocalidad(nombre: string, idProvincia: number): Observable<number> {
+        return this.http.post<{ data: { id: number }[] }>(this.API_URL, { action: 'resolverLocalidad', nombre, id_provincia: idProvincia })
+            .pipe(map(res => res.data?.[0]?.id));
     }
 
     create(data: Omit<DireccionEmpresa, 'id' | 'localidad' | 'provincia' | 'pais'>): Observable<DireccionEmpresa> {

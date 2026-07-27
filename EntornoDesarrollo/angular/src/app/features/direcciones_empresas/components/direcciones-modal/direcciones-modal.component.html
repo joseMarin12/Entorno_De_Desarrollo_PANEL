@@ -27,17 +27,19 @@
         </div>
 
         <div class="form-group">
-          <app-lookup-select
+          <app-lookup-select #paisSel
             [apiUrl]="direccionesApiUrl"
             action="getPaises"
             label="País"
             labelField="pais"
-            placeholder="Selecciona un país..."
+            placeholder="Selecciona o crea un país..."
             [searchable]="true"
+            [allowCreate]="true"
             [required]="true"
             [hasError]="!!errors['id_pais']"
             [(ngModel)]="selectedPaisId"
             (ngModelChange)="onPaisChange($event)"
+            (create)="onCrearPais($event, paisSel)"
           />
           @if (errors['id_pais']) { 
             <span class="form-hint error-msg">{{ errors['id_pais'] }}</span>
@@ -45,36 +47,40 @@
         </div>
 
         <div class="form-group">
-          <app-lookup-select
+          <app-lookup-select #provSel
             [apiUrl]="direccionesApiUrl"
             action="getProvincias"
             label="Provincia"
             labelField="provincia"
             filterField="id_pais"
             [filterValue]="selectedPaisId"
-            placeholder="Selecciona una provincia..."
+            placeholder="Selecciona o crea una provincia..."
             [searchable]="true"
+            [allowCreate]="true"
             [required]="true"
             [hasError]="!!errors['id_provincia']"
             [(ngModel)]="selectedProvinciaId"
             (ngModelChange)="onProvinciaChange($event)"
+            (create)="onCrearProvincia($event, provSel)"
           />
           @if (errors['id_provincia']) { <span class="form-hint error-msg">{{ errors['id_provincia'] }}</span> }
         </div>
 
         <div class="form-group">
-          <app-lookup-select
+          <app-lookup-select #locSel
             [apiUrl]="direccionesApiUrl"
             action="getLocalidades"
             label="Localidad"
             labelField="localidad"
             filterField="id_provincia"
             [filterValue]="selectedProvinciaId"
-            placeholder="Selecciona una localidad..."
+            placeholder="Selecciona o crea una localidad..."
             [searchable]="true"
+            [allowCreate]="true"
             [required]="true"
             [hasError]="!!errors['id_localidad']"
             [(ngModel)]="form.id_localidad"
+            (create)="onCrearLocalidad($event, locSel)"
           />
           @if (errors['id_localidad']) { <span class="form-hint error-msg">{{ errors['id_localidad'] }}</span> }
         </div>    

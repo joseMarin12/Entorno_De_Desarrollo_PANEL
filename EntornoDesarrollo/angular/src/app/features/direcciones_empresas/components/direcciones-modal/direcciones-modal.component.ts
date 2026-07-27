@@ -110,6 +110,48 @@ export class DireccionesModalComponent implements OnInit, OnChanges {
         });
     }
 
+    // ── Geografía "crear si no existe": resuelve (o crea) en el backend, obtiene el id y lo selecciona ──
+    onCrearPais(nombre: string, sel: LookupSelectComponent): void {
+        this.direccionesApi.resolverPais(nombre).subscribe({
+            next: (id) => {
+                if (id == null) return;
+                this.selectedPaisId = id;
+                this.selectedProvinciaId = null;
+                this.form.id_localidad = null;
+                this._provincias.set([]);
+                this._localidades.set([]);
+                sel.reloadAndSelect(id);
+            },
+            error: (err) => console.error('Error al crear el país:', err),
+        });
+    }
+
+    onCrearProvincia(nombre: string, sel: LookupSelectComponent): void {
+        if (!this.selectedPaisId) return;
+        this.direccionesApi.resolverProvincia(nombre, this.selectedPaisId).subscribe({
+            next: (id) => {
+                if (id == null) return;
+                this.selectedProvinciaId = id;
+                this.form.id_localidad = null;
+                this._localidades.set([]);
+                sel.reloadAndSelect(id);
+            },
+            error: (err) => console.error('Error al crear la provincia:', err),
+        });
+    }
+
+    onCrearLocalidad(nombre: string, sel: LookupSelectComponent): void {
+        if (!this.selectedProvinciaId) return;
+        this.direccionesApi.resolverLocalidad(nombre, this.selectedProvinciaId).subscribe({
+            next: (id) => {
+                if (id == null) return;
+                this.form.id_localidad = id;
+                sel.reloadAndSelect(id);
+            },
+            error: (err) => console.error('Error al crear la localidad:', err),
+        });
+    }
+
     private fillForm(): void {
         if (this.formInitialized) return;
         if (!this.isEditMode) {
