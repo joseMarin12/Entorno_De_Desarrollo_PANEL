@@ -77,7 +77,7 @@ export interface FirmaModalData {
 export function estadoFirmaLabel(estado: EstadoFirma): string {
   switch (estado) {
     case 'PENDIENTE_ENVIO': return 'Pendiente de firma';
-    case 'EN_SINATURA':     return 'Firmando';
+    case 'EN_SINATURA':     return 'En proceso de firma';
     case 'COMPLETADO':      return 'Firmado';
     case 'RECHAZADO':       return 'Rechazado';
     case 'CANCELADO':       return 'Cancelada';
