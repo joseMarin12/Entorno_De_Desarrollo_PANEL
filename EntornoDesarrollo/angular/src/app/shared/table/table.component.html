@@ -44,9 +44,13 @@
                   }
 
                   @case ('text') {
-                    <span [style.color]="isActive(row, col.activeField) ? '' : 'var(--text-muted)'">
-                      {{ col.field ? row[col.field] : '' }}
-                    </span>
+                    @if (col.emptyLabel && isEmptyField(row, col)) {
+                      <span class="td-dash">{{ col.emptyLabel }}</span>
+                    } @else {
+                      <span [style.color]="isActive(row, col.activeField) ? '' : 'var(--text-muted)'">
+                        {{ col.field ? row[col.field] : '' }}
+                      </span>
+                    }
                   }
 
                   @case ('number') {

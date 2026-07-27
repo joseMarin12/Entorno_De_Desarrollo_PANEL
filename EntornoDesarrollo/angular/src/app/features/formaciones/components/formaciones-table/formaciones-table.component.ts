@@ -49,11 +49,13 @@ export class FormacionesTableComponent {
       header: 'Denominacion',
       type: 'text',
       field: 'denominacion',
+      emptyLabel: '—',
     },
     {
       header: 'Horario',
       type: 'text',
       field: 'horario',
+      emptyLabel: '—',
     },
     {
       header: 'Estado',

@@ -189,6 +189,12 @@ export class TableComponent {
     ).format(parsed);
   }
 
+  /** True cuando la celda de texto no tiene valor (se usa para mostrar el emptyLabel, ej. '—'). */
+  isEmptyField(row: any, col: ColumnDef): boolean {
+    const value = col.field ? row[col.field] : null;
+    return value === null || value === undefined || value === '';
+  }
+
   getFieldValue(fieldName: string, row: any, fieldType: FieldType = 'text', col?: ColumnDef): string {
     const value = row[fieldName];
     if (value === null || value === undefined || value === '') return '';
