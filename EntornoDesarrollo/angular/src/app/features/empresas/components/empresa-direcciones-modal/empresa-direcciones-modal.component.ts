@@ -150,6 +150,45 @@ export class EmpresaDireccionesModalComponent implements OnInit {
     this.newDireccion.id_localidad = null;
   }
 
+  // ── Geografía "crear si no existe": resuelve (o crea) en el backend, obtiene el id y lo selecciona ──
+  onCrearPais(nombre: string, sel: LookupSelectComponent): void {
+    this.direccionesApi.resolverPais(nombre).subscribe({
+      next: (id) => {
+        if (id == null) return;
+        this.newDireccion.id_pais = id;
+        this.newDireccion.id_provincia = null;
+        this.newDireccion.id_localidad = null;
+        sel.reloadAndSelect(id);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo crear el país'),
+    });
+  }
+
+  onCrearProvincia(nombre: string, sel: LookupSelectComponent): void {
+    if (!this.newDireccion.id_pais) { this.toast.show('info', 'Selecciona primero un país'); return; }
+    this.direccionesApi.resolverProvincia(nombre, this.newDireccion.id_pais).subscribe({
+      next: (id) => {
+        if (id == null) return;
+        this.newDireccion.id_provincia = id;
+        this.newDireccion.id_localidad = null;
+        sel.reloadAndSelect(id);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo crear la provincia'),
+    });
+  }
+
+  onCrearLocalidad(nombre: string, sel: LookupSelectComponent): void {
+    if (!this.newDireccion.id_provincia) { this.toast.show('info', 'Selecciona primero una provincia'); return; }
+    this.direccionesApi.resolverLocalidad(nombre, this.newDireccion.id_provincia).subscribe({
+      next: (id) => {
+        if (id == null) return;
+        this.newDireccion.id_localidad = id;
+        sel.reloadAndSelect(id);
+      },
+      error: () => this.toast.show('error', '✗ No se pudo crear la localidad'),
+    });
+  }
+
   saveNewDireccion(): void {
     if (!this.newDireccion.direccion || !this.newDireccion.codigoPostal || !this.newDireccion.id_localidad) {
       this.toast.show('warning', 'Completa dirección, código postal y localidad.');

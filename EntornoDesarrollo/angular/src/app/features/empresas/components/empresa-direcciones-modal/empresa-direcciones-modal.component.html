@@ -56,42 +56,48 @@
               <input class="form-input" type="text" placeholder="Ej: 28001" [(ngModel)]="newDireccion.codigoPostal">
             </div>
             <div class="form-group">
-              <app-lookup-select
+              <app-lookup-select #paisSel
                 [apiUrl]="direccionesApiUrl"
                 action="getPaises"
                 label="País"
                 labelField="pais"
-                placeholder="Selecciona un país..."
+                placeholder="Selecciona o crea un país..."
                 [searchable]="true"
+                [allowCreate]="true"
                 [(ngModel)]="newDireccion.id_pais"
                 (ngModelChange)="onDireccionPaisChange()"
+                (create)="onCrearPais($event, paisSel)"
               />
             </div>
             <div class="form-group">
-              <app-lookup-select
+              <app-lookup-select #provSel
                 [apiUrl]="direccionesApiUrl"
                 action="getProvincias"
                 label="Provincia"
                 labelField="provincia"
                 filterField="id_pais"
                 [filterValue]="newDireccion.id_pais"
-                placeholder="Selecciona una provincia..."
+                placeholder="Selecciona o crea una provincia..."
                 [searchable]="true"
+                [allowCreate]="true"
                 [(ngModel)]="newDireccion.id_provincia"
                 (ngModelChange)="onDireccionProvinciaChange()"
+                (create)="onCrearProvincia($event, provSel)"
               />
             </div>
             <div class="form-group full">
-              <app-lookup-select
+              <app-lookup-select #locSel
                 [apiUrl]="direccionesApiUrl"
                 action="getLocalidades"
                 label="Localidad"
                 labelField="localidad"
                 filterField="id_provincia"
                 [filterValue]="newDireccion.id_provincia"
-                placeholder="Selecciona una localidad..."
+                placeholder="Selecciona o crea una localidad..."
                 [searchable]="true"
+                [allowCreate]="true"
                 [(ngModel)]="newDireccion.id_localidad"
+                (create)="onCrearLocalidad($event, locSel)"
               />
             </div>
           </div>
