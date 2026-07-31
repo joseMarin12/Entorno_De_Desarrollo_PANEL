@@ -9,12 +9,6 @@ use Symfony\Component\HttpFoundation\Response;
 class VerifyApiToken
 {
     /**
-     * Secreto compartido con n8n para firmar/verificar el JWT.
-     * Debe coincidir con JWT_HASH en el nodo "verificarEmail" de n8n.
-     */
-    private const JWT_SECRET = 'passEncriptada';
-
-    /**
      * Valida el JWT que Angular envía en el body de cada petición.
      * El token fue generado por n8n tras un login exitoso.
      */
@@ -70,9 +64,14 @@ class VerifyApiToken
 
         [$headerB64, $payloadB64, $signatureB64] = $parts;
 
+        $secret = (string) config('services.n8n.jwt_secret');
+        if ($secret === '') {
+            return null;
+        }
+
         // Verificar firma SHA256
         $expectedSignature = $this->base64UrlEncode(
-            hash_hmac('sha256', "$headerB64.$payloadB64", self::JWT_SECRET, true)
+            hash_hmac('sha256', "$headerB64.$payloadB64", $secret, true)
         );
 
         if (!hash_equals($expectedSignature, $signatureB64)) {
