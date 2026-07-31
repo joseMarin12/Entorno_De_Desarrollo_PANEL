@@ -26,7 +26,7 @@ class AutenticadorController extends Controller
 
         try {
             // 2. Hacer la petición a tu webhook de n8n
-            $response = Http::post('https://n8n.srv1128480.hstgr.cloud/webhook/login', [
+            $response = Http::post(env('N8N_WEBHOOK_LOGIN_URL', 'https://n8n.srv1128480.hstgr.cloud/webhook/login'), [
                 'email'    => $request->email,
                 'password' => $request->password
             ]);
@@ -91,7 +91,7 @@ class AutenticadorController extends Controller
      */
     private function generateManualJwt(array $user, bool $firstLogin): string
     {
-        $secret = env('JWT_SECRET', 'passEncriptada'); 
+        $secret = (string) config('services.n8n.jwt_secret');
 
         $header = json_encode([
             'alg' => 'HS256',
